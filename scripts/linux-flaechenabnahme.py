@@ -29,17 +29,18 @@ def click(window, x, y):
 def button(window, word, width, height, down=False):
     # Die tatsächliche Lage des beschrifteten Bedienelements aus dem Fenster lesen.
     for attempt in range(12):
-        image = run("import", "-window", window, "png:-")
+        left = int(width * 0.72)
+        image = run("import", "-window", window, "-crop", f"{width-left}x{height}+{left}+0",
+                    "+repage", "-resize", "250%", "-colorspace", "Gray", "-negate", "png:-")
         tsv = subprocess.run(
             ["tesseract", "stdin", "stdout", "-l", "deu", "--psm", "11", "tsv"],
             input=image, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True,
         ).stdout.decode()
         rows = list(csv.DictReader(io.StringIO(tsv), delimiter="\t"))
         for row in rows:
-            if (row["text"].casefold().strip(".,:") in (("3d", "wählen") if word == "3d" else ("übernehmen","ubernehmen")) and
-                    int(row["left"]) > width * 0.72):
-                click(window, int(row["left"]) + int(row["width"]) // 2,
-                      int(row["top"]) + int(row["height"]) // 2)
+            if (row["text"].casefold().strip(".,:") in (("3d", "wählen") if word == "3d" else ("übernehmen","ubernehmen","parameter"))):
+                click(window, left + round((int(row["left"]) + int(row["width"]) / 2) / 2.5),
+                      round((int(row["top"]) + int(row["height"]) / 2) / 2.5))
                 return
         if attempt > 0:
             xdo("mousemove", "--window", window, width - 65, height // 2,
@@ -88,6 +89,7 @@ def main():
             button(window, "übernehmen", w, h, down=True)
             time.sleep(1)
             bound = save(window, path)
+            assert json.loads(path.read_text())["objects"][0]["position"] == [128.,128.,0.]
             assert bound != original and abs(bound["normal"][0] - 2**-0.5) < 1e-6, bound
             xdo("key", "ctrl+z")
             time.sleep(0.3)

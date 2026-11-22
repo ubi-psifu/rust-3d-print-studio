@@ -4,7 +4,7 @@
 
 Die oberste Aushöhlung im Inspektor kann ihre Öffnungsfläche direkt aus der 3D-Ansicht übernehmen. Die Vorschau berechnet den unbearbeiteten Außenkörper aus dem aktuellen Entwurf und zeigt ihn einzeln mit eigener Kamera. Das Dreieck unter dem Mauszeiger wird umrandet. Ein Treffer bindet die lokale Ebene. Der Projektverlauf erhält beim Übernehmen einen Bearbeitungsschritt. Esc bricht die Auswahl ab. F1 öffnet das eingebettete Kapitel.
 
-68 Rust-Tests sowie Formatierung, Workspace-Check, Clippy mit Warnungen als Fehlern und Linux-Release-Build bestanden lokal. Der neue Test prüft den Bildschirmtreffer bei gedrehtem und verschobenem Keil in beiden Projektionen sowie das Volumen und den gespeicherten Bezug. Der Linux-Fenstertest verwendet die echte Oberfläche unter X11. Die Freigabeergebnisse stehen in den Release Notes.
+68 Rust-Tests sowie Formatierung, Workspace-Check, Clippy mit Warnungen als Fehlern und Linux-Release-Build bestanden lokal. Der neue Test prüft den Bildschirmtreffer bei gedrehtem und verschobenem Keil in beiden Projektionen sowie das Volumen und den gespeicherten Bezug. Beim ersten Fensterlauf fand der Test die Schaltfläche zum Übernehmen im scrollbaren Inspektor nicht. Sie ist jetzt fest bei den Modellaktionen erreichbar. Die Übernahme reiner CAD-Änderungen erhält die bisherige Plattenposition auch bei aktivem Raster. Der Linux-Fenstertest verwendet die echte Oberfläche unter X11. Die Freigabeergebnisse stehen in den Release Notes.
 
 Die Auswahl gilt für die oberste Aushöhlung und eine ebene, zusammenhängende Öffnungsfläche. Bei verschachtelten Aushöhlungen bleibt die numerische Bearbeitung im Featurebaum verfügbar. Als Nächstes folgt die direkte Kantenauswahl für Fasen und Rundungen.
 

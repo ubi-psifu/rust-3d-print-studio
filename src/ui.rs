@@ -1317,29 +1317,28 @@ impl Studio {
             ui.label("Körperfarbe");
             ui.color_edit_button_srgb(&mut d.color);
         });
-        ui.add_space(8.);
-        if ui.button("Parameter übernehmen").clicked() {
-            let mut obj = d.clone();
-            if self.snap {
-                let step = self.p.view.grid;
-                obj.position = (obj.position / step).round() * step;
-            }
-            if let Some(i) = self.sel {
-                let (tx, rx) = std::sync::mpsc::channel();
-                self.pending = Some((i, rx));
-                self.message = "Konstruktion wird berechnet".into();
-                std::thread::spawn(move || {
-                    let result = obj.rebuild().and_then(|()| {
-                        if obj.valid() {
-                            Ok(obj)
-                        } else {
-                            Err("Abmessungen, Position und Bohrungsdurchmesser prüfen".into())
-                        }
-                    });
-                    let _ = tx.send(result);
-                });
-            }
+    }
+    fn apply_draft(&mut self) {
+        let (Some(i), Some(mut obj)) = (self.sel, self.draft.clone()) else {
+            return;
+        };
+        if self.snap && obj.position != self.p.objects[i].position {
+            let step = self.p.view.grid;
+            obj.position = (obj.position / step).round() * step;
         }
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.pending = Some((i, rx));
+        self.message = "Konstruktion wird berechnet".into();
+        std::thread::spawn(move || {
+            let result = obj.rebuild().and_then(|()| {
+                if obj.valid() {
+                    Ok(obj)
+                } else {
+                    Err("Abmessungen, Position und Bohrungsdurchmesser prüfen".into())
+                }
+            });
+            let _ = tx.send(result);
+        });
     }
     fn await_edit(&mut self, ctx: &egui::Context) -> bool {
         use std::sync::mpsc::TryRecvError;
@@ -1732,6 +1731,16 @@ impl Studio {
             .show(ctx, |ui| {
                 egui::TopBottomPanel::bottom("modellaktionen").show_inside(ui, |ui| {
                     ui.add_space(6.);
+                    if self.draft.is_some()
+                        && ui
+                            .add_sized(
+                                [ui.available_width(), 32.],
+                                egui::Button::new("Parameter übernehmen"),
+                            )
+                            .clicked()
+                    {
+                        self.apply_draft();
+                    }
                     if ui
                         .add_sized(
                             [ui.available_width(), 32.],
