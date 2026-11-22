@@ -22,8 +22,12 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Pruefpaket-0.12.2.zip") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Rust-3D-Print-Studio-0.12.2.zip") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o studio.zip
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "pruefpaket-delta.patch") | .id' | tr -d '\r')
+          curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o delta.patch
+          echo 'e70949d48596d340b486806343dc31880c2df5fdea90ed3c05b3b91cc128526a  delta.patch' | sha256sum -c
+          git apply -p2 delta.patch
           echo '4fb3ff25025a19322067c26641cdf890408be7e5068e156e4dea75637de3ee25  studio.zip' | sha256sum -c
           unzip -q studio.zip
       - name: Installation, Explorer und Deinstallation prüfen
@@ -69,8 +73,9 @@ jobs:
             file="Rust-3D-Print-Studio-$v.zip"
             git show "refs/remotes/import/versions:docs/releases/$v.md" > "$dir/$v.md"
             sha=$(grep -oE '[0-9a-f]{64}' "$dir/$v.md" | tail -1)
-            download "Pruefpaket-$v.zip"
-            mv "$dir/Pruefpaket-$v.zip" "$dir/$file"
+            download "$file"
+            download pruefpaket-delta.patch
+            (cd "$dir" && echo 'e70949d48596d340b486806343dc31880c2df5fdea90ed3c05b3b91cc128526a  pruefpaket-delta.patch' | sha256sum -c && mv "$file" studio.zip && git apply -p2 pruefpaket-delta.patch && mv studio.zip "$file")
             echo "$sha  $dir/$file" | sha256sum -c
           done
           git config user.name 'github-actions[bot]'
