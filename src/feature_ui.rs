@@ -268,6 +268,39 @@ pub fn edit(ui: &mut Ui, f: &mut Feature) {
                 });
             }
         }
+        Feature::Case(c) => {
+            vector(ui, "Innenmaße", &mut c.inside, 4.0..=500.);
+            for (label, v) in [
+                ("Wandstärke", &mut c.wall),
+                ("Spiel je Seite", &mut c.play),
+                ("Einstecktiefe", &mut c.lip),
+            ] {
+                ui.horizontal(|ui| {
+                    ui.label(label);
+                    ui.add(egui::DragValue::new(v).speed(0.1).suffix(" mm"));
+                });
+            }
+        }
+        Feature::Relief(r) => {
+            if let rust_3d_print_studio::cad::accessories::Art::Text { value, mono } = &mut r.source
+            {
+                ui.text_edit_singleline(value);
+                ui.checkbox(mono, "Schrift mit fester Breite");
+            }
+            for (label, v) in [
+                ("Schrifthöhe / Logobreite", &mut r.size),
+                ("Rand", &mut r.border),
+                ("Plattenstärke", &mut r.base),
+                ("Reliefhöhe / Tiefe", &mut r.depth),
+            ] {
+                ui.horizontal(|ui| {
+                    ui.label(label);
+                    ui.add(egui::DragValue::new(v).speed(0.1).suffix(" mm"));
+                });
+            }
+            ui.checkbox(&mut r.engraved, "Gravur");
+            ui.checkbox(&mut r.hole, "Öse mit 3,2 mm Bohrung");
+        }
         Feature::Hook(h) => {
             egui::ComboBox::from_label("Hakentyp")
                 .selected_text(h.style.label())

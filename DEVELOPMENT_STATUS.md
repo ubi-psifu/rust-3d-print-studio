@@ -1,4 +1,10 @@
-# Entwicklungsstand 0.5.0
+# Entwicklungsstand 0.6.0
+
+## Stand vom 21. November 2026
+
+Plattenlayout mit Mustern und Referenzkanten, Import geschlossener Fremdnetze, Schrift- und SVG-Reliefs sowie parametrisches Gehäuse und Deckel sind integriert. Die Platzprüfung arbeitet mit achsparallelen Hüllboxen. Das Projektformat begrenzt die serialisierten Daten auf 2 MiB. Der 3MF-Geometrieimport deckt einfache Modellcontainer ab. Komplexe Bambu-Projekte verwenden den separaten Vorlagenablauf. Der SVG-Import deckt einen Teil der Pfadbefehle und Grundformen ab. Ältere R3DP-Projekte können geöffnet werden. Projekte mit neuen Konstruktionstypen benötigen beim erneuten Öffnen Version 0.6.
+
+41 automatisierte Tests erfolgreich. Release für Linux und Windows x64 gebaut. Windows-Laufzeit, physische Passung und erneute Bambu-Studio-Abnahme der neuen Version stehen aus. Die nachfolgenden Slicer-Prüfungen stammen aus früheren Versionen.
 
 ## Offline-Engine
 
@@ -29,6 +35,6 @@ Der Wandhaken ist als Generator, frei editierbarer Feature-Baum, binäre STL und
 | Körperbearbeitung | Drei Netzboolesche, ebener Schnitt, gewölbter Werkzeugkörper per Differenz, konvexe Stützkanten mit Fase/variabler Rundung, toleranzbasierte Reparatur | Freie gekrümmte Schnittfläche ohne geschlossenen Werkzeugkörper und allgemeine lokale Fillets an konkaven Kanten fehlen. Kein automatisches Füllen beliebiger Löcher. |
 | Haken | Acht Voreinstellungen, variable Profile und Spitzen, Lochmuster, Senkungen, Rippe, gerundete Platte, auflösbare freie Konstruktion | Öffnungsweite und tatsächliche Gesamttiefe ergeben sich aus Pfad und Profil. Es gibt noch keine inverse Maßsteuerung dieser beiden Größen. Kantenübergänge an der Rippe sind scharf. |
 | Druckprüfung | P1S-Grenzen, Sperrfläche, Kanteninzidenz/-orientierung, entartete Flächen, numerische Gültigkeit, Selbstschnittprüfung, Überhangfläche | Dreiecke mit gemeinsamen Eckpunktindizes werden vom Selbstschnitttest ausgenommen. Allgemeine Mindestwandstärke, Kerbspannungen, Haftung und Werkstoffschrumpfung sind nicht simuliert. |
-| Dateien/Plattform | R3DP v1 lesen und v2 schreiben, STL binär, OBJ und 3MF exportieren, Windows-EXE und Installer gebaut, Linux-Fenster geprüft | Fremdnetzimport, STEP, Autosicherung, native Windows-/macOS-Abnahme und Lastprüfung offen. |
+| Dateien/Plattform | R3DP v1 lesen und v2 schreiben, STL binär, OBJ und 3MF exportieren, Windows-EXE und Installer gebaut, Linux-Fenster geprüft | STEP, Autosicherung, native Windows-/macOS-Abnahme und Lastprüfung offen. |
 
 Grenzen pro Projekt sind 2 MiB, 128 Körper und 64 Undo-Schritte. Pro Feature-Baum gelten 128 Auswertungsknoten und 24 Verschachtelungsebenen. Die gespeicherten CAD-Parameter bleiben mit f64 erhalten. Tessellierte Kantenrundungen, Senkungen und Kreisquerschnitte sind segmentabhängig. Die begrenzte Selbstschnittprüfung kann bei sehr aufwendigen Netzen einen Prüfaufwandfehler melden. Neue Objekte und Boolesche können während der ersten Berechnung die Oberfläche kurz anhalten.

@@ -107,11 +107,17 @@ pub fn xy_at(cam: &Camera3D, x: f32, y: f32, z: f32) -> Option<::glam::DVec2> {
     (t >= 0.).then(|| (o + d * t).truncate().as_dvec2())
 }
 fn pick_matrix(matrix: Mat4, x: f32, y: f32, cache: &[Solid]) -> Option<(usize, Vec3)> {
+    surface_matrix(matrix, x, y, cache).map(|(i, _, point)| (i, point))
+}
+pub fn surface(cam: &Camera3D, x: f32, y: f32, cache: &[Solid]) -> Option<(usize, usize, Vec3)> {
+    surface_matrix(cam.matrix(), x, y, cache)
+}
+fn surface_matrix(matrix: Mat4, x: f32, y: f32, cache: &[Solid]) -> Option<(usize, usize, Vec3)> {
     let (origin, dir) = ray(matrix, x, y);
     let mut best = f32::INFINITY;
     let mut index = None;
     for (i, s) in cache.iter().enumerate() {
-        for f in &s.mesh.faces {
+        for (face, f) in s.mesh.faces.iter().enumerate() {
             let [a, b, c] = f.map(|j| s.mesh.vertices[j].as_vec3());
             let e = b - a;
             let q = c - a;
@@ -127,11 +133,11 @@ fn pick_matrix(matrix: Mat4, x: f32, y: f32, cache: &[Solid]) -> Option<(usize, 
             let depth = q.dot(k) / det;
             if u >= 0. && v >= 0. && u + v <= 1. && depth > 0. && depth < best {
                 best = depth;
-                index = Some(i);
+                index = Some((i, face));
             }
         }
     }
-    index.map(|i| (i, origin + dir * best))
+    index.map(|(i, f)| (i, f, origin + dir * best))
 }
 fn panel(a: f32, b: f32, c: f32, d: f32, z: f32, color: Color) {
     let vertices = [vec3(a, b, z), vec3(c, b, z), vec3(c, d, z), vec3(a, d, z)]

@@ -1,5 +1,7 @@
 # Architektur und Datenmodell
 
+`layout.rs` plant Veränderungen an einer Auswahl in Millimetern. `layout_ui.rs` zeigt denselben Plan, der beim Bestätigen auf eine Projektkopie angewendet wird. Die Historie speichert die Änderung als Einheit. `import.rs` erzeugt Mesh-Features aus unterstützten Austauschformaten. `svg.rs` liest geschlossene Vektorkonturen. `cad/accessories.rs` erzeugt Schild, Gehäuse und Deckel aus gespeicherten Parametern.
+
 ## Lokale Engine
 
 `section` berechnet Ebenenschnitte und schneidet parallele Fülllinien nach der Gerade/Ungerade-Regel mit den Konturen eines Objekts. `layers` verwendet die transformierten Netze über sämtliche Schichten wieder, tastet jede Schicht in der Mitte ab und legt getrennte SVG-Gruppen für Kontur und Füllung an. Der Modellstapel endet an der höchsten Geometrie. Die Zeichnungen dokumentieren die geometrische Planung.
@@ -38,7 +40,7 @@ Lesegrenze 2 MiB, höchstens 128 Objekte und 32 rechteckige Sperrflächen. Vor d
 
 ## Austausch
 
-STL speichert Dreiecke mit Normalen, OBJ indizierte Eckpunkte und Flächen. Beim STL-Import im Slicer mm wählen. Der 3MF-Container enthält Content Types, Paketbeziehung, Modellteil und Build-Liste. Jedes Projektobjekt ist eine eigene Mesh-Ressource. Objekttransformationen sind in die Weltkoordinaten der Eckpunkte eingerechnet. Slicer-Einstellungen werden im Slicer festgelegt. Der Dateiparser öffnet ausschließlich R3DP-Projekte und explizit ausgewählte JSON-Druckerprofile. Es gibt in dieser Version keinen XML- oder ZIP-Import.
+STL speichert Dreiecke mit Normalen, OBJ indizierte Eckpunkte und Flächen. Beim STL-Import im Slicer mm wählen. Der 3MF-Container enthält Content Types, Paketbeziehung, Modellteil und Build-Liste. Jedes Projektobjekt ist eine eigene Mesh-Ressource. Objekttransformationen sind in die Weltkoordinaten der Eckpunkte eingerechnet. Slicer-Einstellungen werden im Slicer festgelegt. Die Importmodule verarbeiten Projekt- und Profil-JSON, Netze sowie unterstützte XML- und ZIP-Formate mit Größenbegrenzungen.
 
 ## Verlauf und Profilprüfung
 

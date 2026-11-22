@@ -1,3 +1,7 @@
+# Ergänzung 0.6
+
+Die Schriftkonturen verwenden ttf-parser und die eingebetteten egui-Schriften. quick-xml liest unterstützte SVG- und 3MF-Inhalte. Die verwendeten Versionen sind in Cargo.lock fixiert und in den kompilierten Linux- und Windows-Builds aufgelöst.
+
 # Bibliotheksprüfung
 
 Die Spalte Datum bezeichnet die Veröffentlichung der jüngsten stabilen, nicht zurückgezogenen Version im abgefragten Crates.io-Register. Sie ist ein Indiz für Aktivität. Das Cargo-Lockfile und die Builds prüfen die Kompatibilität der tatsächlich integrierten Auswahl. Für Kandidaten steht der Integrationstest aus.

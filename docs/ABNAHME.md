@@ -1,3 +1,9 @@
+# Abnahme 0.6.0
+
+Rust 1.88.0 unter Linux. Formatierung, Check aller Targets im Workspace, Clippy mit Warnungen als Fehler, 41 Tests sowie optimierte Linux- und Windows-x64-Builds liefen erfolgreich mit gesperrter Abhängigkeitsauflösung. Die neuen Fälle prüfen unter anderem eine Serie mit zwölf Körpern und Undo, Konflikte und ausgelassene Felder, numerische Abstände, Netzexport mit erneutem Import, Schrift mit Innenkonturen und die Gehäuse- und Kragenmaße.
+
+Im nativen Linux-Fenster wurde ein 20-mm-Würfel als 4 × 3-Serie angeordnet. Nach dem Speichern enthielt das Projekt zwölf Körper. Einmal Strg+Z und erneutes Speichern ergaben wieder einen Körper. Das neue Gehäusebeispiel wurde im Test geladen, als 3MF exportiert und als zwei Objekte erneut importiert. Bambu-Studio-Import, Installation auf Windows und Druck der neuen Beispielteile stehen für 0.6 aus.
+
 # Abnahme 0.3.0
 
 Im nativen Linux-Fenster wurden zwei 20-mm-Quader per Umschalt-Klick ausgewählt und in der Draufsicht mit einem Mauszug um rund 20,34 mm in X und 10,17 mm in Y verschoben. Die gespeicherten Positionen hatten weiterhin 40 mm Abstand sowie unveränderte Z-Koordinaten. Strg+C/V erzeugte zwei neue Körper. Zwei Undo-Schritte entfernten die Kopien und setzten die Ausgangspositionen wieder ein. Eine Rahmenauswahl mit anschließendem Strg+D erzeugte erneut zwei Kopien.

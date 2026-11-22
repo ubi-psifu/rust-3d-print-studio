@@ -1199,15 +1199,18 @@ dependencies = [
 
 [[package]]
 name = "rust-3d-print-studio"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "boolmesh",
  "egui-macroquad",
+ "epaint_default_fonts",
  "glam 0.27.0",
  "macroquad",
+ "quick-xml",
  "serde",
  "serde_json",
  "tempfile",
+ "ttf-parser",
  "zip",
 ]
 

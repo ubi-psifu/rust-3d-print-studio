@@ -1,4 +1,5 @@
 //! Parametrische Features in Millimetern. Nur das abgeleitete Netz wird tesselliert.
+pub mod accessories;
 pub mod curve;
 pub mod dimensions;
 mod hook;
@@ -30,6 +31,8 @@ pub enum Operation {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub enum Feature {
+    Case(accessories::Case),
+    Relief(accessories::Relief),
     Driven {
         source: Box<Feature>,
         variables: std::collections::BTreeMap<String, f64>,
@@ -126,6 +129,20 @@ pub enum Feature {
 impl Feature {
     pub fn name(&self) -> &'static str {
         match self {
+            Self::Case(c) => {
+                if c.lid {
+                    "Gehäusedeckel"
+                } else {
+                    "Gehäuse"
+                }
+            }
+            Self::Relief(r) => {
+                if matches!(r.source, accessories::Art::Text { .. }) {
+                    "Schild und Anhänger"
+                } else {
+                    "SVG-Relief"
+                }
+            }
             Self::Primitive { shape, .. } => shape.label(),
             Self::SketchExtrude { .. } => "Skizzenextrusion",
             Self::SmoothLoft { .. } => "Geführter Loft",
@@ -165,6 +182,8 @@ impl Feature {
         require(*budget > 0 && depth <= 24, "Konstruktionsbaum zu groß")?;
         *budget -= 1;
         let mesh = match self {
+            Self::Relief(r) => r.build()?,
+            Self::Case(c) => c.build()?,
             Self::Primitive { shape, size, bore } => {
                 let mut o = crate::geometry::Object::new(*shape, DVec3::ZERO);
                 o.size = *size;
@@ -601,7 +620,7 @@ fn loft(rings: &[Vec<DVec3>], closed: bool) -> Result<Mesh> {
     Ok(m)
 }
 // Ohrabschneiden für ebene, auch konkave Abschlusskonturen.
-fn cap(r: &[DVec3]) -> Result<Vec<[usize; 3]>> {
+pub(crate) fn cap(r: &[DVec3]) -> Result<Vec<[usize; 3]>> {
     let normal = (0..r.len())
         .map(|i| (r[i] - r[0]).cross(r[(i + 1) % r.len()] - r[0]))
         .sum::<DVec3>()

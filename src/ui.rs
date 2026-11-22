@@ -17,6 +17,8 @@ enum Action {
 }
 #[derive(Clone, Copy)]
 enum FileTask {
+    Import,
+    Svg,
     Open,
     Profile,
     Write(Output),
@@ -29,8 +31,11 @@ enum Dialog {
     Help,
     Combine,
     Prepare,
+    Layout,
+    Case,
 }
 struct MoveDrag {
+    axis: Option<usize>,
     hit: DVec3,
     starts: Vec<(usize, DVec3)>,
     lo: DVec2,
@@ -38,6 +43,16 @@ struct MoveDrag {
     recorded: bool,
 }
 pub struct Studio {
+    layout: Option<crate::layout_ui::Editor>,
+    axis: Option<usize>,
+    step: DVec2,
+    case: rust_3d_print_studio::cad::accessories::Case,
+    job: Option<std::sync::mpsc::Receiver<Result<Vec<Object>, String>>>,
+    unit: f64,
+    auto_place: bool,
+    measure: Vec<DVec3>,
+    magnet: bool,
+    plane_pick: bool,
     preparation: crate::preparation_ui::Panel,
     selected: Vec<usize>,
     clipboard: Vec<Object>,
@@ -71,6 +86,16 @@ const ACCENT: Color32 = Color32::from_rgb(91, 201, 182);
 impl Studio {
     pub fn new(path: Option<PathBuf>) -> Self {
         let mut app = Self {
+            layout: None,
+            axis: None,
+            step: DVec2::new(24., 0.),
+            case: Default::default(),
+            job: None,
+            unit: 1.,
+            auto_place: true,
+            measure: vec![],
+            magnet: true,
+            plane_pick: false,
             preparation: Default::default(),
             p: Project::default(),
             tool: 0,
@@ -149,6 +174,7 @@ impl Studio {
         self.refresh_draft();
     }
     fn remember(&mut self) {
+        self.measure.clear();
         self.hist.record(self.p.clone());
         self.dirty = true;
     }
@@ -166,12 +192,15 @@ impl Studio {
         self.message = "Körper erstellt".into();
     }
     fn feature_object(&mut self, f: Feature) {
+        let [x, y] = self.p.printer.bed;
+        self.feature_at(f, DVec3::new(x / 2., y / 2., 0.));
+    }
+    fn feature_at(&mut self, f: Feature, at: DVec3) {
         if self.p.objects.len() >= MAX_OBJECTS {
             self.message = "Objektgrenze erreicht".into();
             return;
         }
-        let [x, y] = self.p.printer.bed;
-        let mut o = Object::new(Shape::Box, DVec3::new(x / 2., y / 2., 0.));
+        let mut o = Object::new(Shape::Box, at);
         o.name = f.name().into();
         o.color = [196, 207, 218];
         o.feature = Some(f);
@@ -359,11 +388,122 @@ impl Studio {
             )
         };
         let cam = renderer::camera(&self.p.view, rect, self.px);
+        let matrix = macroquad::camera::Camera::matrix(&cam);
+        let project = |p: DVec3| {
+            let q = matrix * p.as_vec3().extend(1.);
+            let q = q.truncate() / q.w;
+            egui::pos2(
+                rect.center().x + q.x * rect.width() * 0.5,
+                rect.center().y - q.y * rect.height() * 0.5,
+            )
+        };
+        if self.plane_pick || self.tool == 7 {
+            if response.clicked_by(egui::PointerButton::Primary) {
+                if let Some(pos) = response.interact_pointer_pos() {
+                    let (x, y) = ndc(pos);
+                    if let Some((i, face, hit)) = renderer::surface(&cam, x, y, &self.cache) {
+                        let mesh = &self.cache[i].mesh;
+                        let t = mesh.faces[face].map(|j| mesh.vertices[j]);
+                        let mut at = hit.as_dvec3();
+                        if self.magnet {
+                            let mut best = 10.;
+                            for q in [
+                                t[0],
+                                t[1],
+                                t[2],
+                                (t[0] + t[1]) * 0.5,
+                                (t[1] + t[2]) * 0.5,
+                                (t[2] + t[0]) * 0.5,
+                            ] {
+                                let d = project(q).distance(pos);
+                                if d < best {
+                                    at = q;
+                                    best = d
+                                }
+                            }
+                        }
+                        if self.plane_pick {
+                            let u = (t[1] - t[0]).normalize();
+                            let n = u.cross(t[2] - t[0]).normalize();
+                            let sketch = rust_3d_print_studio::cad::sketch::Sketch {
+                                u,
+                                v: n.cross(u),
+                                ..Default::default()
+                            };
+                            self.plane_pick = false;
+                            self.feature_at(
+                                Feature::SketchExtrude {
+                                    sketch,
+                                    height: 4.,
+                                    end_scale: 1.,
+                                    steps: 16,
+                                },
+                                at,
+                            );
+                        } else {
+                            if self.measure.len() == 2 {
+                                self.measure.clear();
+                            }
+                            self.measure.push(at);
+                        }
+                    }
+                }
+            }
+            if self.tool == 7 {
+                for &p in &self.measure {
+                    ui.painter().circle_filled(project(p), 4., ACCENT);
+                }
+                if let [a, b] = self.measure.as_slice() {
+                    ui.painter()
+                        .line_segment([project(*a), project(*b)], (2., ACCENT));
+                }
+            }
+            return;
+        }
+        let mut handle = None;
+        if self.tool == 0 {
+            if let Some(i) = self.sel {
+                let (a, b) = self.cache[i].bounds;
+                let anchor = (a + b) * 0.5;
+                let base = project(anchor);
+                for (axis, v, col, label) in [
+                    (0, DVec3::X, Color32::from_rgb(240, 143, 100), "X"),
+                    (1, DVec3::Y, Color32::from_rgb(131, 222, 178), "Y"),
+                ] {
+                    let units = project(anchor + v) - base;
+                    if units.length() < 0.05 {
+                        continue;
+                    }
+                    let dir = units.normalized();
+                    let tip = base + dir * 48.;
+                    ui.painter().arrow(base + dir * 10., dir * 38., (2., col));
+                    ui.painter().text(
+                        tip + dir * 8.,
+                        egui::Align2::CENTER_CENTER,
+                        label,
+                        egui::FontId::proportional(12.),
+                        col,
+                    );
+                    if ctx
+                        .input(|s| s.pointer.press_origin())
+                        .is_some_and(|p| p.distance(tip) < 10.)
+                    {
+                        handle = Some((i, axis, anchor));
+                    }
+                }
+            }
+        }
         let multi = ctx.input(|i| i.modifiers.shift || i.modifiers.command);
         if response.drag_started_by(egui::PointerButton::Primary) {
             if let Some(start) = ctx.input(|i| i.pointer.press_origin()) {
                 let (x, y) = ndc(start);
-                if let Some((i, hit)) = renderer::pick(&cam, x, y, &self.cache) {
+                let hit = handle
+                    .and_then(|(i, _, a)| {
+                        renderer::xy_at(&cam, x, y, a.z as f32)
+                            .map(|v| (i, v.extend(a.z).as_vec3()))
+                    })
+                    .or_else(|| renderer::pick(&cam, x, y, &self.cache));
+                if let Some((i, hit)) = hit {
                     if !self.selected.contains(&i) {
                         self.toggle_selection(Some(i), multi);
                     }
@@ -380,6 +520,7 @@ impl Studio {
                         })
                         .collect();
                     self.drag = Some(MoveDrag {
+                        axis: handle.map(|(_, axis, _)| axis).or(self.axis),
                         hit: hit.as_dvec3(),
                         starts,
                         lo,
@@ -447,6 +588,12 @@ impl Studio {
                         if low <= high {
                             d[axis] = d[axis].clamp(low, high);
                         }
+                    }
+                    if let Some(axis) = drag.axis {
+                        d[1 - axis] = 0.;
+                    }
+                    if d.length_squared() > 1e-8 {
+                        self.step = d;
                     }
                     if d.length_squared() > 1e-8 || drag.recorded {
                         if !drag.recorded {
@@ -537,6 +684,8 @@ impl Studio {
         }
     }
     fn proceed(&mut self, a: Action) {
+        self.measure.clear();
+        self.plane_pick = false;
         self.dialog = None;
         match a {
             Action::New => {
@@ -582,6 +731,24 @@ impl Studio {
     fn file_submit(&mut self, t: FileTask) {
         let path = Path::new(self.entry.trim());
         match t {
+            FileTask::Import => {
+                let path = path.to_owned();
+                let scale = self.unit;
+                self.new_parts(move || rust_3d_print_studio::import::load(&path, scale));
+            }
+            FileTask::Svg => {
+                let path = path.to_owned();
+                self.auto_place = true;
+                self.new_parts(move || {
+                    let bytes = files::read_limited(&path).map_err(|e| e.to_string())?;
+                    let r = rust_3d_print_studio::svg::load(&bytes)?;
+                    let mut o = Object::new(Shape::Box, DVec3::ZERO);
+                    o.name = "SVG-Relief".into();
+                    o.feature = Some(Feature::Relief(r));
+                    o.rebuild()?;
+                    Ok(vec![o])
+                });
+            }
             FileTask::Open => match files::load(path) {
                 Ok(p) => {
                     self.p = p;
@@ -616,15 +783,140 @@ impl Studio {
             }
         }
     }
+    fn open_layout(&mut self) {
+        if self.selected.is_empty() {
+            self.message = "Mindestens einen Körper auswählen".into();
+            return;
+        }
+        self.layout = Some(crate::layout_ui::Editor::new(
+            &self.p,
+            &self.selected,
+            self.step,
+        ));
+        self.dialog = Some(Dialog::Layout);
+    }
+    fn new_parts(&mut self, f: impl FnOnce() -> Result<Vec<Object>, String> + Send + 'static) {
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.job = Some(rx);
+        self.dialog = None;
+        std::thread::spawn(move || {
+            let _ = tx.send(f());
+        });
+    }
+    fn add_parts(&mut self, mut parts: Vec<Object>) -> Result<(), String> {
+        let first = self.p.objects.len();
+        if parts.is_empty() || first + parts.len() > MAX_OBJECTS {
+            return Err("Ungültige Objektanzahl".into());
+        }
+        if self.auto_place {
+            let d = plate::copy_offsets(&self.p.printer, &self.p.objects, &parts, self.gap, 1)
+                .into_iter()
+                .next()
+                .ok_or("Kein freier Platz für die Gruppe")?;
+            let z = parts
+                .iter()
+                .map(|o| o.mesh().bounds().0.z)
+                .fold(f64::INFINITY, f64::min);
+            for o in &mut parts {
+                o.position += d.extend(-z);
+                let (a, b) = o.mesh().bounds();
+                if let Some(w) = self.p.printer.warning(a, b) {
+                    return Err(w.into());
+                }
+            }
+        }
+        let mut next = self.p.clone();
+        next.objects.extend(parts);
+        if !next.valid()
+            || serde_json::to_vec_pretty(&next)
+                .map_err(|e| e.to_string())?
+                .len()
+                > 2 * 1024 * 1024
+        {
+            return Err("Grenzen des R3DP-Projekts überschritten".into());
+        }
+        self.remember();
+        self.p = next;
+        self.selected = (first..self.p.objects.len()).collect();
+        self.sel = self.selected.last().copied();
+        self.refresh_draft();
+        self.focus();
+        Ok(())
+    }
+    fn new_case(&mut self) {
+        let c = self.case.clone();
+        self.auto_place = true;
+        self.new_parts(move || {
+            let mut parts = vec![];
+            for lid in [false, true] {
+                let mut c = c.clone();
+                c.lid = lid;
+                let at = if lid {
+                    c.inside.x + 2. * c.wall + 5.
+                } else {
+                    0.
+                };
+                let mut o = Object::new(Shape::Box, DVec3::new(at, 0., 0.));
+                let f = Feature::Case(c);
+                o.name = f.name().into();
+                o.feature = Some(f);
+                o.rebuild()?;
+                parts.push(o);
+            }
+            Ok(parts)
+        });
+    }
+    fn layout_dialog(&mut self, ui: &mut egui::Ui) {
+        if let Some(editor) = &mut self.layout {
+            if let Some(plan) = editor.show(ui, &self.p) {
+                if matches!(
+                    editor.s.mode,
+                    rust_3d_print_studio::layout::Mode::Move
+                        | rust_3d_print_studio::layout::Mode::Copy
+                ) {
+                    self.step = editor.s.step
+                }
+                let mut next = self.p.clone();
+                match plan.apply(&mut next) {
+                    Ok(ids) => {
+                        if !next.valid()
+                            || serde_json::to_vec_pretty(&next)
+                                .map_or(true, |b| b.len() > 2 * 1024 * 1024)
+                        {
+                            self.message = "Projektgrenze überschritten".into();
+                            self.dialog = None;
+                            return;
+                        }
+                        self.remember();
+                        self.p = next;
+                        if plan.copy {
+                            self.selected = ids;
+                            self.sel = self.selected.last().copied();
+                        }
+                        self.refresh_draft();
+                        self.dialog = None;
+                        self.message = "Plattenbearbeitung übernommen".into();
+                    }
+                    Err(e) => self.message = e,
+                }
+            }
+        }
+        if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+            self.dialog = None;
+        }
+    }
     fn dialogs(&mut self, ctx: &egui::Context) {
         let Some(d) = self.dialog else { return };
         egui::Modal::new("dialog".into()).show(ctx,|ui|{ui.set_min_width(370.);match d{
+ Dialog::Layout=>self.layout_dialog(ui),
+ Dialog::Case=>{ui.heading("Gehäuse mit Deckel");vector(ui,"Innenmaße (mm)",&mut self.case.inside,4.0..=500.);for(label,v)in [("Wandstärke",&mut self.case.wall),("Spiel je Seite",&mut self.case.play),("Einstecktiefe",&mut self.case.lip)]{ui.horizontal(|ui|{ui.label(label);ui.add(egui::DragValue::new(v).speed(0.1).suffix(" mm"));});}if ui.button("Gehäuse und Deckel erzeugen").clicked(){self.new_case();}},
  Dialog::Prepare=>{self.preparation.show(ui,&mut self.p,&mut self.hist,&mut self.dirty);if let (Some(i),Some(d))=(self.sel,self.draft.as_mut()){d.filament_slot=self.p.objects[i].filament_slot;}},
  Dialog::Combine=>{ui.heading("Boolesche Operation");ui.label("Der ausgewählte Körper ist der Grundkörper.");ui.horizontal(|ui|{for(op,name)in [(Operation::Union,"Vereinigung"),(Operation::Difference,"Differenz"),(Operation::Intersection,"Schnittmenge")]{ui.selectable_value(&mut self.operation,op,name);}});ui.label("Werkzeugkörper");for(i,o)in self.p.objects.iter().enumerate(){if Some(i)!=self.sel{ui.selectable_value(&mut self.operand,i,&o.name);}}if ui.button("Berechnen und übernehmen").clicked(){self.combine();}ui.label(&self.message);},
  Dialog::Help=>{ui.heading("Bedienung");ui.label("Linksklick: auswählen · Umschalt + Klick: Auswahl erweitern\nLinks ziehen: Körper verschieben oder Auswahlrahmen aufziehen\nStrg+C/V: kopieren/einfügen · Strg+D: duplizieren\nRechts ziehen: Ansicht drehen\nMitte ziehen: Ansicht verschieben\nMausrad: zoomen");ui.separator();ui.label("Projekt öffnen: R3DP\nNetzexport: STL binär, OBJ und Modell-3MF in mm.\nWeitere Importformate und CAD-Operationen sind offen.");},
  Dialog::Discard(a)=>{ui.heading("Ungespeicherte Änderungen");ui.label("Sollen die Änderungen verworfen werden?");if ui.button("Verwerfen und fortfahren").clicked(){self.proceed(a);}},
  Dialog::Overwrite(f)=>{ui.heading("Vorhandene Datei ersetzen?");ui.label(&self.entry);if ui.button("Datei ersetzen").clicked(){self.write(f,true);}},
- Dialog::File(t)=>{ui.heading(match t{FileTask::Open=>"Projekt öffnen",FileTask::Profile=>"Druckerprofil laden",FileTask::Write(Output::Project)=>"Projekt speichern",_=>"Netz exportieren"});ui.label("Dateipfad mit Endung");ui.text_edit_singleline(&mut self.entry);
+ Dialog::File(t)=>{ui.heading(match t{FileTask::Import=>"Netz importieren",FileTask::Svg=>"SVG-Relief laden",FileTask::Open=>"Projekt öffnen",FileTask::Profile=>"Druckerprofil laden",FileTask::Write(Output::Project)=>"Projekt speichern",_=>"Netz exportieren"});ui.label("Dateipfad mit Endung");ui.text_edit_singleline(&mut self.entry);
+ if matches!(t,FileTask::Import){ui.label("Geschlossene STL-, OBJ- oder Modell-3MF-Geometrie");ui.horizontal(|ui|{ui.label("STL/OBJ-Einheit");ui.selectable_value(&mut self.unit,1.,"mm");ui.selectable_value(&mut self.unit,10.,"cm");ui.selectable_value(&mut self.unit,25.4,"Zoll");});ui.checkbox(&mut self.auto_place,"Zusammen auf der Platte absetzen");}
  if matches!(t,FileTask::Write(Output::Stl|Output::Obj|Output::ThreeMf)){ui.label("Exportiert Dreiecksnetze in mm. Konstruktionsparameter bleiben im R3DP-Projekt.");}
  if ui.button("Bestätigen").clicked(){self.file_submit(t);}
  if !self.message.is_empty(){ui.colored_label(Color32::from_rgb(233,155,92),&self.message);}}}
@@ -669,6 +961,9 @@ impl Studio {
     fn menus(&mut self, ui: &mut egui::Ui) {
         egui::menu::bar(ui, |ui| {
             ui.menu_button("Datei", |ui| {
+                if item(ui, "Netz importieren …") {
+                    self.choose(FileTask::Import);
+                }
                 if item(ui, "Neues Projekt") {
                     self.action(Action::New)
                 }
@@ -717,6 +1012,15 @@ impl Studio {
             });
             ui.menu_button("Ansicht", |ui| self.views(ui));
             ui.menu_button("Erstellen", |ui| {
+                if item(ui, "Gehäuse mit Deckel …") {
+                    self.dialog = Some(Dialog::Case);
+                }
+                if item(ui, "SVG als Relief …") {
+                    self.choose(FileTask::Svg);
+                }
+                if item(ui, "Schild und Anhänger") {
+                    self.feature_object(Feature::Relief(Default::default()));
+                }
                 for s in Shape::ALL {
                     if item(ui, s.label()) {
                         self.add(s)
@@ -911,6 +1215,28 @@ impl Studio {
         }
     }
     pub fn frame(&mut self, ctx: &egui::Context) {
+        if let Some(rx) = &self.job {
+            match rx.try_recv() {
+                Err(std::sync::mpsc::TryRecvError::Empty) => {
+                    egui::Modal::new("teile".into()).show(ctx, |ui| {
+                        ui.spinner();
+                        ui.label("Geometrie wird berechnet und geprüft …");
+                    });
+                    return;
+                }
+                r => {
+                    self.job = None;
+                    self.message = match r
+                        .map_err(|_| "Berechnung unterbrochen".to_owned())
+                        .and_then(|r| r)
+                        .and_then(|parts| self.add_parts(parts))
+                    {
+                        Ok(()) => "Körper übernommen".into(),
+                        Err(e) => e,
+                    };
+                }
+            }
+        }
         if self.await_edit(ctx) {
             return;
         }
@@ -1007,12 +1333,21 @@ impl Studio {
                     }
                     if ui.add_sized([133., 34.], b).clicked() {
                         self.tool = i;
+                        self.plane_pick = false;
                     }
                 }
                 ui.separator();
                 match self.tool {
                     0 => {
                         ui.small("Ziehen zum Verschieben. Umschalt + Klick für mehrere Körper.");
+                        if ui.button("Plattenwerkzeuge …").clicked() {
+                            self.open_layout();
+                        }
+                        ui.horizontal(|ui| {
+                            for (k, t) in [(None, "XY"), (Some(0), "X"), (Some(1), "Y")] {
+                                ui.selectable_value(&mut self.axis, k, t);
+                            }
+                        });
                         if ui.button("Draufsicht").clicked() {
                             self.top_view();
                         }
@@ -1053,6 +1388,19 @@ impl Studio {
                         }
                     }
                     2 => {
+                        if ui
+                            .button(if self.plane_pick {
+                                "Flächenwahl abbrechen"
+                            } else {
+                                "Skizze auf Fläche"
+                            })
+                            .clicked()
+                        {
+                            self.plane_pick = !self.plane_pick;
+                        }
+                        if self.plane_pick {
+                            ui.small("Position auf einer Modellfläche anklicken.");
+                        }
                         for (name, f) in feature_ui::templates()
                             .into_iter()
                             .filter(|(_, f)| !matches!(f, Feature::Hook(_)))
@@ -1100,6 +1448,13 @@ impl Studio {
                         }
                     }
                     _ => {
+                        ui.small("Zwei Punkte auf Körpern anklicken.");
+                        ui.checkbox(&mut self.magnet, "Ecken / Kantenmitten fangen");
+                        if let [a, b] = self.measure.as_slice() {
+                            let d = *b - *a;
+                            ui.strong(format!("{:.3} mm", d.length()));
+                            ui.label(format!("ΔX {:.2}   ΔY {:.2}   ΔZ {:.2}", d.x, d.y, d.z));
+                        }
                         if let Some(i) = self.sel {
                             let (a, b) = self.p.objects[i].mesh().bounds();
                             for (label, v) in [("X", b.x - a.x), ("Y", b.y - a.y), ("Z", b.z - a.z)]

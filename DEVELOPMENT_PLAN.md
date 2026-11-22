@@ -1,3 +1,7 @@
+# Stand 0.6
+
+Die Plattenwerkzeuge, der grundlegende Netzimport und erste Bauteilgeneratoren sind verfügbar. Nächste Abnahmen betreffen die Windows-Bedienung, größere Importmodelle und die physische Passung des Gehäuses.
+
 # Offline-Engine ab 0.5
 
 Der eigene Schichtkern berechnet Konturen und Linienfüllung ohne Zusatzprogramm. Nächste Schritte für einen eigenständigen Maschinenslicer sind robuste Konturversätze für mehrere Wände, Boden- und Deckflächen, Stützgeometrie und eine mechanisch validierte Bahnplanung. Parallel bleibt die lokale Bambu-CLI der verfügbare Weg für P1S-Druckdateien.

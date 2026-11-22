@@ -1,3 +1,10 @@
+# 0.6.0 · 21. November 2026
+
+- Rechteck- und Kreismuster mit Vorschau, auslassbare Kopien, Ausrichten, Verteilen und wiederholte XY-Schritte.
+- Netzimport für binäre und ASCII-STL, OBJ und einfache Modell-3MF.
+- Schrift und geschlossene SVG-Konturen als Relief oder Gravur. Parametrisches Gehäuse mit passendem Deckel.
+- Fünf neue Regressionstests für Layout, Dateiaustausch und Geometrie.
+
 # Änderungshistorie
 
 ## 0.5.0 · Offline-Schichtplanung

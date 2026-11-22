@@ -1,5 +1,7 @@
 # Windows 11 x64
 
+Für 0.6.0 wurden die x64-EXE und das NSIS-Paket unter Linux erstellt. Ein Lauf auf Windows und eine Installation auf einem Windows-Testgerät stehen aus.
+
 Für CAD, Schichtplanung und SVG-Export genügt die portable Studio-EXE. Für eine druckerspezifische .gcode.3mf werden zusätzlich eine lokale Bambu-Studio-Installation und eine eigene ungeslicte P1S-Projektvorlage benötigt. Installer und Vorlage können per Datenträger auf den Offline-Rechner übertragen werden. Der Windows-Build aus Quellcode benötigt vorab die in Cargo.lock fixierten Abhängigkeiten, die Windows-Toolchain und das SDK.
 
 Bambu Studio ist für die Funktionen **Modellieren**, **Schnittansicht** und **3MF speichern** optional. Für den direkten Start die offizielle Desktopsoftware separat installieren. Unter **Platte vorbereiten → Übergabe** kann der Pfad zur installierten EXE gesetzt werden.

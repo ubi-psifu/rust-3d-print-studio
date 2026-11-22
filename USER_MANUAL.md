@@ -1,5 +1,17 @@
 # Bedienungsanleitung
 
+## Serien ausrichten und kopieren
+
+Wähle in der linken Leiste **Auswahl** und **Draufsicht**. Klicke ein Teil an und ziehe es mit gedrückter linker Maustaste. **XY**, **X** und **Y** bestimmen die erlaubten Bewegungsrichtungen. Mit **Umschalt + Klick** nimmst du weitere Teile in die Auswahl auf. Ein Rahmen von einer freien Stelle aus erfasst mehrere Teile.
+
+Öffne **Plattenwerkzeuge …**. Unter **Rechteck** bestimmen Spalten, Reihen und Kantenabstand die Serie. Das Original zählt als erstes Feld. Klicke in der Vorschau auf ein Kopierfeld, um es auszulassen. Rot markierte Felder zeigen Konflikte mit anderen Teilen, Sperrflächen oder dem Plattenrand an. **Kreis** bietet Radius, Anzahl und Mitdrehen. **Kopierschritt** wiederholt einen XY-Versatz. **Ausrichten** legt Minimum, Mitte oder Maximum an einem Referenzteil an. **Verteilen** setzt einen Kantenabstand. Mit **Übernehmen** wird die Vorschau zu einem rückgängig machbaren Arbeitsschritt.
+
+## Gehäuse, Schrift und Relief
+
+Unter **Erstellen → Gehäuse mit Deckel …** gibst du die lichten Innenmaße, Wandstärke, Einstecktiefe und das Spiel je Seite ein. Bei 0,25 mm Spiel ist der Kragen insgesamt 0,5 mm schmaler als die Öffnung. Beide Teile lassen sich anschließend einzeln ändern. Änderungen an gemeinsamen Maßen an beiden Teilen nachführen. Die physische Passung hängt vom Druckverfahren und Material ab.
+
+**Erstellen → Schild und Anhänger** erzeugt ein bearbeitbares Schriftteil. **Erstellen → SVG als Relief …** verarbeitet einfache geschlossene Konturen. Offene Pfade zuvor in der Zeichenanwendung schließen. Zum Testen liegt `examples/modelle/Rahmen.svg` bei.
+
 ## Zwei lokale Arbeitsabläufe
 
 **Geometrischer Schichtplan:** **Druckvorbereitung → Platte vorbereiten → Schnittansicht** öffnen und **Eigene Rust-Schichtplanung** aktivieren. Schichthöhe und prozentuale Linienfüllung einstellen. Der Schichtregler zeigt die Konturen und das rechtwinklige Füllraster. In jeder zweiten Schicht dreht sich die Füllrichtung um 90 Grad. **Alle Schichten speichern** schreibt eine neue ZIP-Datei mit maßstäblichen SVG-Zeichnungen und einer JSON-Übersicht. Das ZIP lässt sich entpacken und jede Zeichnung lokal öffnen. Die Schichtberechnung funktioniert unabhängig von einer Bambu-Installation. Der eigene Kern berechnet noch keine versetzten Wandbahnen, Stützen, Deckschichten, Bewegungsreihenfolge oder Maschinenbefehle.
@@ -71,10 +83,12 @@ Im Menü **Datei** den Befehl wählen und einen vollständigen Dateipfad samt En
 | Format | Öffnen | Schreiben |
 |---|---|---|
 | R3DP v1/v2 | Projekt, automatische Übernahme von v1 | Parametrisches Projekt v2 |
-| STL binär | Offen | Netz in mm |
-| 3MF | Globale Profileinstellungen aus ungeslicter P1S-Vorlage laden. Geometrieimport offen. | Standard-Modellcontainer oder ungeslictes Bambu-Projekt mit Filamentzuordnung |
-| OBJ | Offen | Geometrie |
-| ASCII-STL, STEP/STP, PLY, SVG, GLTF/GLB, G-Code | Offen | Offen |
+| STL binär | Dreiecksnetz | Netz in mm |
+| 3MF | Globale Profileinstellungen aus ungeslicter P1S-Vorlage laden. Einfache Core-Modell-3MF als Geometrie importieren. | Standard-Modellcontainer oder ungeslictes Bambu-Projekt mit Filamentzuordnung |
+| OBJ | Polygonnetz | Geometrie |
+| ASCII-STL | Dreiecksnetz | Offen |
+| SVG | Geschlossene Konturen als Relief | Schichtzeichnungen |
+| STEP/STP, PLY, GLTF/GLB, G-Code | Offen | Offen |
 
 „Offen“ bezeichnet eine ausstehende Funktion. Netzexport überträgt Geometrie. Zum späteren Ändern der Konstruktionsparameter zusätzlich das R3DP-Projekt speichern. Ein Standard-3MF aus dem Studio enthält keine Bambu-Druckaufträge. In Bambu Studio die Datei manuell öffnen und die aktuellen Maschinen-, Prozess- und Filamentprofile prüfen.
 

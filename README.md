@@ -1,4 +1,10 @@
-# Rust 3D Print Studio 0.5.0
+# Rust 3D Print Studio 0.6.0
+
+## Neu in 0.6.0
+
+Die Windows-Version startet über `dist/rust-3d-print-studio.exe`. Öffne zum Ausprobieren `examples/modelle/Wuerfel.r3dp`, markiere den Würfel und wähle **Plattenwerkzeuge … → Rechteck → Übernehmen**. Die Vorgabe ergibt vier Spalten und drei Reihen mit 4 mm Kantenabstand. Einmal **Strg+Z** setzt die gesamte Serie zurück.
+
+**Datei → Netz importieren …** lädt STL, OBJ und einfache Modell-3MF. Unter **Erstellen** findest du Schrift, SVG-Reliefs und ein Gehäuse mit passendem Deckel. Ein bearbeitbares Beispiel liegt unter `examples/modelle/Gehaeuse-mit-Deckel.r3dp`.
 
 **Offline arbeiten:** Unter **Platte vorbereiten → Schnittansicht → Eigene Rust-Schichtplanung** erzeugst du ohne Zusatzprogramm Konturen und Linienfüllung. **Alle Schichten speichern** exportiert eine SVG pro Schicht in ein ZIP. Ein fertiger geometrischer Schichtplan liegt in `examples/modelle/Wandhaken-Schichtplan.zip`. Für P1S-Werkzeugwege nutzt **Übergabe → Platte lokal slicen** eine auf deinem Rechner installierte Bambu-Studio-Engine mit einer eigenen P1S-Vorlage. Beide Arbeitsabläufe funktionieren ohne Internetkonto.
 
