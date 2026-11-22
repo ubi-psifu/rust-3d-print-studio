@@ -2,7 +2,7 @@
 
 ## CAD-Flächenbezüge 0.13.0
 
-Ebene Öffnungsflächen lassen sich unabhängig von der Dreiecksnummer speichern und neu auflösen. Das Beispiel Keilschale misst 40 × 30 × 20 mm bei 2 mm Wandstärke. Unter Linux bestanden 66 Rust-Tests, Formatierung, Workspace-Check und Clippy. Die Modellabnahme prüfte den Projektrundlauf, die geschlossene und konsistent orientierte Oberfläche und das analytische Volumen von 4 486 mm³. Die zweite Abnahme prüfte den Bezug nach Umsortierung und ungleicher Skalierung sowie die Ablehnung einer fehlenden Ebene. Die Windows-Fensterprüfung verwendet in dieser Version die Keilschale und kontrolliert den gespeicherten Flächenbezug.
+Ebene Öffnungsflächen lassen sich unabhängig von der Dreiecksnummer speichern und neu auflösen. Das Beispiel Keilschale misst 40 × 30 × 20 mm bei 2 mm Wandstärke. Unter Linux bestanden 67 Rust-Tests, Formatierung, Workspace-Check und Clippy. Die Modellabnahme prüfte den Projektrundlauf, die geschlossene und konsistent orientierte Oberfläche und das analytische Volumen von 4 486 mm³. Die zweite Abnahme prüfte den Bezug nach Umsortierung und ungleicher Skalierung sowie die Ablehnung einer fehlenden Ebene. Der erste native Windows-Test deckte einen Fehler beim Erkennen von Kapitelüberschriften mit CRLF auf. Die Korrektur ist durch einen separaten Test abgesichert. Die Windows-Fensterprüfung verwendet in dieser Version die Keilschale und kontrolliert den gespeicherten Flächenbezug.
 
 Bezüge gelten für eine zusammenhängende gleich orientierte Fläche in der gespeicherten normierten Ebene. Allgemeine gekrümmte B-Rep-Flächen, Auswahl durch Klick in die 3D-Ansicht und STEP bleiben offen.
 
