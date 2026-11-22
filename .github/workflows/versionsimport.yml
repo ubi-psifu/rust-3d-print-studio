@@ -30,11 +30,11 @@ jobs:
             id=$(jq -er --arg file "$1" '.[] | select(.name == $file) | .id' "$dir/assets.json")
             curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o "$dir/$1"
           }
-          download version-0.11.0.bundle
-          echo "da4ce339b6c0f7cc5cfa8c17adbd703eda5937da337b7901145d7e60cb20fb78  $dir/version-0.11.0.bundle" | sha256sum -c
-          git bundle verify "$dir/version-0.11.0.bundle"
-          git fetch "$dir/version-0.11.0.bundle" refs/heads/versions:refs/remotes/import/versions 'refs/tags/v*:refs/tags/v*'
-          tags=(v0.11.0)
+          download version-0.12.0.bundle
+          echo "5dcd68a76dc3da49f96a378f681cc4e8d2caec1c4e42f774bb8c34c954df7b3b  $dir/version-0.12.0.bundle" | sha256sum -c
+          git bundle verify "$dir/version-0.12.0.bundle"
+          git fetch "$dir/version-0.12.0.bundle" refs/heads/versions:refs/remotes/import/versions 'refs/tags/v*:refs/tags/v*'
+          tags=(v0.12.0)
           for tag in "${tags[@]}"; do
             v=${tag#v}
             file="Rust-3D-Print-Studio-$v.zip"
@@ -45,12 +45,12 @@ jobs:
           done
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'Winkelbemaßung 0.11.0 integrieren' refs/remotes/import/versions
+          git merge --no-edit -m 'Radiusbemaßung 0.12.0 integrieren' refs/remotes/import/versions
           git push --atomic origin HEAD:refs/heads/main "${tags[@]}"
           for tag in "${tags[@]}"; do
             v=${tag#v}
             if gh release view "$tag" > /dev/null 2>&1; then continue; fi
             latest=false
-            if [[ $tag == v0.11.0 ]]; then latest=true; fi
+            if [[ $tag == v0.12.0 ]]; then latest=true; fi
             gh release create "$tag" "$dir/Rust-3D-Print-Studio-$v.zip" --verify-tag --title "Rust 3D Print Studio $v" --notes-file "$dir/$v.md" --latest="$latest"
           done
