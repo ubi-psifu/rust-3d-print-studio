@@ -113,7 +113,13 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git merge --no-edit -m 'Windows-Installer 0.12.1 integrieren' refs/remotes/import/versions
-          git push --atomic origin HEAD:refs/heads/main "${tags[@]}"
+          if git ls-remote --exit-code --tags origin refs/tags/v0.12.1 > /dev/null; then
+            git diff --exit-code v0.12.1 HEAD -- . ':(exclude).github/workflows'
+            git push origin HEAD:refs/heads/main
+          else
+            git diff --exit-code v0.12.1 HEAD -- . ':(exclude).github/workflows'
+            git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.12.1
+          fi
           for tag in "${tags[@]}"; do
             v=${tag#v}
             if gh release view "$tag" > /dev/null 2>&1; then continue; fi
