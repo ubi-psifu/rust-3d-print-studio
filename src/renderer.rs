@@ -58,6 +58,12 @@ impl Solid {
         }
     }
 
+    pub fn edge(
+        &self,
+        index: usize,
+    ) -> Result<rust_3d_print_studio::cad::references::EdgeRef, String> {
+        rust_3d_print_studio::cad::references::EdgeRef::bind(&self.model.local_mesh(), index)
+    }
     pub fn opening(
         &self,
         face: usize,

@@ -1,3 +1,7 @@
+# 0.15.0 · Kanten für Fasen und Rundungen anklicken
+
+Der Kantenquader zeigt die direkte Bindung einer scharfen Kante in der 3D-Ansicht. Die markierte Kante lässt sich mit Anfangsmaß, Endmaß und Facettenzahl bearbeiten.
+
 # 0.14.0 · Öffnungsfläche im Modell anklicken
 
 Der Inspektor zeigt den Außenkörper einer Aushöhlung in einer eigenen Auswahlansicht. Ein Klick auf eine sichtbare Fläche bindet sie an den Entwurf. F1 erklärt die Auswahl offline.

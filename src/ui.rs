@@ -52,28 +52,40 @@ struct MoveDrag {
     hi: DVec2,
     recorded: bool,
 }
-struct OpeningPicker {
+struct GeometryPicker {
+    edges: Option<Vec<(usize, usize)>>,
     solid: renderer::Solid,
     view: View,
     hint: String,
 }
-impl OpeningPicker {
+impl GeometryPicker {
     fn new(object: &Object, view: &View) -> Result<Self, String> {
-        let Some(Feature::Shell { source, .. }) = &object.feature else {
-            return Err("Zum Auswählen zuerst eine Aushöhlung bearbeiten.".into());
+        let (source, picking_edge) = match &object.feature {
+            Some(Feature::Shell { source, .. }) => (source, false),
+            Some(Feature::EdgeFinish { source, .. }) => (source, true),
+            _ => return Err("Zum Auswählen eine Aushöhlung oder Kantenbearbeitung öffnen.".into()),
         };
         let mut outer = object.clone();
         outer.feature = Some((**source).clone());
         outer.rebuild()?;
+        let edges = picking_edge.then(|| {
+            rust_3d_print_studio::cad::references::EdgeRef::candidates(&outer.local_mesh())
+        });
         let solid = renderer::Solid::new(&outer);
         let (lo, hi) = solid.bounds;
         let mut view = view.clone();
         view.target = (lo + hi) * 0.5;
         view.distance = ((hi - lo).length() * 2.).clamp(8., 5000.);
         Ok(Self {
+            edges,
             solid,
             view,
-            hint: "Klicke auf die gewünschte Fläche des Außenkörpers.".into(),
+            hint: if picking_edge {
+                "Klicke von der sichtbaren Fläche aus auf eine scharfe Kante."
+            } else {
+                "Klicke auf die gewünschte Fläche des Außenkörpers."
+            }
+            .into(),
         })
     }
 }
@@ -93,8 +105,8 @@ pub struct Studio {
     measure: Vec<DVec3>,
     magnet: bool,
     plane_pick: bool,
-    opening_picker: Option<OpeningPicker>,
-    preparing_picker: Option<std::sync::mpsc::Receiver<Result<OpeningPicker, String>>>,
+    geometry_picker: Option<GeometryPicker>,
+    preparing_picker: Option<std::sync::mpsc::Receiver<Result<GeometryPicker, String>>>,
     preparation: crate::preparation_ui::Panel,
     selected: Vec<usize>,
     clipboard: Vec<Object>,
@@ -147,7 +159,7 @@ impl Studio {
             measure: vec![],
             magnet: true,
             plane_pick: false,
-            opening_picker: None,
+            geometry_picker: None,
             preparing_picker: None,
             preparation: Default::default(),
             p: Project::default(),
@@ -208,7 +220,7 @@ impl Studio {
         self.refresh_draft();
     }
     fn refresh_draft(&mut self) {
-        self.opening_picker = None;
+        self.geometry_picker = None;
         self.preparing_picker = None;
         self.draft = self.sel.map(|i| self.p.objects[i].clone());
     }
@@ -778,7 +790,7 @@ impl Studio {
         }
     }
     pub fn request_quit(&mut self) {
-        self.opening_picker = None;
+        self.geometry_picker = None;
         self.preparing_picker = None;
         self.action(Action::Quit);
     }
@@ -1290,16 +1302,19 @@ impl Studio {
                     self.help.show_topic(help::feature(f));
                 }
             });
-            let choose_opening = matches!(f, Feature::Shell { .. })
-                && ui.button("Öffnungsfläche in 3D wählen …").clicked();
+            let choose_geometry = match f {
+                Feature::Shell { .. } => ui.button("Öffnungsfläche in 3D wählen …").clicked(),
+                Feature::EdgeFinish { .. } => ui.button("Kante in 3D wählen …").clicked(),
+                _ => false,
+            };
             ui.push_id(("objektentwurf", self.sel), |ui| feature_ui::edit(ui, f));
-            if choose_opening {
+            if choose_geometry {
                 let outer = d.clone();
                 let view = self.p.view.clone();
                 let (tx, rx) = std::sync::mpsc::channel();
                 self.preparing_picker = Some(rx);
                 std::thread::spawn(move || {
-                    let _ = tx.send(OpeningPicker::new(&outer, &view));
+                    let _ = tx.send(GeometryPicker::new(&outer, &view));
                 });
             }
         } else {
@@ -1370,7 +1385,7 @@ impl Studio {
             }
         }
     }
-    fn choose_opening(&mut self, ctx: &egui::Context) {
+    fn choose_geometry(&mut self, ctx: &egui::Context) {
         if !self.help.open && ctx.input(|i| i.key_pressed(egui::Key::F1)) {
             self.help.show_topic("Kanten und Öffnungsflächen binden");
         }
@@ -1378,13 +1393,17 @@ impl Studio {
             self.help.draw(ctx);
             return;
         }
-        let Some(picker) = &mut self.opening_picker else {
+        let Some(picker) = &mut self.geometry_picker else {
             return;
         };
         let mut close = ctx.input(|i| i.key_pressed(egui::Key::Escape));
         egui::TopBottomPanel::top("flaechenauswahl").show(ctx, |ui| {
             ui.horizontal_wrapped(|ui| {
-                ui.strong("Öffnungsfläche wählen");
+                ui.strong(if picker.edges.is_some() {
+                    "Kante wählen"
+                } else {
+                    "Öffnungsfläche wählen"
+                });
                 ui.label(&picker.hint);
                 close |= ui.button("Abbrechen").clicked();
                 if ui.small_button("Hilfe (F1)").clicked() {
@@ -1414,6 +1433,27 @@ impl Studio {
                     let point = matrix.project_point3(picker.solid.mesh.vertices[i].as_vec3());
                     rect.center() + egui::vec2(point.x*rect.width()/2., -point.y*rect.height()/2.)
                 });
+                if let Some(edges) = &picker.edges {
+                    let Some((index, segment)) = nearest_sharp_edge(edges, picker.solid.mesh.faces[face], corners, pos) else {
+                        if clicked { picker.hint = "Näher an eine scharfe Außenkante klicken.".into(); }
+                        return;
+                    };
+                    ui.painter().line_segment(segment, (4., ACCENT));
+                    if clicked {
+                        match picker.solid.edge(index) {
+                            Ok(bound) => {
+                                if let Some(Feature::EdgeFinish { edge, reference, .. }) = self.draft.as_mut().and_then(|d|d.feature.as_mut()) {
+                                    *edge = index;
+                                    *reference = Some(bound);
+                                    self.message = "Kante gewählt. Mit „Parameter übernehmen“ die Bearbeitung anwenden.".into();
+                                }
+                                close = true;
+                            }
+                            Err(e) => picker.hint = e,
+                        }
+                    }
+                    return;
+                }
                 ui.painter().add(egui::Shape::closed_line(corners.to_vec(), (2., ACCENT)));
                 if clicked {
                     match picker.solid.opening(face) {
@@ -1430,7 +1470,7 @@ impl Studio {
                 }
             });
         if close {
-            self.opening_picker = None;
+            self.geometry_picker = None;
         }
     }
     pub fn frame(&mut self, ctx: &egui::Context) {
@@ -1498,15 +1538,15 @@ impl Studio {
                 result => {
                     self.preparing_picker = None;
                     match result {
-                        Ok(Ok(picker)) => self.opening_picker = Some(picker),
+                        Ok(Ok(picker)) => self.geometry_picker = Some(picker),
                         Ok(Err(error)) => self.message = error,
                         Err(_) => self.message = "Berechnung der Außenfläche abgebrochen.".into(),
                     }
                 }
             }
         }
-        if self.opening_picker.is_some() && self.dialog.is_none() {
-            self.choose_opening(ctx);
+        if self.geometry_picker.is_some() && self.dialog.is_none() {
+            self.choose_geometry(ctx);
             return;
         }
         egui::TopBottomPanel::top("menus").show(ctx, |ui| {
@@ -1880,7 +1920,7 @@ impl Studio {
     }
     pub fn render(&mut self) {
         if self.rect.is_positive() {
-            if let Some(picker) = &self.opening_picker {
+            if let Some(picker) = &self.geometry_picker {
                 let cam = renderer::camera(&picker.view, self.rect, self.px);
                 renderer::draw(
                     &cam,
@@ -1905,6 +1945,35 @@ impl Studio {
         }
     }
 }
+// Nur Kanten des vordersten getroffenen Dreiecks sind an dieser Stelle sichtbar.
+fn nearest_sharp_edge(
+    edges: &[(usize, usize)],
+    face: [usize; 3],
+    corners: [egui::Pos2; 3],
+    mouse: egui::Pos2,
+) -> Option<(usize, [egui::Pos2; 2])> {
+    let mut best = None;
+    let mut limit = 10.;
+    for (a, b) in [(0, 1), (1, 2), (2, 0)] {
+        let (i, j) = (face[a], face[b]);
+        let Ok(index) = edges.binary_search(&(i.min(j), i.max(j))) else {
+            continue;
+        };
+        let delta = corners[b] - corners[a];
+        let length_sq = delta.length_sq();
+        if length_sq < 1e-6 {
+            continue;
+        }
+        let t = ((mouse - corners[a]).dot(delta) / length_sq).clamp(0., 1.);
+        let distance = mouse.distance(corners[a] + delta * t);
+        if distance < limit {
+            limit = distance;
+            best = Some((index, [corners[a], corners[b]]));
+        }
+    }
+    best
+}
+
 fn navigate(v: &mut View, response: &egui::Response, rect: egui::Rect) {
     let delta = response.drag_delta();
     if response.dragged_by(egui::PointerButton::Secondary) {
@@ -1978,5 +2047,26 @@ mod shortcut_tests {
             &[key(true, false), key(false, true)],
             egui::Key::S
         ));
+    }
+}
+
+#[cfg(test)]
+mod edge_pick_tests {
+    use super::*;
+    #[test]
+    fn hit_requires_visible_sharp_segment_within_pointer_tolerance() {
+        let corners = [
+            egui::pos2(10., 10.),
+            egui::pos2(110., 10.),
+            egui::pos2(10., 110.),
+        ];
+        let edges = [(1, 3), (2, 3), (5, 6)];
+        let pick = |x, y| {
+            nearest_sharp_edge(&edges, [3, 1, 2], corners, egui::pos2(x, y)).map(|hit| hit.0)
+        };
+        assert_eq!(pick(50., 12.), Some(0));
+        assert_eq!(pick(12., 50.), Some(1));
+        assert_eq!(pick(60., 60.), None); // koplanare Diagonale
+        assert_eq!(pick(30., 30.), None);
     }
 }
