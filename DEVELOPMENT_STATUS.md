@@ -1,5 +1,11 @@
 # Entwicklungsstand
 
+## Kantenauswahl 0.15.0
+
+Die oberste Kantenbearbeitung lässt sich über die isolierte 3D-Ansicht ihres Außenkörpers bedienen. Die Markierung folgt der nächsten scharfen Kante des sichtbaren Dreiecks innerhalb von zehn Bildschirmpunkten. Die Bindung verwendet die lokalen Quelldaten und bleibt im R3DP-Projekt gespeichert. Der Kantenquader und die eingebettete deutsche Anleitung zeigen den Ablauf. Die Beschränkungen des vorhandenen Kantenwerkzeugs gelten weiterhin. Koplanare Triangulationsdiagonalen und verdeckte Kanten sind keine Ziele.
+
+Der zusätzliche Rust-Test prüft Nähe, Richtungsunabhängigkeit und Ausschluss der Flächendiagonale. Der Linux-Fenstertest vergleicht die beiden normierten Endpunkte der im Kantenquader gewählten Kante und prüft die gespeicherte Plattenlage, Rückgängig und Wiederholen. Der tatsächliche Freigabestand steht in den Release Notes. Als nächster Schritt ist die Ergebnisvorschau vor dem Übernehmen geplant.
+
 ## Flächenauswahl 0.14.0
 
 Die oberste Aushöhlung im Inspektor kann ihre Öffnungsfläche direkt aus der 3D-Ansicht übernehmen. Die Vorschau berechnet den unbearbeiteten Außenkörper aus dem aktuellen Entwurf und zeigt ihn einzeln mit eigener Kamera. Das Dreieck unter dem Mauszeiger wird umrandet. Ein Treffer bindet die lokale Ebene. Der Projektverlauf erhält beim Übernehmen einen Bearbeitungsschritt. Esc bricht die Auswahl ab. F1 öffnet das eingebettete Kapitel.

@@ -28,6 +28,11 @@ pub struct EdgeRef {
     normals: [DVec3; 2],
 }
 impl EdgeRef {
+    /// Endpunkte in derselben Reihenfolge wie bei der numerischen Kantenbindung.
+    pub fn candidates(mesh: &Mesh) -> Vec<(usize, usize)> {
+        sharp(mesh).into_iter().map(|(ends, _)| ends).collect()
+    }
+
     fn signature(m: &Mesh, (lo, hi): (DVec3, DVec3), edge: Edge) -> Self {
         let span = hi - lo;
         let ((a, b), normals) = edge;

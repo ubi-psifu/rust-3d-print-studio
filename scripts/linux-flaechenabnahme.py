@@ -51,6 +51,8 @@ def button(window, word, width, height, down=False):
 
 def reference(path):
     obj = json.loads(path.read_text())["objects"][0]
+    if "EdgeFinish" in obj["feature"]:
+        return obj["feature"]["EdgeFinish"].get("reference")
     return obj["feature"]["Shell"]["side"]["Plane"]
 
 
@@ -64,10 +66,10 @@ def save(window, path):
     raise AssertionError("Speicherung im Fenster fehlt")
 
 
-def main():
+def check_model(model):
     with tempfile.TemporaryDirectory() as temp:
         path = Path(temp) / "Prüfung Keilschale.r3dp"
-        shutil.copyfile(ROOT / "examples/modelle/Keilschale.r3dp", path)
+        shutil.copyfile(ROOT / "examples/modelle" / (model + ".r3dp"), path)
         original = reference(path)
         env = dict(os.environ, XDG_DATA_HOME=temp, XDG_CONFIG_HOME=temp)
         app = subprocess.Popen([Path(sys.argv[1]).resolve(), path], cwd=temp, env=env)
@@ -85,23 +87,29 @@ def main():
             time.sleep(0.4)
             button(window, "3d", w, h)
             time.sleep(1)
-            click(window, w // 2, h // 2 + 16)
+            offset = round(0.18 * (h - 25)) - 4 if model == "Kantenquader" else 0
+            click(window, w // 2 + offset, h // 2 + 16)
             button(window, "übernehmen", w, h, down=True)
             time.sleep(1)
             bound = save(window, path)
             assert json.loads(path.read_text())["objects"][0]["position"] == [128.,128.,0.]
-            assert bound != original and abs(bound["normal"][0] - 2**-0.5) < 1e-6, bound
+            assert bound and bound != original, bound
+            if model == "Keilschale":
+                assert abs(bound["normal"][0] - 2**-0.5) < 1e-6
+            else:
+                assert all(abs(p[0] - 1.) < 1e-6 and abs(p[2] - 1.) < 1e-6 for p in bound["ends"]), bound
             xdo("key", "ctrl+z")
             time.sleep(0.3)
             assert save(window, path) == original
             xdo("key", "ctrl+y")
             time.sleep(0.3)
             assert save(window, path) == bound
-            print("Schräge angeklickt, übernommen, gespeichert, zurückgenommen und wiederhergestellt.")
+            print(model + " angeklickt, übernommen, gespeichert, zurückgenommen und wiederhergestellt.")
         finally:
             app.terminate()
             app.wait(timeout=10)
 
 
 if __name__ == "__main__":
-    main()
+    for model in ("Keilschale", "Kantenquader"):
+        check_model(model)

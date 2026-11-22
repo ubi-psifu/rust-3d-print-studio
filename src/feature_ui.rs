@@ -674,7 +674,9 @@ pub fn edit(ui: &mut Ui, f: &mut Feature) {
             r2,
             steps,
         } => {
-            let id = ui.id().with("kantenbezug");
+            let id = ui
+                .id()
+                .with(("kantenbezug", reference.as_ref().map(|_| *edge)));
             let mut candidate = ui.data(|d| d.get_temp::<usize>(id)).unwrap_or(*edge);
             integer(ui, "Kantennummer", &mut candidate, 0, 50000);
             ui.data_mut(|d| d.insert_temp(id, candidate));

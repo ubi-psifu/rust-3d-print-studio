@@ -4,6 +4,8 @@ Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der re
 
 ## Kanten und Öffnungsflächen binden
 
+Öffne **Kantenquader.r3dp**, markiere den Quader und wähle im Inspektor **Kante in 3D wählen …**. Bewege den Zeiger von der sichtbaren Fläche an ihren Rand. Die hervorgehobene Linie zeigt die Kante, die du mit einem Linksklick bindest. Mit der rechten Maustaste drehst du den Außenkörper. **Esc** bricht ab und **F1** öffnet diese Anleitung. Stelle Anfangsmaß, Endmaß und Facettenzahl ein und klicke auf **Parameter übernehmen**. Eine Facette erzeugt eine Fase.
+
 Unter **Modellieren → Kante abrunden / fasen** eine scharfe Kante über ihre Nummer wählen. **Kante geometrisch binden** merkt sich Anfang, Ende und Nachbarflächen vor dem nächsten Umbau. **Parameter übernehmen** baut den Körper. Wird die Quelle in X, Y oder Z gestreckt, bleibt die Zuordnung für gleiche normierte Endpunkte und Flächennormalen erhalten. Auch die Richtung von Anfangs- und Endradius bleibt erhalten. Wird die Kante geteilt, ersetzt oder mehrdeutig, meldet der Editor den fehlenden Bezug. Dann die Quelle prüfen und eine neue Kante binden.
 
 Unter **Modellieren → Aushöhlen** die Option **Öffnungsfläche verwenden** aktivieren und eine der sechs lokalen Außenseiten wählen. Eine ebene zusammenhängende Fläche an diesem Extremum dient als Öffnung. Das Beispiel **Seitlich-offene-Schale.r3dp** hat 40 × 30 × 20 mm Außenmaß, 2 mm Wandstärke und eine Öffnung rechts. Die Auswahl bleibt beim erneuten Öffnen des Projekts erhalten.
