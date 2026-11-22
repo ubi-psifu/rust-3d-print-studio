@@ -13,25 +13,37 @@ jobs:
     runs-on: windows-2022
     permissions:
       contents: write
-    timeout-minutes: 10
+    timeout-minutes: 35
     steps:
-      - name: Archiv aus dem Importentwurf prüfen
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Geprüften Quellstand integrieren
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Rust-3D-Print-Studio-0.12.2.zip") | .id' | tr -d '\r')
-          curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o studio.zip
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "pruefpaket-delta.patch") | .id' | tr -d '\r')
-          curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o delta.patch
-          echo 'e70949d48596d340b486806343dc31880c2df5fdea90ed3c05b3b91cc128526a  delta.patch' | sha256sum -c
-          git apply -p2 delta.patch
-          echo '4fb3ff25025a19322067c26641cdf890408be7e5068e156e4dea75637de3ee25  studio.zip' | sha256sum -c
-          unzip -q studio.zip
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.13.0.bundle") | .id' | tr -d '\r')
+          curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
+          echo 'b3f3c5ef1e1afb31e2efeb2989ff8dc84c4d05793150442ee022078df020fa15  source.bundle' | sha256sum -c
+          git bundle verify source.bundle
+          git fetch --no-tags ./source.bundle refs/heads/flaechenbezug:refs/remotes/import/versions
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git merge --no-edit -m 'Gebundene Öffnungsflächen 0.13.0 integrieren' refs/remotes/import/versions
+          git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
+      - name: Windows-x64-Programm und Installer bauen
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.88.0 --profile minimal --component clippy --component rustfmt
+          if ($LASTEXITCODE -ne 0) { throw 'Rust-Installation fehlgeschlagen' }
+          $env:RUSTUP_TOOLCHAIN='1.88.0'
+          $env:PATH="${env:ProgramFiles(x86)}\NSIS;$env:PATH"
+          ./scripts/windows.ps1 -Installer
       - name: Installation, Explorer und Deinstallation prüfen
-        run: ./Rust-3D-Print-Studio-0.12.2/scripts/windows-abnahme.ps1
+        run: ./scripts/windows-abnahme.ps1
       - name: OpenGL-Testumgebung für den Windows-Runner vorbereiten
         shell: pwsh
         run: |
@@ -39,59 +51,74 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Mesa-Installation für Runner fehlgeschlagen' }
       - name: Portables Studio mit Software-OpenGL öffnen und Projekt speichern
         shell: pwsh
-        run: ./Rust-3D-Print-Studio-0.12.2/scripts/windows-tastenabnahme.ps1
-  import:
+        run: ./scripts/windows-tastenabnahme.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-geprueft
+          path: dist/*.exe
+          if-no-files-found: error
+  release:
     needs: windows
-    if: github.repository == 'ubi-psifu/rust-3d-print-studio' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - name: Quellstände und Originalarchive prüfen und veröffentlichen
+      - name: Geprüften Quellstand integrieren
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          api="repos/$GITHUB_REPOSITORY"
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.13.0.bundle") | .id' | tr -d '\r')
+          curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
+          echo 'b3f3c5ef1e1afb31e2efeb2989ff8dc84c4d05793150442ee022078df020fa15  source.bundle' | sha256sum -c
+          git bundle verify source.bundle
+          git fetch --no-tags ./source.bundle refs/heads/flaechenbezug:refs/remotes/import/versions
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git merge --no-edit -m 'Gebundene Öffnungsflächen 0.13.0 integrieren' refs/remotes/import/versions
+          git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-geprueft
+          path: dist
+      - name: Linux-Build und Modellabnahme
         shell: bash
         run: |
           set -euo pipefail
-          dir=$(mktemp -d)
-          api="repos/$GITHUB_REPOSITORY"
-          gh api "$api/releases?per_page=100" | jq -e '[.[] | select(.draft and .name == "Versionsimport")] | if length == 1 then .[0].assets else error("Importentwurf fehlt") end' > "$dir/assets.json"
-          download() {
-            local id
-            id=$(jq -er --arg file "$1" '.[] | select(.name == $file) | .id' "$dir/assets.json")
-            curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o "$dir/$1"
-          }
-          download version-0.12.2-rc2.bundle
-          echo "d5a7b8625ba0ca2d117da1292ba3c6c491fda5a07728db3459f5a562d0781168  $dir/version-0.12.2-rc2.bundle" | sha256sum -c
-          git bundle verify "$dir/version-0.12.2-rc2.bundle"
-          git fetch --no-tags "$dir/version-0.12.2-rc2.bundle" refs/heads/kurze-tasten:refs/remotes/import/versions
-          tags=(v0.12.2)
-          for tag in "${tags[@]}"; do
-            v=${tag#v}
-            file="Rust-3D-Print-Studio-$v.zip"
-            git show "refs/remotes/import/versions:docs/releases/$v.md" > "$dir/$v.md"
-            sha=$(grep -oE '[0-9a-f]{64}' "$dir/$v.md" | tail -1)
-            download "$file"
-            download pruefpaket-delta.patch
-            (cd "$dir" && echo 'e70949d48596d340b486806343dc31880c2df5fdea90ed3c05b3b91cc128526a  pruefpaket-delta.patch' | sha256sum -c && mv "$file" studio.zip && git apply -p2 pruefpaket-delta.patch && mv studio.zip "$file")
-            echo "$sha  $dir/$file" | sha256sum -c
-          done
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'Plattenbedienung 0.12.2 integrieren' refs/remotes/import/versions
-          if git ls-remote --exit-code --tags origin refs/tags/v0.12.2 > /dev/null; then
-            git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
-            git push origin HEAD:refs/heads/main
-          else
-            git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
-            git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.12.2
-          fi
-          for tag in "${tags[@]}"; do
-            v=${tag#v}
-            if gh release view "$tag" > /dev/null 2>&1; then continue; fi
-            latest=false
-            if [[ $tag == v0.12.2 ]]; then latest=true; fi
-            gh release create "$tag" "$dir/Rust-3D-Print-Studio-$v.zip" --verify-tag --title "Rust 3D Print Studio $v" --notes-file "$dir/$v.md" --latest="$latest"
-          done
+          rustup toolchain install 1.88.0 --profile minimal --component clippy --component rustfmt
+          export RUSTUP_TOOLCHAIN=1.88.0
+          cargo fmt --all --check
+          cargo check --workspace --all-targets --locked
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test --workspace --locked
+          cargo build --workspace --release --locked
+          cp target/release/rust-3d-print-studio dist/rust-3d-print-studio-linux-x64
+      - name: Download prüfen und Version veröffentlichen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          prefix=Rust-3D-Print-Studio-0.13.0
+          file="$prefix.zip"
+          notes=docs/releases/0.13.0.md
+          sed -i '/^SHA-256 des Downloadarchivs:/d' "$notes"
+          echo "Windows-Server-Abnahme bestanden. Die portable EXE öffnete und speicherte die Keilschale samt Flächenbezug. [Prüfprotokoll](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> "$notes"
+          git add "$notes"
+          git commit -m 'Windows-Abnahme der Keilschale dokumentieren'
+          mkdir "$prefix"
+          git archive HEAD | tar -x -C "$prefix"
+          cp -r dist "$prefix/"
+          zip -qr "$file" "$prefix"
+          unzip -tq "$file"
+          sha=$(sha256sum "$file" | cut -d' ' -f1)
+          cp "$notes" release.md
+          printf '\nSHA-256 des Downloadarchivs: %s\n' "$sha" >> release.md
+          git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.13.0
+          gh release create v0.13.0 "$file" --verify-tag --notes-file release.md --title 'Rust 3D Print Studio 0.13.0' --latest
+          curl -fsSL --retry 4 "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.13.0/$file" -o public.zip
+          cmp "$file" public.zip
