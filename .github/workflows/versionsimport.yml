@@ -22,9 +22,9 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Rust-3D-Print-Studio-0.12.2.zip") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Pruefpaket-0.12.2.zip") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o studio.zip
-          echo '47cec1de690f7865a8d9bed68d451dbc2dfb829c7df433734f8b11ee2c93ac64  studio.zip' | sha256sum -c
+          echo '4fb3ff25025a19322067c26641cdf890408be7e5068e156e4dea75637de3ee25  studio.zip' | sha256sum -c
           unzip -q studio.zip
       - name: Installation, Explorer und Deinstallation prüfen
         run: ./Rust-3D-Print-Studio-0.12.2/scripts/windows-abnahme.ps1
@@ -59,17 +59,18 @@ jobs:
             id=$(jq -er --arg file "$1" '.[] | select(.name == $file) | .id' "$dir/assets.json")
             curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o "$dir/$1"
           }
-          download version-0.12.2.bundle
-          echo "9bb655696a2cf1baa6f745b0526ef5581397f0a0c265a7b509dbbcf62ecfddac  $dir/version-0.12.2.bundle" | sha256sum -c
-          git bundle verify "$dir/version-0.12.2.bundle"
-          git fetch --no-tags "$dir/version-0.12.2.bundle" refs/heads/kurze-tasten:refs/remotes/import/versions
+          download version-0.12.2-rc2.bundle
+          echo "d5a7b8625ba0ca2d117da1292ba3c6c491fda5a07728db3459f5a562d0781168  $dir/version-0.12.2-rc2.bundle" | sha256sum -c
+          git bundle verify "$dir/version-0.12.2-rc2.bundle"
+          git fetch --no-tags "$dir/version-0.12.2-rc2.bundle" refs/heads/kurze-tasten:refs/remotes/import/versions
           tags=(v0.12.2)
           for tag in "${tags[@]}"; do
             v=${tag#v}
             file="Rust-3D-Print-Studio-$v.zip"
             git show "refs/remotes/import/versions:docs/releases/$v.md" > "$dir/$v.md"
             sha=$(grep -oE '[0-9a-f]{64}' "$dir/$v.md" | tail -1)
-            download "$file"
+            download "Pruefpaket-$v.zip"
+            mv "$dir/Pruefpaket-$v.zip" "$dir/$file"
             echo "$sha  $dir/$file" | sha256sum -c
           done
           git config user.name 'github-actions[bot]'
