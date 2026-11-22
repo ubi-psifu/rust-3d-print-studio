@@ -25,9 +25,9 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.14.0.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.14.0-inspektor.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo '98230f03e70dbbf423fa4b340e56eae247b68cbf238bf86572302ef76dc14a91  source.bundle' | sha256sum -c
+          echo '761e5e163ba59e164c9d3b07e1c8ce05a186d8333e40f9d5e57a295f775532df  source.bundle' | sha256sum -c
           git bundle verify source.bundle
           git fetch --no-tags ./source.bundle refs/heads/flaechenklick:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
@@ -71,9 +71,9 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.14.0.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.14.0-inspektor.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo '98230f03e70dbbf423fa4b340e56eae247b68cbf238bf86572302ef76dc14a91  source.bundle' | sha256sum -c
+          echo '761e5e163ba59e164c9d3b07e1c8ce05a186d8333e40f9d5e57a295f775532df  source.bundle' | sha256sum -c
           git bundle verify source.bundle
           git fetch --no-tags ./source.bundle refs/heads/flaechenklick:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
@@ -118,9 +118,9 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.14.0.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.14.0-inspektor.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo '98230f03e70dbbf423fa4b340e56eae247b68cbf238bf86572302ef76dc14a91  source.bundle' | sha256sum -c
+          echo '761e5e163ba59e164c9d3b07e1c8ce05a186d8333e40f9d5e57a295f775532df  source.bundle' | sha256sum -c
           git bundle verify source.bundle
           git fetch --no-tags ./source.bundle refs/heads/flaechenklick:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
