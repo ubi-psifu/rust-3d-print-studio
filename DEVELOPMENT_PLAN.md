@@ -1,3 +1,7 @@
+# Stand 0.9
+
+Die grafischen Abstandsmaße im Skizzeninspektor und die Referenzerhaltung für Skizzenpunkte sind umgesetzt. Als nächster Schritt folgen dauerhafte Bezüge für ausgewählte Modellkanten und Flächen nach einer Neuberechnung. Winkel- und Radiusbemaßung sowie der präzise CAD-Kern mit STEP-Austausch stehen aus.
+
 # Stand 0.7
 
 Der nächste CAD-Schritt betrifft grafische Maßbezüge und stabilere Feature-Referenzen. Der exakte B-Rep-Kern und der STEP-Austausch bleiben offen. Die aktuellen Skizzenbedingungen, Autosicherung und Austauschformate sind in DEVELOPMENT_STATUS.md beschrieben.

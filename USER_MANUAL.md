@@ -6,6 +6,14 @@ Drücke **F1**, um die Hilfe zum aktiven Werkzeug oder zum geöffneten Dialog zu
 
 Über **Hilfe → Anleitung durchsuchen** öffnest du das Handbuch. Gib ein Stichwort ein und wähle einen Treffer. Im Kapitelmenü kannst du ohne Suchbegriff blättern. **Zurück zur Kontexthilfe** führt zum Ausgangsthema. Mit **Esc** oder **Schließen** kehrst du zu deinen Eingaben zurück. Alle Texte sind im Programm enthalten.
 
+## Abstände grafisch bemaßen
+
+Öffne zum Ausprobieren `examples/modelle/Bemasste-Lasche.r3dp`. Wähle die Lasche rechts in der Objektliste. Klappe unter **Skizzenextrusion** die **Grafische Bemaßung** auf. Die Vorschau zeigt die berechnete Kontur und vorhandene Abstandsmaße in Millimetern. Klicke auf die gelbe **50.00**, ändere den Wert auf **60 mm** und wähle **Maß setzen**. Nach **Parameter übernehmen** wird die Lasche 60 mm breit. **Strg+Z** nimmt die Modelländerung zurück.
+
+Für ein neues Maß zwei weiße Kontrollpunkte nacheinander anklicken. Die Punkte müssen sich in der gewählten Ansicht unterscheiden lassen. Bei räumlichen Pfadskizzen helfen die Ansichten XY, XZ und YZ. Der Maßwert ist der räumliche Abstand der beiden Punkte. Die Pfeile sind seine Projektion in die Ansicht. Ein bestehendes Abstandsmaß für dasselbe Punktpaar wird aktualisiert. Widerspricht das Maß den übrigen Bedingungen, erscheint die Meldung im Editor.
+
+Mit **+ Punkt** wird nach dem numerisch gewählten Kontrollpunkt ein neuer Punkt eingefügt. Vorhandene Segmente und Bedingungen behalten ihre Endpunkte. Um einen benutzten Punkt zu entfernen, zuerst die angegebenen Segment- oder Bedingungsbezüge ändern. Ein neu eingefügter Punkt gehört erst dann zur Kontur, wenn ein Segment auf ihn verweist.
+
 ## Eine bemaßte Platte ändern
 
 Öffne `examples/modelle/Bemasste-Platte.r3dp`, wähle die Platte und öffne im Skizzeninspektor **Bemaßung und Bedingungen**. Ändere das Abstandsmaß 48 auf 60 mm und wähle **Parameter übernehmen**. Die Extrusion übernimmt die neue Kontur. Die fixierte Ecke bleibt relativ zum Skizzenursprung an ihrem Platz.

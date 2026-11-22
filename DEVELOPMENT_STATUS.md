@@ -1,4 +1,10 @@
-# Entwicklungsstand 0.8.0
+# Entwicklungsstand 0.9.0
+
+## Version 0.9.0
+
+Die grafische Bemaßungsansicht für Skizzenextrusionen und skizzierte Sweep-Pfade zeigt berechnete lokale Punkte, Kontur und Abstandsmaße. Vorhandene Maßzahlen sowie Punktpaare können ausgewählt werden. Widersprüchliche Abstände werden geprüft, bevor sie in den Entwurf gelangen. Beim Einfügen und Entfernen von Kontrollpunkten führt der Editor die Punktindizes von Segmenten und Bedingungen nach. Verwendete Punkte sind gegen versehentliches Entfernen geschützt.
+
+Die Bemaßungsansicht liegt im Inspektor. Winkel- und Radiusmaße, persistente Referenzen auf Modellkanten oder -flächen und der STEP-Austausch bleiben offen. Formelausdrücke mit Positionsindizes im Feature-Baum werden bei Strukturänderungen nicht umgeschrieben. Bei deckungsgleichen Punkten einer Projektion eine andere Ansicht oder die numerischen Punktfelder verwenden. Im Linux-Bedientest wurde eine 50-mm-Lasche auf 60 mm geändert, gespeichert, zurückgenommen und wiederhergestellt. Windows-Laufzeit und physischer Druck stehen aus.
 
 ## Kontexthilfe
 

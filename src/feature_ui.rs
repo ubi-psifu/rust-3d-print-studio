@@ -145,8 +145,11 @@ fn integer(ui: &mut Ui, label: &str, value: &mut usize, min: usize, max: usize) 
     });
 }
 fn points(ui: &mut Ui, pts: &mut Vec<DVec3>, allow_len: bool) {
+    edit_points(ui, pts, allow_len);
+}
+fn edit_points(ui: &mut Ui, pts: &mut Vec<DVec3>, allow_len: bool) -> Option<usize> {
     if pts.is_empty() {
-        return;
+        return None;
     }
     let id = ui.id().with("skizzenzustand");
     let (mut index, mut plane, mut extent) = ui
@@ -245,6 +248,7 @@ fn points(ui: &mut Ui, pts: &mut Vec<DVec3>, allow_len: bool) {
         });
     }
     ui.data_mut(|d| d.insert_temp(id, (index, plane, extent)));
+    Some(index)
 }
 pub fn edit(ui: &mut Ui, f: &mut Feature) {
     match f {
@@ -730,7 +734,28 @@ fn sketch_ui(ui: &mut Ui, s: &mut rust_3d_print_studio::cad::sketch::Sketch) {
         point(ui, "V-Achse", &mut s.v);
         ui.checkbox(&mut s.planar, "Auf Ebene binden");
     });
-    points(ui, &mut s.points, true);
+    ui.collapsing("Grafische Bemaßung", |ui| crate::dimension_ui::show(ui, s));
+    if let Some(i) = edit_points(ui, &mut s.points, false) {
+        let id = ui.id().with("punktmeldung");
+        ui.horizontal_wrapped(|ui| {
+            let action = if ui.small_button("+ Punkt").clicked() {
+                Some(s.insert_point_after(i))
+            } else if ui.small_button("Punkt entfernen").clicked() {
+                Some(s.remove_unused_point(i))
+            } else {
+                None
+            };
+            if let Some(result) = action {
+                ui.data_mut(|d| d.insert_temp(id, result.err().unwrap_or_default()));
+            }
+        });
+        if let Some(msg) = ui
+            .data(|d| d.get_temp::<String>(id))
+            .filter(|s| !s.is_empty())
+        {
+            ui.label(msg);
+        }
+    }
     let max = s.points.len().saturating_sub(1);
     ui.collapsing("Kontur und Hilfslinien", |ui| {
         let mut remove = None;

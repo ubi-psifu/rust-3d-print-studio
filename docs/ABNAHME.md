@@ -1,3 +1,9 @@
+# Abnahme 0.9.0
+
+Das native Linux-Fenster lud das Projekt Bemasste-Lasche.r3dp. In der grafischen Bemaßung wurde die 50-mm-Maßzahl angeklickt und ein Sollwert von 60 mm eingegeben. Nach Übernahme und Speichern betrug die als Projektwert nachgelesene Breite 60 mm innerhalb einer Toleranz von 0,000001 mm. Undo und Redo mit jeweiligem Speichern ergaben 50 und erneut 60 mm.
+
+Die Regressionstests prüfen den R3DP- und 3MF-Rundlauf mit 60 × 30 × 6 mm, Erhaltung von Punktbezügen, Löschschutz und Ablehnung eines widersprüchlichen Maßes. 54 Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehler wurden unter Linux ausgeführt. Windows x64 wurde unter Linux gebaut. Windows-Laufzeit und physische Abnahme stehen aus.
+
 # Abnahme 0.8.0
 
 Im nativen Linux-Fenster wurde der Plattendialog geöffnet und auf Kreis umgestellt. F1 öffnete die Anleitung zum Kreismuster. Die Suche nach „bohrung“ zeigte die Anleitung zur Durchgangsbohrung. Nach Esc erschien wieder der Kreisdialog mit Radius 35 mm. Danach wurde ein Rechteckmuster übernommen und gespeichert. Das Projekt enthielt zwölf Körper.

@@ -1,5 +1,7 @@
 # Windows 11 x64
 
+Version 0.9 enthält die grafische Bemaßung und die Beispiellasche. Der Installer legt das Projekt unter `examples/Bemasste-Lasche.r3dp` ab.
+
 Ab 0.8 ist das Handbuch in der EXE eingebettet. F1 funktioniert unabhängig vom Installationspfad und von einem Webbrowser.
 
 Der x64-Build 0.7.0 enthält den neuen Skizzensolver und die Wiederherstellung im lokalen Benutzerprofil. Für den Start der mitgelieferten EXE sind weder Rust noch eine Internetverbindung erforderlich. Windows-Laufzeit und Installation auf einem Windows-Gerät stehen aus.

@@ -1,5 +1,7 @@
 # Architektur und Datenmodell
 
+Der Bemaßungseditor in `src/dimension_ui.rs` verwendet die gelösten lokalen Skizzenpunkte und dieselbe Segmentsampling-Funktion wie beim Aufbau des Volumenkörpers. Die Vorschau wird bis zu einer Änderung an der Skizze wiederverwendet. `Sketch::set_distance` prüft Änderungen auf einer Kopie und aktualisiert ein bereits vorhandenes Punktpaar in seiner ursprünglichen Richtung. Einfügen und Entfernen von Punkten aktualisieren die Indexbezüge innerhalb der Skizze. Das Dateiformat bleibt lesbar für vorhandene Projekte.
+
 Die Hilfemodule verwenden **USER_MANUAL.md** als eingebettete Kapitelquelle. **src/help.rs** ergänzt kurze werkzeugbezogene Anleitungen, ordnet Kontexten Artikel zu und indiziert Titel und Text einmal beim Start. Der aktuelle Bearbeitungsdialog bleibt beim Anzeigen der Hilfe im Anwendungszustand erhalten.
 
 `cad/sketch_solver.rs` löst in lokalen Skizzenkoordinaten. Der Solver projiziert skalare Restabweichungen über numerische Ableitungen auf freie Punktkoordinaten. Fixierte Koordinaten sind aus den Korrekturen ausgeschlossen. Skizzen ohne serialisierte Solverwahl verwenden beim Laden den gerichteten Altpfad. `recovery.rs` verarbeitet Sicherungs- und Aufräumaufträge je Instanz in einem Hintergrundthread in Auftragsreihenfolge. Für den atomaren Austausch verwendet es den R3DP-Schreiber. `ply.rs` verarbeitet das begrenzte ASCII-Geometrieprofil.

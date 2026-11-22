@@ -73,6 +73,92 @@ impl Default for Sketch {
     }
 }
 impl Sketch {
+    /// Fügt einen Kontrollpunkt ein und erhält die Bezüge bestehender Konstruktionen.
+    pub fn insert_point_after(&mut self, index: usize) -> Result<()> {
+        require(
+            index < self.points.len() && self.points.len() < 64,
+            "Kein weiterer Punkt möglich",
+        )?;
+        let point = self.points[index] + DVec3::new(2., 2., 0.);
+        self.points.insert(index + 1, point);
+        self.remap_indices(|i| if i > index { i + 1 } else { i });
+        Ok(())
+    }
+    pub fn remove_unused_point(&mut self, index: usize) -> Result<()> {
+        require(
+            index < self.points.len() && self.points.len() > 2,
+            "Mindestens zwei Punkte erforderlich",
+        )?;
+        for (i, seg) in self.segments.iter().enumerate() {
+            let n = match seg.kind {
+                SegmentKind::Line => 2,
+                SegmentKind::Arc => 3,
+                SegmentKind::Bezier => 4,
+            };
+            require(
+                !seg.ids[..n].contains(&index),
+                &format!("Punkt wird von Segment {} verwendet", i + 1),
+            )?;
+        }
+        for (i, rule) in self.rules.iter().enumerate() {
+            let used = rule.ids[..rule.point_count()]
+                .iter()
+                .enumerate()
+                .any(|(slot, &p)| p == index && !(rule.kind == RuleKind::Tangent && slot == 2));
+            require(
+                !used,
+                &format!("Punkt wird von Bedingung {} verwendet", i + 1),
+            )?;
+        }
+        self.points.remove(index);
+        self.remap_indices(|i| {
+            if i == index {
+                0
+            } else if i > index {
+                i - 1
+            } else {
+                i
+            }
+        });
+        Ok(())
+    }
+    fn remap_indices(&mut self, map: impl Fn(usize) -> usize) {
+        for ids in self
+            .segments
+            .iter_mut()
+            .map(|s| &mut s.ids)
+            .chain(self.rules.iter_mut().map(|r| &mut r.ids))
+        {
+            for i in ids {
+                *i = map(*i);
+            }
+        }
+    }
+    pub fn set_distance(&mut self, a: usize, b: usize, value: f64) -> Result<()> {
+        require(
+            a != b && a < self.points.len() && b < self.points.len(),
+            "Zwei verschiedene vorhandene Punkte wählen",
+        )?;
+        require(
+            value.is_finite() && value > 0. && value <= 10000.,
+            "Abstand muss größer als 0 und höchstens 10000 mm sein",
+        )?;
+        let mut next = self.clone();
+        if let Some(rule) = next.rules.iter_mut().find(|r| {
+            r.kind == RuleKind::Distance && (r.ids[..2] == [a, b] || r.ids[..2] == [b, a])
+        }) {
+            rule.value = value;
+        } else {
+            next.rules.push(Rule {
+                kind: RuleKind::Distance,
+                ids: [a, b, 0, 0],
+                value,
+            });
+        }
+        next.solved_points()?;
+        *self = next;
+        Ok(())
+    }
     fn target(&self, r: &Rule, p: &[DVec3]) -> Result<(usize, DVec3)> {
         let [a, b, c, d] = r.ids;
         require(
@@ -167,6 +253,9 @@ impl Sketch {
         for a in &mut p {
             *a = self.origin + u * a.x + v * a.y + n * a.z;
         }
+        self.contour_from_points(&p, steps)
+    }
+    pub fn contour_from_points(&self, p: &[DVec3], steps: usize) -> Result<Vec<DVec3>> {
         let mut out: Vec<DVec3> = vec![];
         for s in &self.segments {
             require(

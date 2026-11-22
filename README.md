@@ -1,4 +1,6 @@
-# Rust 3D Print Studio 0.8.0
+# Rust 3D Print Studio 0.9.0
+
+**Grafische Bemaßung ausprobieren:** Öffne `examples/modelle/Bemasste-Lasche.r3dp` und klappe im Inspektor **Grafische Bemaßung** auf. Klicke die Maßzahl an, ändere sie von 50 auf 60 mm und wähle **Maß setzen → Parameter übernehmen**. Für ein neues Maß klicke zwei Punkte an.
 
 **F1** öffnet die Offline-Hilfe zum Werkzeug oder aktiven Dialog. Im Inspektor führt **?** zur Erklärung des aktuellen Konstruktionsschritts. Über **Hilfe → Anleitung durchsuchen** findest du Kapitel und Arbeitsschritte per Stichwort.
 

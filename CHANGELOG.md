@@ -1,3 +1,9 @@
+# 0.9.0
+
+- Grafische Abstandsmaße in Skizzenextrusionen und skizzierten Sweep-Pfaden. Bestehendes Maß über seine Zahl wählen oder zwei Punkte für ein Maß anklicken.
+- Segmente und Bedingungen behalten ihre Zuordnung beim Einfügen von Kontrollpunkten. Eine Meldung benennt beim Entfernen eines benutzten Punkts das betroffene Segment oder die Bedingung.
+- Parametrische Beispiellasche, integrierte Anleitung und vier neue Regressionstests.
+
 # 0.8.0 · 21. November 2026
 
 - Kontextbezogene Offline-Hilfe über F1 und Hilfeschaltflächen.

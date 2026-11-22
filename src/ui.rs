@@ -1248,7 +1248,7 @@ impl Studio {
                     self.help.show_topic(help::feature(f));
                 }
             });
-            feature_ui::edit(ui, f);
+            ui.push_id(("objektentwurf", self.sel), |ui| feature_ui::edit(ui, f));
         } else {
             vector(ui, "Abmessungen · mm", &mut d.size, 0.1..=2000.);
         }
