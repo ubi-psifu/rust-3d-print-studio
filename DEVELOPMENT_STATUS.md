@@ -2,7 +2,7 @@
 
 ## Plattenbedienung 0.12.2
 
-Die Tastenkürzel für die Auswahl und Projektbearbeitung verwenden die beim Tastendruck erfassten Modifikatortasten. Unter Linux bestanden 64 Rust-Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehlern. Das Release enthält Builds für Linux und Windows x64. Der Windows-Fenstertest speichert eine Projektkopie über ein kurzes Strg+S und liest den Objektnamen zurück. Das Ergebnis steht im Actions-Lauf zur Veröffentlichung. Windows 11 mit Hardware-Grafiktreiber und der STEP-Rundlauf bleiben offen.
+Die Tastenkürzel für die Auswahl und Projektbearbeitung verwenden die beim Tastendruck erfassten Modifikatortasten. Unter Linux bestanden 64 Rust-Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehlern. Das Release enthält Builds für Linux und Windows x64. Der Windows-Fenstertest speichert eine Projektkopie über ein kurzes Strg+S und liest den Objektnamen zurück. Im ersten Lauf bestand die Installerprüfung. WScript.SendKeys bestätigte die Speicherung nicht. Der zweite Test sendet Windows-Tastenereignisse mit expliziten Scancodes ohne Wartezeiten zwischen Drücken und Loslassen. Das Ergebnis steht im Actions-Lauf zur Veröffentlichung. Windows 11 mit Hardware-Grafiktreiber und der STEP-Rundlauf bleiben offen.
 
 ## Windows-Installer 0.12.1
 

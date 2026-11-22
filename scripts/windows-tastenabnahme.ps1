@@ -14,6 +14,8 @@ $copy = Join-Path $env:RUNNER_TEMP 'Prüfung mit Leerzeichen.r3dp'
 Copy-Item "$root/examples/modelle/Bogenlasche.r3dp" $copy
 (Get-Item $copy).LastWriteTimeUtc = [datetime]::UtcNow.AddYears(-1)
 $errfile = Join-Path $env:RUNNER_TEMP 'studio-stderr.txt'
+# Das Windows-Backend liest die Scancodes aus den Fensternachrichten.
+Add-Type -Name Keyboard -Namespace StudioTest -MemberDefinition '[System.Runtime.InteropServices.DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, System.UIntPtr extra);'
 $process = Start-Process "$bin/rust-3d-print-studio.exe" -ArgumentList ('"{0}"' -f $copy) -RedirectStandardError $errfile -PassThru
 try {
   $shell = New-Object -ComObject WScript.Shell
@@ -22,7 +24,11 @@ try {
     $process.Refresh()
     if ($process.HasExited) { Get-Content $errfile; throw "Programmende $($process.ExitCode)" }
     if ($process.MainWindowTitle -eq 'Rust 3D Print Studio' -and $shell.AppActivate($process.Id)) {
-      $shell.SendKeys('^s')
+      [StudioTest.Keyboard]::keybd_event(17,29,0,[UIntPtr]::Zero)
+      try {
+        [StudioTest.Keyboard]::keybd_event(83,31,0,[UIntPtr]::Zero)
+        [StudioTest.Keyboard]::keybd_event(83,31,2,[UIntPtr]::Zero)
+      } finally { [StudioTest.Keyboard]::keybd_event(17,29,2,[UIntPtr]::Zero) }
       Start-Sleep -Milliseconds 500
       if ((Get-Item $copy).LastWriteTimeUtc -gt [datetime]::UtcNow.AddMinutes(-5)) {
         if ((Get-Content $copy -Raw | ConvertFrom-Json).objects[0].name -ne 'Bogenlasche') { throw 'Falsches Projekt gespeichert' }
