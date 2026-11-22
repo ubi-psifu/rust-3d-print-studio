@@ -1,20 +1,30 @@
-# Abnahme 0.10.0
+# Abnahmen nach Version
+
+## 0.12.0 · Radius der Bogenlasche
+
+Der automatisierte Modelltest setzt bei fixierten Endpunkten den Radius von 12,5 auf 15 mm, baut die Extrusion neu auf, speichert sie und prüft nach dem Laden die Bogenhöhe. Ein weiterer Test prüft die Ablehnung kollinearer Bogenpunkte. Insgesamt bestanden 62 Tests unter Linux. Windows-x64-EXE und Installer wurden gebaut. Die praktische Windows-Prüfung ist offen.
+
+## 0.11.0 · Innenwinkel der Winkellasche
+
+Der Modelltest ändert den Innenwinkel von 60° auf 75°, baut die Extrusion neu auf und prüft die Höhe nach dem Speichern und Laden. 60 Tests bestanden unter Linux.
+
+## Abnahme 0.10.0
 
 Drei neue Tests bestätigen die Zuordnung nach Umnummerierung und ungleichmäßiger Skalierung, die Fehlermeldung bei entfernter Kante mit Erhalt des letzten gültigen Netzes und den R3DP-Rundlauf aller sechs Öffnungsseiten. Das verbleibende Materialvolumen wurde mit den Sollmaßen des Modellquaders verglichen. 57 automatisierte Tests, Formatierung, Workspace-Check, Clippy und Release-Builds für Linux und Windows x64 erfolgreich. Kein manueller Windows-Test.
 
-# Abnahme 0.9.0
+## Abnahme 0.9.0
 
 Das native Linux-Fenster lud das Projekt Bemasste-Lasche.r3dp. In der grafischen Bemaßung wurde die 50-mm-Maßzahl angeklickt und ein Sollwert von 60 mm eingegeben. Nach Übernahme und Speichern betrug die als Projektwert nachgelesene Breite 60 mm innerhalb einer Toleranz von 0,000001 mm. Undo und Redo mit jeweiligem Speichern ergaben 50 und erneut 60 mm.
 
 Die Regressionstests prüfen den R3DP- und 3MF-Rundlauf mit 60 × 30 × 6 mm, Erhaltung von Punktbezügen, Löschschutz und Ablehnung eines widersprüchlichen Maßes. 54 Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehler wurden unter Linux ausgeführt. Windows x64 wurde unter Linux gebaut. Windows-Laufzeit und physische Abnahme stehen aus.
 
-# Abnahme 0.8.0
+## Abnahme 0.8.0
 
 Im nativen Linux-Fenster wurde der Plattendialog geöffnet und auf Kreis umgestellt. F1 öffnete die Anleitung zum Kreismuster. Die Suche nach „bohrung“ zeigte die Anleitung zur Durchgangsbohrung. Nach Esc erschien wieder der Kreisdialog mit Radius 35 mm. Danach wurde ein Rechteckmuster übernommen und gespeichert. Das Projekt enthielt zwölf Körper.
 
 50 automatisierte Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehler liefen erfolgreich. Optimierte Linux- und Windows-x64-Builds und NSIS-Setup wurden erstellt. Die Windows-Laufzeitprüfung steht aus.
 
-# Abnahme 0.7.0
+## Abnahme 0.7.0
 
 Die sechs Austausch- und Skizzentests sowie der neue Sicherungstest ergänzen die 41 vorherigen Tests. Alle 48 Tests, Formatprüfung, Workspace-Check, Clippy mit Warnungen als Fehler sowie die optimierten Builds für Linux und Windows x64 liefen erfolgreich. Das NSIS-Installationspaket wurde gebaut.
 
@@ -22,13 +32,13 @@ Im Linux-Fenster wurde die bemaßte Platte geöffnet und dupliziert. Nach dem Si
 
 Die automatisierte Geometrieprüfung ergab 48 × 30 × 6 mm für die Beispielplatte und bestätigte identische Grenzen sowie Dreieckszahlen nach Export und erneutem Import als ASCII-STL und ASCII-PLY. Keine neue Bambu-Studio- oder Windows-Laufzeitabnahme und kein physischer Druck in dieser Version.
 
-# Abnahme 0.6.0
+## Abnahme 0.6.0
 
 Rust 1.88.0 unter Linux. Formatierung, Check aller Targets im Workspace, Clippy mit Warnungen als Fehler, 41 Tests sowie optimierte Linux- und Windows-x64-Builds liefen erfolgreich mit gesperrter Abhängigkeitsauflösung. Die neuen Fälle prüfen unter anderem eine Serie mit zwölf Körpern und Undo, Konflikte und ausgelassene Felder, numerische Abstände, Netzexport mit erneutem Import, Schrift mit Innenkonturen und die Gehäuse- und Kragenmaße.
 
 Im nativen Linux-Fenster wurde ein 20-mm-Würfel als 4 × 3-Serie angeordnet. Nach dem Speichern enthielt das Projekt zwölf Körper. Einmal Strg+Z und erneutes Speichern ergaben wieder einen Körper. Das neue Gehäusebeispiel wurde im Test geladen, als 3MF exportiert und als zwei Objekte erneut importiert. Bambu-Studio-Import, Installation auf Windows und Druck der neuen Beispielteile stehen für 0.6 aus.
 
-# Abnahme 0.3.0
+## Abnahme 0.3.0
 
 Im nativen Linux-Fenster wurden zwei 20-mm-Quader per Umschalt-Klick ausgewählt und in der Draufsicht mit einem Mauszug um rund 20,34 mm in X und 10,17 mm in Y verschoben. Die gespeicherten Positionen hatten weiterhin 40 mm Abstand sowie unveränderte Z-Koordinaten. Strg+C/V erzeugte zwei neue Körper. Zwei Undo-Schritte entfernten die Kopien und setzten die Ausgangspositionen wieder ein. Eine Rahmenauswahl mit anschließendem Strg+D erzeugte erneut zwei Kopien.
 
@@ -36,7 +46,7 @@ Ein weiterer Fenstertest belegte die P1S-Platte mit 119 Würfeln von 20 mm Kante
 
 29 automatisierte Tests. Die neuen Fälle prüfen Abstände, Sperrflächen, gedrehte Hüllboxen, Gruppenversatz, Objektlimit beim Kopieren sowie vollständige oder verworfene Anordnungen. Die fünf Cargo-Prüfungen liefen auf Linux. Windows-x64-Programm und Installer wurden gebaut. Ein Start auf Windows bleibt offen.
 
-# Abnahmeprotokoll · 0.2.0 · 20. November 2026
+## Abnahmeprotokoll · 0.2.0 · 20. November 2026
 
 ## J-Wandhaken
 
@@ -67,7 +77,7 @@ Zusätzlich prüft ein Rust-Test die tatsächlich exportierte binäre STL nach d
 
 Die Hakenabnahme betrifft digitale Geometrie und Austauschformate. Material, Montagerichtung, Schrauben, Verankerung und Lastfall wurden mechanisch nicht geprüft.
 
-# Abnahmeprotokoll · 0.1.0 · 20. November 2026
+## Abnahmeprotokoll · 0.1.0 · 20. November 2026
 
 Ausgeführt auf Linux x86_64 mit Rust 1.88.0. Alle fünf Cargo-Prüfungen liefen mit Erfolg.
 
