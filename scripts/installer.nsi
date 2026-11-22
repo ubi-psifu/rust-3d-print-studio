@@ -1,9 +1,9 @@
 Unicode true
 Target x86-unicode
 RequestExecutionLevel user
-!searchparse /file "../Cargo.toml" 'version = "' STUDIO_VERSION '"'
+!searchparse /file "..\Cargo.toml" 'version = "' STUDIO_VERSION '"'
 Name "Rust 3D Print Studio ${STUDIO_VERSION}"
-OutFile "../dist/Rust-3D-Print-Studio-Setup-x64.exe"
+OutFile "..\dist\Rust-3D-Print-Studio-Setup-x64.exe"
 InstallDir "$LOCALAPPDATA\Rust 3D Print Studio"
 ShowInstDetails show
 !include "MUI2.nsh"
@@ -23,20 +23,20 @@ FunctionEnd
 Section "Programm"
   SetRegView 64
   SetOutPath "$INSTDIR"
-  File "../dist/rust-3d-print-studio.exe"
-  File "../USER_MANUAL.md"
-  File "../LICENSE"
-  File "../THIRD_PARTY_NOTICES.txt"
+  File "..\dist\rust-3d-print-studio.exe"
+  File "..\USER_MANUAL.md"
+  File "..\LICENSE"
+  File "..\THIRD_PARTY_NOTICES.txt"
   SetOutPath "$INSTDIR\profiles"
-  File "../profiles/p1s.json"
+  File "..\profiles\p1s.json"
   SetOutPath "$INSTDIR\examples"
-  File "../examples/modelle/Wandhaken.r3dp"
-  File "../examples/modelle/Bemasste-Platte.r3dp"
-  File "../examples/modelle/Bemasste-Lasche.r3dp"
-  File "../examples/modelle/Winkellasche.r3dp"
-  File "../examples/modelle/Keilschale.r3dp"
-  File "../examples/modelle/Bogenlasche.r3dp"
-  File "../examples/modelle/Seitlich-offene-Schale.r3dp"
+  File "..\examples\modelle\Wandhaken.r3dp"
+  File "..\examples\modelle\Bemasste-Platte.r3dp"
+  File "..\examples\modelle\Bemasste-Lasche.r3dp"
+  File "..\examples\modelle\Winkellasche.r3dp"
+  File "..\examples\modelle\Keilschale.r3dp"
+  File "..\examples\modelle\Bogenlasche.r3dp"
+  File "..\examples\modelle\Seitlich-offene-Schale.r3dp"
   SetOutPath "$INSTDIR"
   WriteUninstaller "$INSTDIR\Deinstallieren.exe"
   CreateDirectory "$SMPROGRAMS\Rust 3D Print Studio"
