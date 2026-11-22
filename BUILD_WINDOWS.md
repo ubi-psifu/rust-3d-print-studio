@@ -1,6 +1,6 @@
 # Windows 11 x64
 
-Für 0.11.0 wurden Windows-x64-Programm und NSIS-Setup unter Linux erstellt. Die Laufzeitabnahme auf Windows steht aus.
+Für 0.12.0 wurden Windows-x64-Programm und NSIS-Setup unter Linux erstellt. Die Laufzeitabnahme auf Windows steht aus.
 
 Version 0.9 enthält die grafische Bemaßung und die Beispiellasche. Der Installer legt das Projekt unter `examples/Bemasste-Lasche.r3dp` ab.
 

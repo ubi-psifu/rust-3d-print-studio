@@ -1,3 +1,7 @@
+# Stand 0.12
+
+Radiusbedingungen für Kreisbögen sind integriert. Nächste Abnahme ist die Windows-Bedienung der veröffentlichten Anwendung. Der CAD-Ausbau umfasst weiterhin präzise Flächen und STEP.
+
 # Stand 0.11
 
 Die grafische Winkelbemaßung ergänzt die Abstandsmaße. Nächster Skizzenschritt ist ein treibendes Radiusmaß für Kreisbögen.

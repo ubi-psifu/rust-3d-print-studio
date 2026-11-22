@@ -11,7 +11,7 @@ impl Rule {
             | RuleKind::Horizontal
             | RuleKind::Vertical
             | RuleKind::Coincident => 2,
-            RuleKind::Angle => 3,
+            RuleKind::Angle | RuleKind::Radius => 3,
             _ => 4,
         }
     }
@@ -35,6 +35,14 @@ impl Rule {
                     "Längenmaß ungültig",
                 )?;
                 scalar(ab.length() - self.value)
+            }
+            RuleKind::Radius => {
+                require(
+                    self.value > 0. && self.value <= 10000.,
+                    "Radius muss positiv und höchstens 10000 mm sein",
+                )?;
+                let center = super::sketch::arc_center(a, b, p[self.ids[2]])?;
+                scalar(center.distance(a) - self.value)
             }
             RuleKind::Angle => {
                 require(
