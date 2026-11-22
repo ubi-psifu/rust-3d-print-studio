@@ -11,7 +11,7 @@ $env:RUST_BACKTRACE = '1'
 $portable = Resolve-Path "$root/dist/rust-3d-print-studio.exe"
 Copy-Item $portable "$bin/rust-3d-print-studio.exe"
 $copy = Join-Path $env:RUNNER_TEMP 'Prüfung mit Leerzeichen.r3dp'
-Copy-Item "$root/examples/modelle/Bogenlasche.r3dp" $copy
+Copy-Item "$root/examples/modelle/Keilschale.r3dp" $copy
 (Get-Item $copy).LastWriteTimeUtc = [datetime]::UtcNow.AddYears(-1)
 $errfile = Join-Path $env:RUNNER_TEMP 'studio-stderr.txt'
 # Das Windows-Backend liest die Scancodes aus den Fensternachrichten.
@@ -31,8 +31,9 @@ try {
       } finally { [StudioTest.Keyboard]::keybd_event(17,29,2,[UIntPtr]::Zero) }
       Start-Sleep -Milliseconds 500
       if ((Get-Item $copy).LastWriteTimeUtc -gt [datetime]::UtcNow.AddMinutes(-5)) {
-        if ((Get-Content $copy -Raw | ConvertFrom-Json).objects[0].name -ne 'Bogenlasche') { throw 'Falsches Projekt gespeichert' }
-        Write-Output 'Bogenlasche mit Strg+S im Windows-Fenster gespeichert.'
+        $obj = (Get-Content $copy -Raw | ConvertFrom-Json).objects[0]
+        if ($obj.name -ne 'Keilschale' -or $null -eq $obj.feature.Shell.side.Plane) { throw 'Falsches Projekt gespeichert' }
+        Write-Output 'Keilschale mit Strg+S im Windows-Fenster gespeichert.'
         return
       }
     }

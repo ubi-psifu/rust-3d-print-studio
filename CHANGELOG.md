@@ -1,3 +1,7 @@
+# 0.13.0 · Schräge Öffnungsflächen
+
+Ebene Flächen am Außenkörper lassen sich geometrisch als Öffnung einer Schale binden. Die Keilschale zeigt die Anwendung auf einer Schräge. Die F1-Hilfe findet CAD-Themen auch in Handbüchern mit Windows-Zeilenenden.
+
 # 0.12.2 · Kurze Tastenkombinationen
 
 Auswahl, Duplizieren, Rückgängig, Wiederholen und Speichern berücksichtigen die beim Tastendruck gehaltene Befehlstaste, auch wenn beide Tasten vor dem nächsten Bild losgelassen werden.

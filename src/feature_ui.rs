@@ -457,11 +457,15 @@ pub fn edit(ui: &mut Ui, f: &mut Feature) {
             num(ui, "Wandstärke", thickness);
             ui.checkbox(open, "Öffnungsfläche verwenden");
             if *open {
-                use rust_3d_print_studio::cad::references::Side;
-                let name = Side::ALL
-                    .iter()
-                    .find(|(s, _)| Some(*s) == *side)
-                    .map_or("Oben (Altprojekt)", |(_, s)| *s);
+                use rust_3d_print_studio::cad::references::{PlaneRef, Side};
+                let name = Side::ALL.iter().find(|(s, _)| Some(*s) == *side).map_or(
+                    if matches!(side, Some(Side::Plane(_))) {
+                        "Gebundene Ebene"
+                    } else {
+                        "Oben (Altprojekt)"
+                    },
+                    |(_, s)| *s,
+                );
                 egui::ComboBox::from_id_salt(ui.id().with("seite"))
                     .selected_text(name)
                     .show_ui(ui, |ui| {
@@ -469,6 +473,25 @@ pub fn edit(ui: &mut Ui, f: &mut Feature) {
                             ui.selectable_value(side, Some(s), label);
                         }
                     });
+                ui.collapsing("Freie ebene Öffnungsfläche", |ui| {
+                    let id = ui.id().with("flaechenbezug");
+                    let mut index = ui.data(|d| d.get_temp::<usize>(id)).unwrap_or_default();
+                    integer(ui, "Quelldreieck (ab 0)", &mut index, 0, 1_000_000);
+                    ui.data_mut(|d| d.insert_temp(id, index));
+                    if ui.button("Öffnungsfläche binden").clicked() {
+                        let result = source.build().and_then(|mesh| {
+                            let reference = PlaneRef::bind(&mesh, index)?;
+                            let [a,b,c] = mesh.faces[index].map(|i| mesh.vertices[i]);
+                            let p = (a+b+c)/3.;
+                            *side = Some(Side::Plane(reference));
+                            Ok(format!("Fläche bei ({:.1}, {:.1}, {:.1}) mm gebunden. Parameter übernehmen.",p.x,p.y,p.z))
+                        });
+                        ui.data_mut(|d| d.insert_temp(id.with("meldung"), result.unwrap_or_else(|e| e)));
+                    }
+                    if let Some(message) = ui.data(|d| d.get_temp::<String>(id.with("meldung"))) {
+                        ui.label(message);
+                    }
+                });
             }
             child(ui, "Außenkörper", source);
         }

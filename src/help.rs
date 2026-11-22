@@ -105,15 +105,16 @@ impl Article {
         }
     }
 }
-fn catalog() -> Vec<Article> {
+fn catalog(manual: &'static str) -> Vec<Article> {
     let mut entries: Vec<_> = HINTS
         .iter()
         .map(|&(t, b)| Article::new(t, b.into()))
         .collect();
-    for chapter in MANUAL.split("\n## ").skip(1) {
+    for chapter in manual.split("\n## ").skip(1) {
         let Some((title, body)) = chapter.split_once('\n') else {
             continue;
         };
+        let title = title.trim();
         let mut content = Vec::new();
         for line in body.lines() {
             if line.starts_with('|') {
@@ -140,7 +141,7 @@ fn catalog() -> Vec<Article> {
                 content.push(line.to_owned());
             }
         }
-        entries.push(Article::new(title.trim(), content.join("\n\n")));
+        entries.push(Article::new(title, content.join("\n\n")));
     }
     entries.sort_by_key(|a| a.title);
     entries
@@ -155,7 +156,7 @@ pub struct Help {
 impl Default for Help {
     fn default() -> Self {
         Self {
-            entries: catalog(),
+            entries: catalog(MANUAL),
             selected: 0,
             origin: 0,
             query: String::new(),
@@ -305,6 +306,14 @@ mod tests {
             assert_eq!(h.entries[h.selected].title, key);
         }
     }
+    #[test]
+    fn windows_line_endings_preserve_cad_context_topics() {
+        let entries = catalog("# Hilfe\r\n\r\n## Skizzen und allgemeine Körper\r\n| Boolesche | Körper kombinieren |\r\n");
+        assert!(entries
+            .iter()
+            .any(|article| article.title == "Boolesche" && article.body == "Körper kombinieren"));
+    }
+
     #[test]
     fn search_matches_body_umlauts_and_multiple_words() {
         let mut h = Help::default();

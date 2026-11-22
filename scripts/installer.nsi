@@ -1,9 +1,9 @@
 Unicode true
-Target amd64-unicode
+Target x86-unicode
 RequestExecutionLevel user
-!searchparse /file "../Cargo.toml" 'version = "' STUDIO_VERSION '"'
+!searchparse /file "..\Cargo.toml" 'version = "' STUDIO_VERSION '"'
 Name "Rust 3D Print Studio ${STUDIO_VERSION}"
-OutFile "../dist/Rust-3D-Print-Studio-Setup-x64.exe"
+OutFile "..\dist\Rust-3D-Print-Studio-Setup-x64.exe"
 InstallDir "$LOCALAPPDATA\Rust 3D Print Studio"
 ShowInstDetails show
 !include "MUI2.nsh"
@@ -12,21 +12,31 @@ ShowInstDetails show
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "German"
 
+!include "x64.nsh"
+Function .onInit
+  ${IfNot} ${RunningX64}
+    MessageBox MB_OK "Rust 3D Print Studio benötigt 64-Bit-Windows."
+    Abort
+  ${EndIf}
+FunctionEnd
+
 Section "Programm"
+  SetRegView 64
   SetOutPath "$INSTDIR"
-  File "../dist/rust-3d-print-studio.exe"
-  File "../USER_MANUAL.md"
-  File "../LICENSE"
-  File "../THIRD_PARTY_NOTICES.txt"
+  File "..\dist\rust-3d-print-studio.exe"
+  File "..\USER_MANUAL.md"
+  File "..\LICENSE"
+  File "..\THIRD_PARTY_NOTICES.txt"
   SetOutPath "$INSTDIR\profiles"
-  File "../profiles/p1s.json"
+  File "..\profiles\p1s.json"
   SetOutPath "$INSTDIR\examples"
-  File "../examples/modelle/Wandhaken.r3dp"
-  File "../examples/modelle/Bemasste-Platte.r3dp"
-  File "../examples/modelle/Bemasste-Lasche.r3dp"
-  File "../examples/modelle/Winkellasche.r3dp"
-  File "../examples/modelle/Bogenlasche.r3dp"
-  File "../examples/modelle/Seitlich-offene-Schale.r3dp"
+  File "..\examples\modelle\Wandhaken.r3dp"
+  File "..\examples\modelle\Bemasste-Platte.r3dp"
+  File "..\examples\modelle\Bemasste-Lasche.r3dp"
+  File "..\examples\modelle\Winkellasche.r3dp"
+  File "..\examples\modelle\Keilschale.r3dp"
+  File "..\examples\modelle\Bogenlasche.r3dp"
+  File "..\examples\modelle\Seitlich-offene-Schale.r3dp"
   SetOutPath "$INSTDIR"
   WriteUninstaller "$INSTDIR\Deinstallieren.exe"
   CreateDirectory "$SMPROGRAMS\Rust 3D Print Studio"
@@ -41,6 +51,7 @@ Section "Programm"
 SectionEnd
 
 Section "Uninstall"
+  SetRegView 64
   Delete "$SMPROGRAMS\Rust 3D Print Studio\Studio.lnk"
   Delete "$SMPROGRAMS\Rust 3D Print Studio\Beispiel.lnk"
   RMDir "$SMPROGRAMS\Rust 3D Print Studio"
@@ -54,6 +65,7 @@ Section "Uninstall"
   Delete "$INSTDIR\examples\Bemasste-Platte.r3dp"
   Delete "$INSTDIR\examples\Bemasste-Lasche.r3dp"
   Delete "$INSTDIR\examples\Winkellasche.r3dp"
+  Delete "$INSTDIR\examples\Keilschale.r3dp"
   Delete "$INSTDIR\examples\Bogenlasche.r3dp"
   Delete "$INSTDIR\examples\Seitlich-offene-Schale.r3dp"
   RMDir "$INSTDIR\examples"

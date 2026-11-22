@@ -8,6 +8,8 @@ Unter **Modellieren → Kante abrunden / fasen** eine scharfe Kante über ihre N
 
 Unter **Modellieren → Aushöhlen** die Option **Öffnungsfläche verwenden** aktivieren und eine der sechs lokalen Außenseiten wählen. Eine ebene zusammenhängende Fläche an diesem Extremum dient als Öffnung. Das Beispiel **Seitlich-offene-Schale.r3dp** hat 40 × 30 × 20 mm Außenmaß, 2 mm Wandstärke und eine Öffnung rechts. Die Auswahl bleibt beim erneuten Öffnen des Projekts erhalten.
 
+Für eine schräge Öffnung öffne das Beispiel **Keilschale.r3dp**. Der Keil ist 40 × 30 × 20 mm groß und entlang seiner Schräge offen. Unter **Freie ebene Öffnungsfläche** gibst du die Nummer eines Quelldreiecks ein (beginnend bei 0) und klickst auf **Öffnungsfläche binden**. Die Rückmeldung nennt den Mittelpunkt des gewählten Dreiecks in lokalen Millimetern. Mit **Parameter übernehmen** baust du die Schale neu auf. Gespeichert werden die Ebene und ein Punkt auf der Fläche. Bei achsenweiser Größenänderung wandert der Bezug mit. Fehlt die Fläche oder ist die Ebene mehrdeutig, meldet das Studio den Fehler.
+
 ## Hilfe im Studio
 
 Drücke **F1**, um die Hilfe zum aktiven Werkzeug oder zum geöffneten Dialog zu lesen. Über den acht Werkzeugschaltflächen erklärt F1 das Werkzeug unter dem Mauszeiger. Beim Bearbeiten eines parametrischen Körpers öffnet **?** neben dem Namen des Konstruktionsschritts die zugehörige Anleitung. In den Plattenwerkzeugen und der Druckvorbereitung richtet sich die Hilfe nach dem aktuellen Modus oder Reiter.

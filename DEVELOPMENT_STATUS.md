@@ -1,5 +1,11 @@
 # Entwicklungsstand
 
+## CAD-Flächenbezüge 0.13.0
+
+Ebene Öffnungsflächen lassen sich unabhängig von der Dreiecksnummer speichern und neu auflösen. Das Beispiel Keilschale misst 40 × 30 × 20 mm bei 2 mm Wandstärke. Unter Linux bestanden 67 Rust-Tests, Formatierung, Workspace-Check und Clippy. Die Modellabnahme prüfte den Projektrundlauf, die geschlossene und konsistent orientierte Oberfläche und das analytische Volumen von 4 486 mm³. Die zweite Abnahme prüfte den Bezug nach Umsortierung und ungleicher Skalierung sowie die Ablehnung einer fehlenden Ebene. Der erste native Windows-Test deckte einen Fehler beim Erkennen von Kapitelüberschriften mit CRLF auf. Die Korrektur ist durch einen separaten Test abgesichert. Die nativen Rust-Prüfungen bestanden danach unter Windows Server 2022. Beim ersten Paketbau fehlte der amd64-Installer-Stub auf dem Runner. Das Setup nutzt deshalb den regulären Unicode-Stub mit expliziter 64-Bit-Registry. Ein unabhängiges Einlesen der STL- und 3MF-Exporte ergab jeweils ein geschlossenes, konsistent orientiertes Netz mit 20 Dreiecken bei 40 × 30 × 20 mm und 4 486 mm³ Materialvolumen. Die Windows-Fensterprüfung verwendet in dieser Version die Keilschale und kontrolliert den gespeicherten Flächenbezug.
+
+Bezüge gelten für eine zusammenhängende gleich orientierte Fläche in der gespeicherten normierten Ebene. Allgemeine gekrümmte B-Rep-Flächen, Auswahl durch Klick in die 3D-Ansicht und STEP bleiben offen.
+
 ## Plattenbedienung 0.12.2
 
 Die Tastenkürzel für die Auswahl und Projektbearbeitung verwenden die beim Tastendruck erfassten Modifikatortasten. Unter Linux bestanden 64 Rust-Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehlern. Das Release enthält Builds für Linux und Windows x64. Der Windows-Fenstertest speichert eine Projektkopie über ein kurzes Strg+S und liest den Objektnamen zurück. Im ersten Lauf bestand die Installerprüfung. WScript.SendKeys bestätigte die Speicherung nicht. Der zweite Test sendet Windows-Tastenereignisse mit expliziten Scancodes ohne Wartezeiten zwischen Drücken und Loslassen. Das Ergebnis steht im Actions-Lauf zur Veröffentlichung. Windows 11 mit Hardware-Grafiktreiber und der STEP-Rundlauf bleiben offen.

@@ -10,7 +10,7 @@ ZIP vollständig entpacken. Die portable Datei liegt unter **dist/rust-3d-print-
 
 ## Auf Windows bauen
 
-Rustup mit dem stabilen MSVC-x64-Toolchain, Visual Studio Build Tools mit „Desktopentwicklung mit C++“ und Windows SDK installieren. Für das Installationspaket zusätzlich NSIS 3.11 mit makensis im PATH bereitstellen. Im entpackten Projektordner PowerShell öffnen.
+Rustup mit dem stabilen MSVC-x64-Toolchain, Visual Studio Build Tools mit „Desktopentwicklung mit C++“ und Windows SDK installieren. Für das Installationspaket zusätzlich NSIS 3.11 mit makensis im PATH bereitstellen. Das Setup verwendet den x86-Unicode-Stub, prüft beim Start auf 64-Bit-Windows und registriert das x64-Programm in der 64-Bit-Registry. Im entpackten Projektordner PowerShell öffnen.
 
 ```powershell
 rustup toolchain install 1.88.0 --component clippy --component rustfmt

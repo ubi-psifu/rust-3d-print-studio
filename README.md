@@ -13,7 +13,7 @@ Eine deutschsprachige Desktop-Anwendung zum Konstruieren von 3D-Druckteilen und 
 | Windows x64 | Starte `dist/rust-3d-print-studio.exe` direkt oder installiere das Studio mit `dist/Rust-3D-Print-Studio-Setup-x64.exe`. |
 | Linux x86-64 | Führe im entpackten Ordner `chmod +x dist/rust-3d-print-studio-linux-x64` und anschließend `./dist/rust-3d-print-studio-linux-x64` aus. Die Oberfläche benötigt X11 und OpenGL. |
 
-Version 0.12.2 enthält beide Builds und erkennt kurze Tastenkombinationen auf der Druckplatte. Bei Version 0.12.1 wurden Installation und Deinstallation auf Windows Server 2022 geprüft. Das portable Studio öffnete und speicherte ein Beispielprojekt mit Software-OpenGL. Die Prüfung auf Windows 11 mit Hardware-Grafiktreiber steht aus. Für macOS gibt es in diesem Release kein fertiges Paket. [Prüfstand](DEVELOPMENT_STATUS.md)
+Version 0.13.0 enthält beide Builds und das neue CAD-Beispiel **Keilschale** mit gebundener schräger Öffnungsfläche. Bei Version 0.12.1 wurden Installation und Deinstallation auf Windows Server 2022 geprüft. Das portable Studio öffnete und speicherte ein Beispielprojekt mit Software-OpenGL. Die Prüfung auf Windows 11 mit Hardware-Grafiktreiber steht aus. Für macOS gibt es in diesem Release kein fertiges Paket. [Prüfstand](DEVELOPMENT_STATUS.md)
 
 ## Zwei Dinge zum Ausprobieren
 
