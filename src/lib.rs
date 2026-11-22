@@ -1,5 +1,9 @@
 pub mod cad;
+pub mod engine;
 pub mod files;
 pub mod geometry;
+pub mod layers;
 pub mod plate;
 pub mod project;
+pub mod section;
+pub mod slicer;

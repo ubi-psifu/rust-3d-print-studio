@@ -28,6 +28,7 @@ enum Dialog {
     Discard(Action),
     Help,
     Combine,
+    Prepare,
 }
 struct MoveDrag {
     hit: DVec3,
@@ -37,6 +38,7 @@ struct MoveDrag {
     recorded: bool,
 }
 pub struct Studio {
+    preparation: crate::preparation_ui::Panel,
     selected: Vec<usize>,
     clipboard: Vec<Object>,
     drag: Option<MoveDrag>,
@@ -69,6 +71,7 @@ const ACCENT: Color32 = Color32::from_rgb(91, 201, 182);
 impl Studio {
     pub fn new(path: Option<PathBuf>) -> Self {
         let mut app = Self {
+            preparation: Default::default(),
             p: Project::default(),
             tool: 0,
             selected: vec![],
@@ -616,6 +619,7 @@ impl Studio {
     fn dialogs(&mut self, ctx: &egui::Context) {
         let Some(d) = self.dialog else { return };
         egui::Modal::new("dialog".into()).show(ctx,|ui|{ui.set_min_width(370.);match d{
+ Dialog::Prepare=>{self.preparation.show(ui,&mut self.p,&mut self.hist,&mut self.dirty);if let (Some(i),Some(d))=(self.sel,self.draft.as_mut()){d.filament_slot=self.p.objects[i].filament_slot;}},
  Dialog::Combine=>{ui.heading("Boolesche Operation");ui.label("Der ausgewählte Körper ist der Grundkörper.");ui.horizontal(|ui|{for(op,name)in [(Operation::Union,"Vereinigung"),(Operation::Difference,"Differenz"),(Operation::Intersection,"Schnittmenge")]{ui.selectable_value(&mut self.operation,op,name);}});ui.label("Werkzeugkörper");for(i,o)in self.p.objects.iter().enumerate(){if Some(i)!=self.sel{ui.selectable_value(&mut self.operand,i,&o.name);}}if ui.button("Berechnen und übernehmen").clicked(){self.combine();}ui.label(&self.message);},
  Dialog::Help=>{ui.heading("Bedienung");ui.label("Linksklick: auswählen · Umschalt + Klick: Auswahl erweitern\nLinks ziehen: Körper verschieben oder Auswahlrahmen aufziehen\nStrg+C/V: kopieren/einfügen · Strg+D: duplizieren\nRechts ziehen: Ansicht drehen\nMitte ziehen: Ansicht verschieben\nMausrad: zoomen");ui.separator();ui.label("Projekt öffnen: R3DP\nNetzexport: STL binär, OBJ und Modell-3MF in mm.\nWeitere Importformate und CAD-Operationen sind offen.");},
  Dialog::Discard(a)=>{ui.heading("Ungespeicherte Änderungen");ui.label("Sollen die Änderungen verworfen werden?");if ui.button("Verwerfen und fortfahren").clicked(){self.proceed(a);}},
@@ -624,7 +628,7 @@ impl Studio {
  if matches!(t,FileTask::Write(Output::Stl|Output::Obj|Output::ThreeMf)){ui.label("Exportiert Dreiecksnetze in mm. Konstruktionsparameter bleiben im R3DP-Projekt.");}
  if ui.button("Bestätigen").clicked(){self.file_submit(t);}
  if !self.message.is_empty(){ui.colored_label(Color32::from_rgb(233,155,92),&self.message);}}}
- if ui.button(if matches!(d,Dialog::Help){"Schließen"}else{"Abbrechen"}).clicked(){self.dialog=None;}
+ if ui.button(if matches!(d,Dialog::Help|Dialog::Prepare){"Schließen"}else{"Abbrechen"}).clicked(){self.dialog=None;}
  });
     }
     fn views(&mut self, ui: &mut egui::Ui) {
@@ -742,6 +746,10 @@ impl Studio {
                 }
             });
             ui.menu_button("Druckvorbereitung", |ui| {
+                if item(ui, "Platte vorbereiten …") {
+                    self.preparation.reopen();
+                    self.dialog = Some(Dialog::Prepare);
+                }
                 if item(ui, "Auf Druckbett absenken") {
                     self.place(false)
                 }
@@ -1126,6 +1134,16 @@ impl Studio {
                         .clicked()
                     {
                         self.choose(FileTask::Write(Output::ThreeMf));
+                    }
+                    if ui
+                        .add_sized(
+                            [ui.available_width(), 32.],
+                            egui::Button::new("Platte vorbereiten …"),
+                        )
+                        .clicked()
+                    {
+                        self.preparation.reopen();
+                        self.dialog = Some(Dialog::Prepare);
                     }
                     ui.add_space(6.);
                 });

@@ -1,5 +1,25 @@
 # Bedienungsanleitung
 
+## Zwei lokale Arbeitsabläufe
+
+**Geometrischer Schichtplan:** **Druckvorbereitung → Platte vorbereiten → Schnittansicht** öffnen und **Eigene Rust-Schichtplanung** aktivieren. Schichthöhe und prozentuale Linienfüllung einstellen. Der Schichtregler zeigt die Konturen und das rechtwinklige Füllraster. In jeder zweiten Schicht dreht sich die Füllrichtung um 90 Grad. **Alle Schichten speichern** schreibt eine neue ZIP-Datei mit maßstäblichen SVG-Zeichnungen und einer JSON-Übersicht. Das ZIP lässt sich entpacken und jede Zeichnung lokal öffnen. Die Schichtberechnung funktioniert unabhängig von einer Bambu-Installation. Der eigene Kern berechnet noch keine versetzten Wandbahnen, Stützen, Deckschichten, Bewegungsreihenfolge oder Maschinenbefehle.
+
+**Druckdatei für den P1S:** Bambu Studio mit den passenden Profilen einmal lokal installieren oder den Installer auf den Offline-Rechner übertragen. Ein eigenes ungeslictes P1S-Projekt mit dem gewünschten Filament als Vorlage speichern. Diese unter **Druckprofil** laden. Unter **Übergabe** die ausführbare Bambu-Studio-Datei und einen neuen Namen mit Endung `.gcode.3mf` angeben. **Platte lokal slicen** berechnet die ganze Platte im Hintergrund. Nach Erfolg erscheinen Schichtzahl, die verfügbare Zeitschätzung und Hinweise der Engine. **Geslicte Datei zur Vorschau öffnen** zeigt die Werkzeugwege in der lokal installierten Bambu-Software. Den nächsten Druckschritt bestimmst du selbst.
+
+Die geometrischen Vorschauwerte im Reiter **Schnittansicht** gelten für den Rust-Schichtplan. Für das tatsächliche P1S-Slicing gelten die Vorlage und die unter **Druckprofil** gewählten Prozesswerte.
+
+## Vom CAD zur Slicer-Platte
+
+1. Modelle auf der Platte auswählen, verschieben und kopieren. Vor der Übergabe **Modell prüfen** aufrufen.
+2. Für Filamente und Prozesse in Bambu Studio einmal einen P1S mit passender Düse, gewünschte Filamente und ein Prozessprofil auswählen. Ein eigenes **ungeslictes Projekt als .3mf** speichern. Eine Modell-3MF, eine einzelne Preset-JSON oder eine geslicte Druckplatte eignet sich dafür nicht.
+3. Im Rust-Studio **Platte vorbereiten → Druckprofil** öffnen, den Pfad zur eigenen Vorlage eingeben und **Profil aus Vorlage laden** drücken. Unter **Prozesswerte für diese Platte ändern** lassen sich Schichthöhe, Wandlinien, Füllung und Stützen einstellen. Ohne Vorlage kannst du direkt eine Modell-3MF ausgeben.
+4. Unter **Filamente** jedem Objekt die Nummer seines Filamentprofils geben. Diese Nummer bleibt beim Kopieren und Speichern im R3DP-Projekt erhalten. Die tatsächliche AMS-Fachbelegung wählst du später am Slicer.
+5. Unter **Schnittansicht** die Z-Höhe verschieben. Die Draufsicht zeigt die Schnittkonturen über dem Raster und der Sperrfläche. Mit Vorlage folgen die Farben den Filamenten, sonst den Objektfarben.
+6. Unter **Übergabe** einen neuen .3mf-Dateinamen eingeben, vorzugsweise mit vollständigem Pfad. **3MF speichern** funktioniert auch ohne installierten Slicer. **Speichern und im Slicer öffnen** benötigt die installierte Bambu-Studio-Programmdatei. Bei fehlender Erkennung den vollständigen EXE-, Binär- oder AppImage-Pfad eingeben.
+7. Im Slicer **Platte slicen** und die Werkzeugwege in der Vorschau kontrollieren. Flächenbemalung, erweiterte Prozessparameter und Gerätewahl sind dort verfügbar.
+
+Vorlagen dienen ausschließlich als Quelle der **globalen Einstellungen**, einschließlich darin enthaltener Maschinen- und Filament-Skripte. Verwende eine eigene vertrauenswürdige Vorlage. Die Geometrie, plattenspezifische und objektspezifische Einstellungen, Bemalung und Zusatzdateien der Vorlage werden nicht kopiert. Der Export verlangt einen neuen Dateinamen. Die ausgewählte Vorlage und die vier Prozessänderungen gelten für die laufende Sitzung und sind in der ausgegebenen Bambu-Projektdatei enthalten.
+
 ## Druckplatte belegen
 
 Links **Auswahl** öffnen. **Draufsicht** passt die ganze Platte ins Fenster. Zum Verschieben einen Körper mit der linken Maustaste greifen und ziehen. Die Höhe bleibt erhalten. Für die genaue Positionierung **Am Raster einrasten** einschalten. Ein Zug in einer nahezu waagerechten Kameraansicht lässt sich über **Draufsicht** fortsetzen.
@@ -52,7 +72,7 @@ Im Menü **Datei** den Befehl wählen und einen vollständigen Dateipfad samt En
 |---|---|---|
 | R3DP v1/v2 | Projekt, automatische Übernahme von v1 | Parametrisches Projekt v2 |
 | STL binär | Offen | Netz in mm |
-| 3MF | Offen | Standard-Modellcontainer mit mehreren Mesh-Ressourcen |
+| 3MF | Globale Profileinstellungen aus ungeslicter P1S-Vorlage laden. Geometrieimport offen. | Standard-Modellcontainer oder ungeslictes Bambu-Projekt mit Filamentzuordnung |
 | OBJ | Offen | Geometrie |
 | ASCII-STL, STEP/STP, PLY, SVG, GLTF/GLB, G-Code | Offen | Offen |
 

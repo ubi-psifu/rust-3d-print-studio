@@ -85,7 +85,7 @@ pub fn save(path: &Path, p: &Project, format: Output, overwrite: bool) -> io::Re
             }
             Output::Stl => stl(&mut out, p)?,
             Output::Obj => obj(&mut out, p)?,
-            Output::ThreeMf => three_mf(&mut out, p)?,
+            Output::ThreeMf => three_mf(&mut out, p, None)?,
         }
         out.flush()?;
     }
@@ -129,21 +129,47 @@ fn obj(mut out: impl Write, p: &Project) -> io::Result<()> {
     }
     Ok(())
 }
-fn three_mf(out: impl Write + io::Seek, p: &Project) -> io::Result<()> {
+pub(crate) fn xml_text(s: &str) -> String {
+    s.chars()
+        .filter(|&c| c >= ' ' && c != '\u{fffe}' && c != '\u{ffff}')
+        .collect::<String>()
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}
+pub(crate) fn three_mf(
+    out: impl Write + io::Seek,
+    p: &Project,
+    settings: Option<&crate::slicer::Preparation>,
+) -> io::Result<()> {
     let mut z = ZipWriter::new(out);
     let opt = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
     z.start_file("[Content_Types].xml", opt)?;
-    z.write_all(br#"<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>"#)?;
+    z.write_all(br#"<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="config" ContentType="application/octet-stream"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>"#)?;
     z.start_file("_rels/.rels", opt)?;
     z.write_all(br#"<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>"#)?;
     z.start_file("3D/3dmodel.model", opt)?;
     write!(
         z,
-        r#"<model unit="millimeter" xml:lang="de-DE" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><resources>"#
+        r#"<model unit="millimeter" xml:lang="de-DE" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:BambuStudio="http://schemas.bambulab.com/package/2021">"#
     )?;
+    if let Some(settings) = settings {
+        write!(
+            z,
+            r#"<metadata name="Application">{}</metadata><metadata name="BambuStudio:3mfVersion">1</metadata><metadata name="Designer">Rust 3D Print Studio</metadata>"#,
+            settings.application()
+        )?;
+    }
+    write!(z, "<resources>")?;
     for (i, o) in p.objects.iter().enumerate() {
         let m = o.mesh();
-        write!(z, r#"<object id="{}" type="model"><mesh><vertices>"#, i + 1)?;
+        write!(
+            z,
+            r#"<object id="{}" type="model" name="{}"><mesh><vertices>"#,
+            i + 1,
+            xml_text(&o.name)
+        )?;
         for v in m.vertices {
             write!(z, r#"<vertex x="{}" y="{}" z="{}"/>"#, v.x, v.y, v.z)?;
         }
@@ -158,6 +184,29 @@ fn three_mf(out: impl Write + io::Seek, p: &Project) -> io::Result<()> {
         write!(z, r#"<item objectid="{i}"/>"#)?;
     }
     write!(z, "</build></model>")?;
+    if let Some(settings) = settings {
+        z.start_file("Metadata/project_settings.config", opt)?;
+        serde_json::to_writer(&mut z, &settings.config)?;
+        z.start_file("Metadata/model_settings.config", opt)?;
+        write!(z, "<config>")?;
+        for (i, o) in p.objects.iter().enumerate() {
+            write!(
+                z,
+                r#"<object id="{}"><metadata key="name" value="{}"/><metadata key="extruder" value="{}"/></object>"#,
+                i + 1,
+                xml_text(&o.name),
+                o.filament_slot
+            )?;
+        }
+        write!(z, r#"<plate><metadata key="plater_id" value="1"/>"#)?;
+        for id in 1..=p.objects.len() {
+            write!(
+                z,
+                r#"<model_instance><metadata key="object_id" value="{id}"/><metadata key="instance_id" value="0"/></model_instance>"#
+            )?;
+        }
+        write!(z, "</plate></config>")?;
+    }
     z.finish()?;
     Ok(())
 }

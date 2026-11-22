@@ -1,6 +1,8 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 mod feature_ui;
+mod preparation_ui;
 mod renderer;
+mod section_ui;
 mod ui;
 use macroquad::prelude::*;
 fn config() -> Conf {

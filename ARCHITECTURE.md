@@ -1,5 +1,17 @@
 # Architektur und Datenmodell
 
+## Lokale Engine
+
+`section` berechnet Ebenenschnitte und schneidet parallele Fülllinien nach der Gerade/Ungerade-Regel mit den Konturen eines Objekts. `layers` verwendet die transformierten Netze über sämtliche Schichten wieder, tastet jede Schicht in der Mitte ab und legt getrennte SVG-Gruppen für Kontur und Füllung an. Der Modellstapel endet an der höchsten Geometrie. Die Zeichnungen dokumentieren die geometrische Planung.
+
+`engine` übergibt die aktuelle Platte als neues Projekt an einen lokalen CLI-Prozess. Quelle, Bericht und Ergebnis liegen im temporären Auftragsverzeichnis. Das Programm prüft Exitstatus, Erfolgsbericht für eine Platte, ZIP-Eintrag und vollständig lesbaren Werkzeugweg mit positiver Schichtzahl. Erst danach veröffentlicht es die neue Druckdatei atomar. Es öffnet keine Verbindung zum Drucker. Die Prüfung des Containers ersetzt keine Prüfung der Bewegungen und Materialparameter in der Slicervorschau.
+
+## Slicer-Anbindung
+
+Das Modul `slicer` liest begrenzt den Modellvorspann und die globalen Projekteinstellungen aus einer lokalen ZIP-Vorlage. Unbekannte JSON-Schlüssel in den globalen Einstellungen bleiben erhalten. Das Modul `files` schreibt einen neuen Container mit eigenen Netzen, Modellnamen, Instanzliste und Filamentnummern. Die Bambu-Formatkennung samt Versionsnummer stammt aus der Vorlage, Rust Studio ist im Designer-Feld eingetragen. Bambu Studio benötigt die Formatkennung zur Interpretation der persönlichen Projekteinstellungen. Standard-3MF-Export und Bambu-Projektübergabe haben eigene Befehle. Die Projektübergabe läuft in einem Hintergrundthread.
+
+`section` schneidet Weltkoordinaten-Dreiecke mit einer horizontalen Ebene. `section_ui` berechnet im Hintergrund höchstens einen Schnitt pro laufender Ansicht und zeichnet nur das Ergebnis der aktuell gewählten Höhe. `preparation_ui` verbindet Vorlagen, Objekte und Export. Der lokale Programmstart übergibt einen absoluten Modellpfad als einzelnes Prozessargument. Die Sitzung enthält keine Geräteanmeldung.
+
 Ein Cargo-Workspace mit einem Paket enthält eine testbare Bibliothek und eine Desktop-Binärdatei. Kleinere Module teilen sich das Paket, damit Geometrie- und Formatänderungen ohne Fenster getestet werden können. Nur die Desktop-Seite besitzt die Ereignisschleife.
 
 | Modul | Verantwortung |

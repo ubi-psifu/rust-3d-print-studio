@@ -1,5 +1,9 @@
 # Windows 11 x64
 
+Für CAD, Schichtplanung und SVG-Export genügt die portable Studio-EXE. Für eine druckerspezifische .gcode.3mf werden zusätzlich eine lokale Bambu-Studio-Installation und eine eigene ungeslicte P1S-Projektvorlage benötigt. Installer und Vorlage können per Datenträger auf den Offline-Rechner übertragen werden. Der Windows-Build aus Quellcode benötigt vorab die in Cargo.lock fixierten Abhängigkeiten, die Windows-Toolchain und das SDK.
+
+Bambu Studio ist für die Funktionen **Modellieren**, **Schnittansicht** und **3MF speichern** optional. Für den direkten Start die offizielle Desktopsoftware separat installieren. Unter **Platte vorbereiten → Übergabe** kann der Pfad zur installierten EXE gesetzt werden.
+
 ## Mitgelieferten Build starten
 
 ZIP vollständig entpacken. Die portable Datei liegt unter **dist/rust-3d-print-studio.exe**. Der Installer **dist/Rust-3D-Print-Studio-Setup-x64.exe** installiert im Benutzerprofil und legt Einträge im Startmenü und in der Liste installierter Apps an. Beide Dateien sind unsigniert. Das Öffnen eines Beispiels gelingt über die Startmenü-Verknüpfung „Beispiel“ (Wandhaken) oder mit dem Projektpfad als erstem Argument.

@@ -73,3 +73,26 @@ Das Volumen des Würfels beträgt laut Bambu Studio 8000 mm³, das des Bohrquade
 4. Profilgrenze.r3dp öffnen. Es muss eine Bereichswarnung erscheinen. Höhe auf 250 mm setzen und übernehmen. Die Warnung verschwindet.
 
 Das Sperrrechteck 0…18 mm in X und 0…28 mm in Y wurde mit dem P1S-0,4-mm-Profil (GM014) im getesteten Bambu-Studio-Paket verglichen. [Bambu-Studio-Release](https://github.com/bambulab/BambuStudio/releases/tag/v02.09.01.70)
+
+## Slicerübergabe 0.4
+
+Geprüft mit der offiziellen Bambu-Studio-CLI 02.09.01.70 unter Linux. Zwei Würfel, jeweils 20 mm Kantenlänge, wurden mit Mittelpunkten bei (40, 50, 10) und (202, 191, 10) mm auf einer Platte übernommen. Der erneute Projektexport enthielt beide Namen und Filamentnummern, die beiden gewählten Filamentprofile, 0,16 mm Schichthöhe, vier Wandlinien, 27 % Füllung und aktivierte Stützen. Die Prüfung betrifft das ungeslicte Projekt und erteilt keine Druckfreigabe.
+
+Wiederholung mit Rust, Python 3, einem funktionierenden Bambu-Studio-Programm und einem eigenen P1S-Projekt mit 0,4-mm-Düse und zwei Filamenten:
+
+```sh
+python3 scripts/bambu_abnahme.py /pfad/zu/bambu-studio /pfad/zur/Vorlage.3mf
+```
+
+## 0.5 – Offline-Slicing
+
+Unter Linux x86-64 blockierte ein für den Test vorgeschalteter Prozessfilter IPv4- und IPv6-Sockets für Anwendung und Kindprozesse. Die offizielle CLI 02.09.01.70 erzeugte mit lokaler P1S-Vorlage und einem Filament beim Würfel 100 Schichten (15 Minuten geschätzt), beim Wandhaken 214 Schichten (31 Minuten geschätzt). Für den Haken meldete der Slicer frei schwebende Bereiche. Beide Dateien dienten ausschließlich zur Softwareabnahme. Bei einer Zweifilament-Testvorlage beendete sich die externe Engine während der Verarbeitung ihrer Extruderkonfiguration mit einem Speicherfehler.
+
+Die eigene Rust-Berechnung des Wandhakens ergab bei gleichmäßigen 0,20 mm und 15 % Linienfüllung 215 geometrische Schnitte. Sämtliche SVG-Dateien wurden als XML eingelesen. Die Schichteinteilung der Druckdatei richtet sich separat nach dem Herstellerprofil. Die Tests prüfen zusätzlich Innenaussparungen, Richtungswechsel, offene Schnittlinien und vollständige Stapel.
+
+```sh
+cargo run --locked --example schichtplan -- examples/modelle/Wandhaken.r3dp Plan.zip
+cargo run --locked --example offline_slicen -- /pfad/bambu-studio examples/modelle/Wuerfel.r3dp /pfad/P1S.3mf Wuerfel.gcode.3mf
+```
+
+Der Öffnungs- und Speicherablauf für die Rust-Schichtplanung wurde außerdem im Linux-Fenster am Wandhaken bedient. Der GUI-Export enthielt die erwarteten 215 Schichten.

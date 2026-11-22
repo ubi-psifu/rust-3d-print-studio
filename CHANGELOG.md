@@ -1,5 +1,15 @@
 # Änderungshistorie
 
+## 0.5.0 · Offline-Schichtplanung
+
+Eigene Rust-Linienfüllung mit Löchern und wechselnder Richtung, vollständiger SVG-Schichtexport und lokaler CLI-Auftrag für P1S-Druckdateien. Die SimplyPrint-Verknüpfung in der Oberfläche entfällt auf Wunsch nach rein lokalem Betrieb.
+
+## 0.4.0 · 20. November 2026
+
+- Druckvorbereitung mit vier Reitern, horizontaler Schnittansicht, lokalen P1S-Vorlagen, Filamentzuordnung und vier Prozessparametern.
+- Neuer Bambu-Projektexport und Start der separat installierten Desktopsoftware. Browserzugang zum SimplyPrint-Angebot.
+- Vier zusätzliche Regressionstests und reproduzierbare Abnahme mit der offiziellen CLI.
+
 ## 0.3.0
 
 - Direkte XY-Verschiebung auf der Greifhöhe des Mauszeigers, Rasterfang, Mehrfach- und Rahmenauswahl.

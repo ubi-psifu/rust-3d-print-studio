@@ -1,3 +1,7 @@
+# Offline-Engine ab 0.5
+
+Der eigene Schichtkern berechnet Konturen und Linienfüllung ohne Zusatzprogramm. Nächste Schritte für einen eigenständigen Maschinenslicer sind robuste Konturversätze für mehrere Wände, Boden- und Deckflächen, Stützgeometrie und eine mechanisch validierte Bahnplanung. Parallel bleibt die lokale Bambu-CLI der verfügbare Weg für P1S-Druckdateien.
+
 # Prioritäten ab 0.2
 
 Der Konstruktionsablauf hat Vorrang vor Slicing. Der erste integrierte Stand umfasst editierbare Skizzen, Sweep/Loft, Boolesche und den geprüften Wandhaken. Es folgen die Stabilisierung komplexer Featureketten, eine topologisch stabile Auswahl von Kanten und Flächen sowie exakte B-Rep-Flächen und STEP-Roundtrips. Danach folgen Netzimport und umfangreichere Druckanalysen. Ein eigener Slicer hat weiterhin nachrangige Priorität.

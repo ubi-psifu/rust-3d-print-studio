@@ -1,4 +1,8 @@
-# Rust 3D Print Studio 0.3.0
+# Rust 3D Print Studio 0.5.0
+
+**Offline arbeiten:** Unter **Platte vorbereiten → Schnittansicht → Eigene Rust-Schichtplanung** erzeugst du ohne Zusatzprogramm Konturen und Linienfüllung. **Alle Schichten speichern** exportiert eine SVG pro Schicht in ein ZIP. Ein fertiger geometrischer Schichtplan liegt in `examples/modelle/Wandhaken-Schichtplan.zip`. Für P1S-Werkzeugwege nutzt **Übergabe → Platte lokal slicen** eine auf deinem Rechner installierte Bambu-Studio-Engine mit einer eigenen P1S-Vorlage. Beide Arbeitsabläufe funktionieren ohne Internetkonto.
+
+**Druckvorbereitung → Platte vorbereiten** öffnet den neuen Arbeitsablauf für die Übergabe an Bambu Studio. Mit einer eigenen P1S-Projektvorlage kannst du Filamente je Objekt und vier Prozesswerte übernehmen. Die Schnittansicht zeigt die Modellkonturen bei der gewählten Höhe. Den Funktionsvergleich mit SimplyPrint findest du in [docs/SLICER_INTEGRATION.md](docs/SLICER_INTEGRATION.md).
 
 Deutschsprachige native CAD-Anwendung mit parametrischen Skizzen, Pfadextrusionen, Loft, Rotationskörpern, Netzbooleschen und direkter Freiformbearbeitung. Die Oberfläche orientiert sich an der bereitgestellten SVG-Vorlage. Im Ordner **dist/** liegen Linux-Build, portable Windows-x64-EXE und Windows-Installer.
 
@@ -32,6 +36,7 @@ Links **Bohrung → Bohrquader erstellen** wählen. Rechts die Abmessungen und d
 | ARCHITECTURE.md | Komponenten, Einheiten und Formate |
 | BUILD_WINDOWS.md | Reproduzierbarer Build und Installer |
 | CHANGELOG.md | Versionshistorie |
+| docs/SLICER_INTEGRATION.md | Funktionsvergleich und technische Integrationswege für SimplyPrint und Bambu Studio |
 | docs/ABNAHME.md | Ausgeführte Prüfungen und Wiederholung |
 | docs/BIBLIOTHEKEN.md | Lizenz, Veröffentlichungsaktivität und Einsatzentscheidung |
 | THIRD_PARTY_NOTICES.txt | Lizenzinformationen zu den Bibliotheken und Schriften |

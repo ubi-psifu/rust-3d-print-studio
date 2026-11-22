@@ -28,3 +28,7 @@ Die Spalte Datum bezeichnet die Veröffentlichung der jüngsten stabilen, nicht 
 ## Ergänzung 0.2.0
 
 boolmesh 0.2.2 ist mit Rust 1.88 als reine Rust-Bibliothek eingebunden und verwendet separat glam 0.32.1. Die Schnittstelle zum Studio übergibt f64-Punktkoordinaten und Dreiecksindizes. Der Kern nutzt die MPL-2.0. Die getesteten Operationen umfassen Vereinigung, Differenz und Schnittmenge. Der unveränderte Paketquellcode liegt unter third_party. [API-Dokumentation](https://docs.rs/boolmesh/0.2.2/boolmesh/)
+
+## Ergänzung 0.4
+
+ZIP 4.6.1 liest die Deflate-Kompression von Bambu-Projekten mit dem bereits im Abhängigkeitsbaum enthaltenen flate2. webbrowser 1.2.7 öffnet auf ausdrücklichen Klick die feste SimplyPrint-Adresse im Standardbrowser. Die offizielle Bambu-Studio-Anwendung wird separat installiert. Die Paketversionen stehen in Cargo.lock.

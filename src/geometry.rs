@@ -50,6 +50,8 @@ pub struct Object {
     pub position: DVec3,
     pub rotation: DVec3,
     pub bore: f64,
+    #[serde(default = "first_slot", skip_serializing_if = "is_first_slot")]
+    pub filament_slot: usize,
     pub color: [u8; 3],
 }
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -57,6 +59,12 @@ pub struct Object {
 pub struct Mesh {
     pub vertices: Vec<DVec3>,
     pub faces: Vec<[usize; 3]>,
+}
+fn first_slot() -> usize {
+    1
+}
+fn is_first_slot(s: &usize) -> bool {
+    *s == 1
 }
 impl Object {
     pub fn new(shape: Shape, position: DVec3) -> Self {
@@ -69,11 +77,13 @@ impl Object {
             position,
             rotation: DVec3::ZERO,
             bore: 8.,
+            filament_slot: 1,
             color: [70, 181, 172],
         }
     }
     pub fn valid(&self) -> bool {
         self.feature.is_some() == self.cached.is_some()
+            && (1..=16).contains(&self.filament_slot)
             && self.name.chars().count() <= 120
             && self.position.is_finite()
             && self.position.abs().max_element() <= 10000.
