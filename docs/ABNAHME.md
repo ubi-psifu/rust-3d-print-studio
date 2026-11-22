@@ -1,3 +1,9 @@
+# Abnahme 0.8.0
+
+Im nativen Linux-Fenster wurde der Plattendialog geöffnet und auf Kreis umgestellt. F1 öffnete die Anleitung zum Kreismuster. Die Suche nach „bohrung“ zeigte die Anleitung zur Durchgangsbohrung. Nach Esc erschien wieder der Kreisdialog mit Radius 35 mm. Danach wurde ein Rechteckmuster übernommen und gespeichert. Das Projekt enthielt zwölf Körper.
+
+50 automatisierte Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehler liefen erfolgreich. Optimierte Linux- und Windows-x64-Builds und NSIS-Setup wurden erstellt. Die Windows-Laufzeitprüfung steht aus.
+
 # Abnahme 0.7.0
 
 Die sechs Austausch- und Skizzentests sowie der neue Sicherungstest ergänzen die 41 vorherigen Tests. Alle 48 Tests, Formatprüfung, Workspace-Check, Clippy mit Warnungen als Fehler sowie die optimierten Builds für Linux und Windows x64 liefen erfolgreich. Das NSIS-Installationspaket wurde gebaut.

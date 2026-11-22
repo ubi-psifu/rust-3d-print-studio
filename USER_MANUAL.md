@@ -1,5 +1,11 @@
 # Bedienungsanleitung
 
+## Hilfe im Studio
+
+Drücke **F1**, um die Hilfe zum aktiven Werkzeug oder zum geöffneten Dialog zu lesen. Über den acht Werkzeugschaltflächen erklärt F1 das Werkzeug unter dem Mauszeiger. Beim Bearbeiten eines parametrischen Körpers öffnet **?** neben dem Namen des Konstruktionsschritts die zugehörige Anleitung. In den Plattenwerkzeugen und der Druckvorbereitung richtet sich die Hilfe nach dem aktuellen Modus oder Reiter.
+
+Über **Hilfe → Anleitung durchsuchen** öffnest du das Handbuch. Gib ein Stichwort ein und wähle einen Treffer. Im Kapitelmenü kannst du ohne Suchbegriff blättern. **Zurück zur Kontexthilfe** führt zum Ausgangsthema. Mit **Esc** oder **Schließen** kehrst du zu deinen Eingaben zurück. Alle Texte sind im Programm enthalten.
+
 ## Eine bemaßte Platte ändern
 
 Öffne `examples/modelle/Bemasste-Platte.r3dp`, wähle die Platte und öffne im Skizzeninspektor **Bemaßung und Bedingungen**. Ändere das Abstandsmaß 48 auf 60 mm und wähle **Parameter übernehmen**. Die Extrusion übernimmt die neue Kontur. Die fixierte Ecke bleibt relativ zum Skizzenursprung an ihrem Platz.
@@ -125,7 +131,7 @@ Mit **In einzelne Features auflösen** wird der Generator im Entwurf durch seine
 |---|---|
 | Skizzenkontur | Punkte in der Zeichenfläche ziehen oder X/Y/Z eingeben. XY, XZ und YZ wählen die Bearbeitungsansicht. Ursprung und U-/V-Achse definieren die Arbeitsebene. |
 | Kontursegmente | Linie verwendet A–B, Bogen A–B–C mit B als Durchgangspunkt, kubischer Bézier A–B–C–D. Indizes beginnen bei 0. Hilfsgeometrie wird bei der Körperbildung ausgelassen. Extrusion erfordert einen geschlossenen Zug ohne doppelte Endsegmente. |
-| Bedingungen | Abstand richtet B im angegebenen Abstand zu A aus. Parallelität richtet C–D parallel zu A–B aus. Tangente richtet B–D an A–B aus. Spiegelung spiegelt C über die Achse A–B nach D. Koinzidenz setzt B auf A. Diese Regeln wirken gerichtet. |
+| Bedingungen | Abstand richtet B im angegebenen Abstand zu A aus. Parallelität richtet C–D parallel zu A–B aus. Tangente richtet B–D an A–B aus. Spiegelung spiegelt C über die Achse A–B nach D. Koinzidenz setzt B auf A. Diese Zuordnung beschreibt den gerichteten Altmodus. Mit „Punkte gemeinsam lösen“ können sich alle beteiligten freien Punkte bewegen. |
 | Sweep | Polyline, räumliche Skizze, Bézier, Ellipsenbogen oder NURBS auswählen. Lokale Querschnittspunkte bearbeiten oder Rund-, Ellipsen- bzw. Rechteckprofil wählen. Endskalierung, Profilachse und Verdrehung einstellen. |
 | Geschlossener Sweep | Profil achsparallel oder über die Profilachse ausrichten, Endskalierung 1, Verdrehung 0 und gerundete Spitze aus. **Pfad schließen** verbindet den letzten Ring mit dem ersten. |
 | Loft | Profile mit gleicher Punktanzahl und entsprechender Umlaufrichtung bearbeiten. **Glatter Loft mit Führung** interpoliert Zwischenringe. Ein dreidimensionaler Führungsversatz je Intervall beeinflusst dessen Mitte. |

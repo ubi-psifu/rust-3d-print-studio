@@ -1,4 +1,6 @@
-# Rust 3D Print Studio 0.7.0
+# Rust 3D Print Studio 0.8.0
+
+**F1** öffnet die Offline-Hilfe zum Werkzeug oder aktiven Dialog. Im Inspektor führt **?** zur Erklärung des aktuellen Konstruktionsschritts. Über **Hilfe → Anleitung durchsuchen** findest du Kapitel und Arbeitsschritte per Stichwort.
 
 ## Version 0.7.0 starten
 

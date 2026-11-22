@@ -1,5 +1,6 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 mod feature_ui;
+mod help;
 mod layout_ui;
 mod preparation_ui;
 mod renderer;

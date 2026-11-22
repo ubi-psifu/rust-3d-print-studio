@@ -1,3 +1,8 @@
+# 0.8.0 · 21. November 2026
+
+- Kontextbezogene Offline-Hilfe über F1 und Hilfeschaltflächen.
+- Durchsuchbares Handbuch mit Kapitelauswahl. Bearbeitungsdialoge behalten ihren Zustand.
+
 # 0.7.0 · 21. November 2026
 
 - Bidirektionale Skizzenbedingungen für freie und fixierte Punkte, lokale U-/V-Richtung, gleiche Länge und Rechtwinkligkeit. Kompatibler Rechenweg für bestehende Skizzen.

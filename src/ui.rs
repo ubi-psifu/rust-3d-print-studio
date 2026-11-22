@@ -1,4 +1,4 @@
-use crate::{feature_ui, renderer};
+use crate::{feature_ui, help, renderer};
 use egui_macroquad::egui::{self, Color32, RichText};
 use glam::{DVec2, DVec3};
 use rust_3d_print_studio::cad::{inspect, validate, Feature, Operation};
@@ -30,7 +30,6 @@ enum Dialog {
     File(FileTask),
     Overwrite(Output),
     Discard(Action),
-    Help,
     Combine,
     Prepare,
     Layout,
@@ -45,6 +44,8 @@ struct MoveDrag {
     recorded: bool,
 }
 pub struct Studio {
+    help: help::Help,
+    hover_help: Option<&'static str>,
     backups: rust_3d_print_studio::recovery::Worker,
     checkpoint: std::time::Instant,
     copies: Vec<(std::time::SystemTime, PathBuf)>,
@@ -95,6 +96,8 @@ impl Studio {
             .unwrap_or_default();
         let offer_recovery = path.is_none() && !copies.is_empty();
         let mut app = Self {
+            help: Default::default(),
+            hover_help: None,
             backups: Default::default(),
             checkpoint: std::time::Instant::now(),
             copies,
@@ -941,6 +944,32 @@ impl Studio {
             self.dialog = None;
         }
     }
+    fn help_button(&mut self, ui: &mut egui::Ui, label: &str, topic: &'static str) -> bool {
+        let response = ui
+            .button(label)
+            .on_hover_text(format!("{topic} · F1 für Hilfe"));
+        if response.hovered() {
+            self.hover_help = Some(topic);
+        }
+        response.clicked()
+    }
+    fn context_topic(&self) -> &'static str {
+        match self.dialog {
+            Some(Dialog::Recovery) => help::RECOVER,
+            Some(Dialog::Layout) => self
+                .layout
+                .as_ref()
+                .map_or(help::PLATE, |e| help::layout(e.s.mode)),
+            Some(Dialog::Case) => help::CASE,
+            Some(Dialog::Prepare) => self.preparation.help_topic(),
+            Some(Dialog::Combine) => "Boolesche",
+            Some(Dialog::File(FileTask::Import)) => help::IMPORT,
+            Some(Dialog::File(FileTask::Profile)) => help::PROFILE,
+            Some(Dialog::File(FileTask::Svg)) => help::CASE,
+            Some(Dialog::File(_) | Dialog::Overwrite(_) | Dialog::Discard(_)) => help::FILE,
+            None => self.hover_help.unwrap_or(help::TOOLS[self.tool]),
+        }
+    }
     fn dialogs(&mut self, ctx: &egui::Context) {
         let Some(d) = self.dialog else { return };
         egui::Modal::new("dialog".into()).show(ctx,|ui|{ui.set_min_width(370.);match d{
@@ -962,7 +991,6 @@ impl Studio {
  Dialog::Case=>{ui.heading("Gehäuse mit Deckel");vector(ui,"Innenmaße (mm)",&mut self.case.inside,4.0..=500.);for(label,v)in [("Wandstärke",&mut self.case.wall),("Spiel je Seite",&mut self.case.play),("Einstecktiefe",&mut self.case.lip)]{ui.horizontal(|ui|{ui.label(label);ui.add(egui::DragValue::new(v).speed(0.1).suffix(" mm"));});}if ui.button("Gehäuse und Deckel erzeugen").clicked(){self.new_case();}},
  Dialog::Prepare=>{self.preparation.show(ui,&mut self.p,&mut self.hist,&mut self.dirty);if let (Some(i),Some(d))=(self.sel,self.draft.as_mut()){d.filament_slot=self.p.objects[i].filament_slot;}},
  Dialog::Combine=>{ui.heading("Boolesche Operation");ui.label("Der ausgewählte Körper ist der Grundkörper.");ui.horizontal(|ui|{for(op,name)in [(Operation::Union,"Vereinigung"),(Operation::Difference,"Differenz"),(Operation::Intersection,"Schnittmenge")]{ui.selectable_value(&mut self.operation,op,name);}});ui.label("Werkzeugkörper");for(i,o)in self.p.objects.iter().enumerate(){if Some(i)!=self.sel{ui.selectable_value(&mut self.operand,i,&o.name);}}if ui.button("Berechnen und übernehmen").clicked(){self.combine();}ui.label(&self.message);},
- Dialog::Help=>{ui.heading("Bedienung");ui.label("Linksklick: auswählen · Umschalt + Klick: Auswahl erweitern\nLinks ziehen: Körper verschieben oder Auswahlrahmen aufziehen\nStrg+C/V: kopieren/einfügen · Strg+D: duplizieren\nRechts ziehen: Ansicht drehen\nMitte ziehen: Ansicht verschieben\nMausrad: zoomen");ui.separator();ui.label("Projekt öffnen: R3DP\nNetzexport: STL binär/ASCII, ASCII-PLY, OBJ und Modell-3MF in mm.\nWeitere Importformate und CAD-Operationen sind offen.");},
  Dialog::Discard(a)=>{ui.heading("Ungespeicherte Änderungen");ui.label("Sollen die Änderungen verworfen werden?");if ui.button("Verwerfen und fortfahren").clicked(){self.proceed(a);}},
  Dialog::Overwrite(f)=>{ui.heading("Vorhandene Datei ersetzen?");ui.label(&self.entry);if ui.button("Datei ersetzen").clicked(){self.write(f,true);}},
  Dialog::File(t)=>{ui.heading(match t{FileTask::Import=>"Netz importieren",FileTask::Svg=>"SVG-Relief laden",FileTask::Open=>"Projekt öffnen",FileTask::Profile=>"Druckerprofil laden",FileTask::Write(Output::Project)=>"Projekt speichern",_=>"Netz exportieren"});ui.label("Dateipfad mit Endung");ui.text_edit_singleline(&mut self.entry);
@@ -970,7 +998,8 @@ impl Studio {
  if matches!(t,FileTask::Write(Output::Stl|Output::StlAscii|Output::Ply|Output::Obj|Output::ThreeMf)){ui.label("Exportiert Dreiecksnetze in mm. Konstruktionsparameter bleiben im R3DP-Projekt.");}
  if ui.button("Bestätigen").clicked(){self.file_submit(t);}
  if !self.message.is_empty(){ui.colored_label(Color32::from_rgb(233,155,92),&self.message);}}}
- if ui.button(if matches!(d,Dialog::Help|Dialog::Prepare){"Schließen"}else{"Abbrechen"}).clicked(){self.dialog=None;}
+ if ui.small_button("? Hilfe zu dieser Funktion").clicked(){self.help.show_topic(self.context_topic());}
+ if ui.button(if matches!(d,Dialog::Prepare){"Schließen"}else{"Abbrechen"}).clicked(){self.dialog=None;}
  });
     }
     fn views(&mut self, ui: &mut egui::Ui) {
@@ -1161,8 +1190,11 @@ impl Studio {
                 ui.add(egui::Slider::new(&mut self.p.view.grid, 1.0..=50.).text("Raster (mm)"));
             });
             ui.menu_button("Hilfe", |ui| {
-                if item(ui, "Bedienung und Dateiformate") {
-                    self.dialog = Some(Dialog::Help)
+                if item(ui, "Hilfe zum Werkzeug · F1") {
+                    self.help.show_topic(self.context_topic());
+                }
+                if item(ui, "Anleitung durchsuchen") {
+                    self.help.show_topic(help::GUIDE);
                 }
             });
         });
@@ -1206,7 +1238,16 @@ impl Studio {
                 d.size.x, d.size.y, d.size.z
             ));
             ui.separator();
-            ui.strong(f.name());
+            ui.horizontal_wrapped(|ui| {
+                ui.strong(f.name());
+                if ui
+                    .small_button("?")
+                    .on_hover_text("Hilfe zu diesem Konstruktionsschritt")
+                    .clicked()
+                {
+                    self.help.show_topic(help::feature(f));
+                }
+            });
             feature_ui::edit(ui, f);
         } else {
             vector(ui, "Abmessungen · mm", &mut d.size, 0.1..=2000.);
@@ -1278,6 +1319,7 @@ impl Studio {
         }
     }
     pub fn frame(&mut self, ctx: &egui::Context) {
+        self.hover_help = None;
         if self.checkpoint.elapsed() >= std::time::Duration::from_secs(30) {
             if self.dirty {
                 self.backups.checkpoint(&self.p);
@@ -1404,7 +1446,13 @@ impl Studio {
                     if self.tool == i {
                         b = b.fill(Color32::from_rgb(58, 105, 92));
                     }
-                    if ui.add_sized([133., 34.], b).clicked() {
+                    let response = ui
+                        .add_sized([133., 34.], b)
+                        .on_hover_text(format!("{} · F1 für Hilfe", help::TOOLS[i]));
+                    if response.hovered() {
+                        self.hover_help = Some(help::TOOLS[i]);
+                    }
+                    if response.clicked() {
                         self.tool = i;
                         self.plane_pick = false;
                     }
@@ -1413,7 +1461,7 @@ impl Studio {
                 match self.tool {
                     0 => {
                         ui.small("Ziehen zum Verschieben. Umschalt + Klick für mehrere Körper.");
-                        if ui.button("Plattenwerkzeuge …").clicked() {
+                        if self.help_button(ui, "Plattenwerkzeuge …", help::PLATE) {
                             self.open_layout();
                         }
                         ui.horizontal(|ui| {
@@ -1421,7 +1469,7 @@ impl Studio {
                                 ui.selectable_value(&mut self.axis, k, t);
                             }
                         });
-                        if ui.button("Draufsicht").clicked() {
+                        if self.help_button(ui, "Draufsicht", "Ansicht steuern") {
                             self.top_view();
                         }
                         if ui.button("Alle auswählen").clicked() {
@@ -1435,10 +1483,10 @@ impl Studio {
                                 .prefix("Abstand ")
                                 .suffix(" mm"),
                         );
-                        if ui.button("Alle anordnen").clicked() {
+                        if self.help_button(ui, "Alle anordnen", "Druckplatte belegen") {
                             self.arrange_plate();
                         }
-                        if ui.button("Mit Kopien füllen").clicked() {
+                        if self.help_button(ui, "Mit Kopien füllen", "Druckplatte belegen") {
                             self.insert_copies(self.selection_copy(), true);
                         }
                         if ui.button("Auswahl einpassen").clicked() {
@@ -1478,7 +1526,7 @@ impl Studio {
                             .into_iter()
                             .filter(|(_, f)| !matches!(f, Feature::Hook(_)))
                         {
-                            if ui.button(name).clicked() {
+                            if self.help_button(ui, name, help::feature(&f)) {
                                 self.feature_object(f);
                             }
                         }
@@ -1510,13 +1558,13 @@ impl Studio {
                         if ui.button("Bohrquader erstellen").clicked() {
                             self.add(Shape::BoredBox)
                         }
-                        if ui.button("Körper abziehen …").clicked() {
+                        if self.help_button(ui, "Körper abziehen …", "Boolesche") {
                             self.operation = Operation::Difference;
                             self.dialog = Some(Dialog::Combine);
                         }
                     }
                     6 => {
-                        if ui.button("Körperschnitt …").clicked() {
+                        if self.help_button(ui, "Körperschnitt …", "Boolesche") {
                             self.dialog = Some(Dialog::Combine)
                         }
                     }
@@ -1589,7 +1637,7 @@ impl Studio {
                     ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
                 self.rect = rect;
                 self.px = ctx.pixels_per_point();
-                if self.dialog.is_none() && rect.is_positive() {
+                if !self.help.open && self.dialog.is_none() && rect.is_positive() {
                     let v = &mut self.p.view;
                     let delta = response.drag_delta();
                     if response.dragged_by(egui::PointerButton::Secondary) {
@@ -1627,6 +1675,7 @@ impl Studio {
                 );
             });
         if self.shortcut
+            && !self.help.open
             && self.marquee.is_none()
             && self.drag.is_none()
             && self.dialog.is_none()
@@ -1686,7 +1735,15 @@ impl Studio {
                 self.delete()
             }
         }
-        self.dialogs(ctx);
+        if !self.help.open && macroquad::prelude::is_key_pressed(macroquad::prelude::KeyCode::F1) {
+            self.help.show_topic(self.context_topic());
+        }
+        if !self.help.open {
+            self.dialogs(ctx);
+        }
+        if self.help.open {
+            self.help.draw(ctx);
+        }
     }
     pub fn render(&mut self) {
         if self.rect.is_positive() {

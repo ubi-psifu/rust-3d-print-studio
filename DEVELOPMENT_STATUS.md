@@ -1,4 +1,8 @@
-# Entwicklungsstand 0.7.0
+# Entwicklungsstand 0.8.0
+
+## Kontexthilfe
+
+Die acht Hauptwerkzeuge, Konstruktionsarten im Inspektor, sechs Plattenmodi, vier Druckvorbereitungsreiter und Datei- und Wiederherstellungsdialoge sind mit der Offline-Anleitung verbunden. F1 berücksichtigt auch den Mauszeiger über den Hauptwerkzeugen und ausgewählten Plattenbefehlen. Einzelne Zahlenfelder besitzen keine eigenen Hilfeartikel. Zwei neue Tests prüfen Kontextverweise und Suchverhalten.
 
 ## Version 0.7.0
 

@@ -46,6 +46,9 @@ impl Default for Panel {
     }
 }
 impl Panel {
+    pub fn help_topic(&self) -> &'static str {
+        crate::help::PREP[self.tab]
+    }
     pub fn reopen(&mut self) {
         self.section.reset();
     }

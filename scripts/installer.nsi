@@ -1,7 +1,7 @@
 Unicode true
 Target amd64-unicode
 RequestExecutionLevel user
-Name "Rust 3D Print Studio 0.7.0"
+Name "Rust 3D Print Studio 0.8.0"
 OutFile "../dist/Rust-3D-Print-Studio-Setup-x64.exe"
 InstallDir "$LOCALAPPDATA\Rust 3D Print Studio"
 ShowInstDetails show
@@ -28,7 +28,7 @@ Section "Programm"
   CreateShortcut "$SMPROGRAMS\Rust 3D Print Studio\Studio.lnk" "$INSTDIR\rust-3d-print-studio.exe"
   CreateShortcut "$SMPROGRAMS\Rust 3D Print Studio\Beispiel.lnk" "$INSTDIR\rust-3d-print-studio.exe" '"$INSTDIR\examples\Wandhaken.r3dp"'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio" "DisplayName" "Rust 3D Print Studio"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio" "DisplayVersion" "0.7.0"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio" "DisplayVersion" "0.8.0"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio" "UninstallString" '"$INSTDIR\Deinstallieren.exe"'
 SectionEnd
 
