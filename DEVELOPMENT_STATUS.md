@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## Plattenbedienung 0.12.2
+
+Die Tastenkürzel für die Auswahl und Projektbearbeitung verwenden die beim Tastendruck erfassten Modifikatortasten. Unter Linux bestanden 64 Rust-Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehlern. Das Release enthält Builds für Linux und Windows x64. Der Windows-Fenstertest speichert eine Projektkopie über ein kurzes Strg+S und liest den Objektnamen zurück. Das Ergebnis steht im Actions-Lauf zur Veröffentlichung. Windows 11 mit Hardware-Grafiktreiber und der STEP-Rundlauf bleiben offen.
+
 ## Windows-Installer 0.12.1
 
 Explorer-Registrierung und Versionsanzeige sind angepasst. Die 62 Tests unter Linux und beide x64-Release-Builds sind erfolgreich. Das Skript scripts/windows-abnahme.ps1 prüft auf einem frischen Windows-Runner Installation, Registry und Deinstallation, optional auch Öffnen und Speichern im Fenster. Am 22. November 2026 bestand das Release-Paket die Abnahme auf Windows Server 2022. Der Test installierte das Setup im Benutzerprofil, verglich Programm und Beispiel mit den Dateien im ZIP, prüfte die installierte Version 0.12.1 und den registrierten Explorer-Befehl und kontrollierte die Deinstallation. Das portable Studio öffnete mit Mesa-Software-OpenGL eine Kopie der Bogenlasche aus einem Pfad mit Umlaut und Leerzeichen. Strg+S schrieb die Kopie neu. Der Test las die gespeicherte Datei zurück und prüfte den Objektnamen. Der Fenstertest ohne zusätzlichen Grafiktreiber auf diesem Runner endete mit Prozesscode 101. Die Bedienung auf Windows 11 mit einem Hardware-Grafiktreiber bleibt offen. [Windows-Abnahmelauf](https://github.com/ubi-psifu/rust-3d-print-studio/actions/runs/44999456694/job/137137560715)

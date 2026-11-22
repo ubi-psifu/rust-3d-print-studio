@@ -9,6 +9,15 @@ use rust_3d_print_studio::{
     project::{History, Printer, Project, View, MAX_OBJECTS},
 };
 use std::path::{Path, PathBuf};
+// Auch ein innerhalb desselben Frames losgelassenes Strg gehört zum Tastendruck.
+fn command_pressed(events: &[egui::Event], shortcut: egui::Key) -> bool {
+    events.iter().any(|event| {
+        matches!(event,
+        egui::Event::Key { key, pressed: true, modifiers, .. }
+            if *key == shortcut && modifiers.command)
+    })
+}
+
 #[derive(Clone, Copy)]
 enum Action {
     Recover(usize),
@@ -1682,13 +1691,13 @@ impl Studio {
             && !ctx.wants_keyboard_input()
         {
             let (all, copy, paste, dup) = ctx.input(|i| {
-                let cmd = i.modifiers.command;
+                let pressed = |key| command_pressed(&i.events, key);
                 (
-                    cmd && i.key_pressed(egui::Key::A),
-                    cmd && i.key_pressed(egui::Key::C) || i.events.contains(&egui::Event::Copy),
-                    cmd && i.key_pressed(egui::Key::V)
+                    pressed(egui::Key::A),
+                    pressed(egui::Key::C) || i.events.contains(&egui::Event::Copy),
+                    pressed(egui::Key::V)
                         || i.events.iter().any(|e| matches!(e, egui::Event::Paste(_))),
-                    cmd && i.key_pressed(egui::Key::D),
+                    pressed(egui::Key::D),
                 )
             });
             if all {
@@ -1716,9 +1725,9 @@ impl Studio {
 
             let (z, y, s, del) = ctx.input(|i| {
                 (
-                    i.modifiers.command && i.key_pressed(self.keys[0]),
-                    i.modifiers.command && i.key_pressed(self.keys[1]),
-                    i.modifiers.command && i.key_pressed(self.keys[2]),
+                    command_pressed(&i.events, self.keys[0]),
+                    command_pressed(&i.events, self.keys[1]),
+                    command_pressed(&i.events, self.keys[2]),
                     i.key_pressed(egui::Key::Delete),
                 )
             });
@@ -1785,4 +1794,36 @@ pub(crate) fn vector(
             );
         }
     });
+}
+
+#[cfg(test)]
+mod shortcut_tests {
+    use super::*;
+    fn key(pressed: bool, command: bool) -> egui::Event {
+        egui::Event::Key {
+            key: egui::Key::S,
+            physical_key: None,
+            pressed,
+            repeat: false,
+            modifiers: egui::Modifiers {
+                command,
+                ..Default::default()
+            },
+        }
+    }
+
+    #[test]
+    fn short_command_survives_release_before_frame() {
+        let events = [key(true, true), key(false, false)];
+        assert!(command_pressed(&events, egui::Key::S));
+        assert!(!command_pressed(&events, egui::Key::D));
+    }
+
+    #[test]
+    fn modifier_pressed_after_letter_does_not_trigger_command() {
+        assert!(!command_pressed(
+            &[key(true, false), key(false, true)],
+            egui::Key::S
+        ));
+    }
 }
