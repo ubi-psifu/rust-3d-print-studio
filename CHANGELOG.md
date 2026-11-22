@@ -1,5 +1,11 @@
 # Änderungshistorie
 
+## 0.3.0
+
+- Direkte XY-Verschiebung auf der Greifhöhe des Mauszeigers, Rasterfang, Mehrfach- und Rahmenauswahl.
+- Interne Zwischenablage, Gruppen duplizieren, Druckbett automatisch anordnen und freie Bereiche mit Kopien füllen.
+- Drei zusätzliche Platzierungstests sowie grafischer Abnahmetest für Auswahl, Ziehen, Kopie und Undo.
+
 ## 0.2.0 · 20. November 2026
 
 - Oberfläche an die SVG-Vorlage angepasst. Links liegen acht Werkzeuggruppen, rechts der Objektinspektor, die Modellprüfung und der direkte 3MF-Export.

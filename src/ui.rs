@@ -1,7 +1,8 @@
 use crate::{feature_ui, renderer};
 use egui_macroquad::egui::{self, Color32, RichText};
-use glam::DVec3;
+use glam::{DVec2, DVec3};
 use rust_3d_print_studio::cad::{inspect, validate, Feature, Operation};
+use rust_3d_print_studio::plate;
 use rust_3d_print_studio::{
     files::{self, Output},
     geometry::{Object, Shape},
@@ -28,7 +29,19 @@ enum Dialog {
     Help,
     Combine,
 }
+struct MoveDrag {
+    hit: DVec3,
+    starts: Vec<(usize, DVec3)>,
+    lo: DVec2,
+    hi: DVec2,
+    recorded: bool,
+}
 pub struct Studio {
+    selected: Vec<usize>,
+    clipboard: Vec<Object>,
+    drag: Option<MoveDrag>,
+    marquee: Option<(egui::Pos2, Vec<usize>)>,
+    gap: f64,
     p: Project,
     tool: usize,
     pending: Option<(usize, std::sync::mpsc::Receiver<Result<Object, String>>)>,
@@ -57,7 +70,12 @@ impl Studio {
     pub fn new(path: Option<PathBuf>) -> Self {
         let mut app = Self {
             p: Project::default(),
-            tool: 1,
+            tool: 0,
+            selected: vec![],
+            clipboard: vec![],
+            drag: None,
+            marquee: None,
+            gap: 3.,
             pending: None,
             operand: 0,
             operation: Operation::Difference,
@@ -102,7 +120,30 @@ impl Studio {
     }
     fn select(&mut self, i: Option<usize>) {
         self.sel = i.filter(|i| *i < self.p.objects.len());
+        self.selected = self.sel.into_iter().collect();
+        self.refresh_draft();
+    }
+    fn refresh_draft(&mut self) {
         self.draft = self.sel.map(|i| self.p.objects[i].clone());
+    }
+    fn toggle_selection(&mut self, i: Option<usize>, extend: bool) {
+        if !extend {
+            self.select(i);
+            return;
+        }
+        let Some(i) = i else { return };
+        if self.selected.contains(&i) {
+            self.selected.retain(|j| *j != i)
+        } else {
+            self.selected.push(i)
+        }
+        self.sel = self.selected.last().copied();
+        self.refresh_draft();
+    }
+    fn select_all(&mut self) {
+        self.selected = (0..self.p.objects.len()).collect();
+        self.sel = self.selected.last().copied();
+        self.refresh_draft();
     }
     fn remember(&mut self) {
         self.hist.record(self.p.clone());
@@ -207,24 +248,231 @@ impl Studio {
             self.message = "Zuerst einen Körper auswählen".into();
         }
     }
-    fn duplicate(&mut self) {
-        if let Some(i) = self.sel {
-            if self.p.objects.len() >= MAX_OBJECTS {
-                self.message = "Objektgrenze erreicht".into();
-                return;
-            }
-            self.remember();
-            let mut o = self.p.objects[i].clone();
-            o.position.x = (o.position.x + 5.).min(10000.);
-            self.p.objects.push(o);
-            self.select(Some(self.p.objects.len() - 1));
+    fn selection_copy(&self) -> Vec<Object> {
+        self.selected
+            .iter()
+            .map(|i| self.p.objects[*i].clone())
+            .collect()
+    }
+    fn copy(&mut self) {
+        if !self.selected.is_empty() {
+            self.clipboard = self.selection_copy();
+            self.message = format!("{} Körper kopiert", self.clipboard.len());
         }
     }
-    fn delete(&mut self) {
-        if let Some(i) = self.sel {
+    fn duplicate(&mut self) {
+        self.insert_copies(self.selection_copy(), false);
+    }
+    fn insert_copies(&mut self, group: Vec<Object>, fill: bool) {
+        if group.is_empty() {
+            self.message = "Keine Körper zum Einfügen".into();
+            return;
+        }
+        let capacity = (MAX_OBJECTS - self.p.objects.len()) / group.len();
+        if capacity == 0 {
+            self.message = "Objektgrenze erreicht".into();
+            return;
+        }
+        let offsets = plate::copy_offsets(
+            &self.p.printer,
+            &self.p.objects,
+            &group,
+            self.gap,
+            if fill { capacity } else { 1 },
+        );
+        if offsets.is_empty() {
+            self.message = "Kein freier Platz für die Auswahl mit diesem Abstand".into();
+            return;
+        }
+        self.remember();
+        let first = self.p.objects.len();
+        for offset in offsets {
+            for src in &group {
+                let mut obj = src.clone();
+                obj.position += offset.extend(0.);
+                let suffix = format!(" · {}", self.p.objects.len() + 1);
+                obj.name = obj
+                    .name
+                    .chars()
+                    .take(120 - suffix.chars().count())
+                    .collect::<String>()
+                    + &suffix;
+                self.p.objects.push(obj);
+            }
+        }
+        self.selected = (first..self.p.objects.len()).collect();
+        self.sel = self.selected.last().copied();
+        self.refresh_draft();
+        self.message = format!("{} Kopien platziert", self.selected.len());
+    }
+    fn arrange_plate(&mut self) {
+        if self.p.objects.is_empty() {
+            return;
+        }
+        let Some(offsets) = plate::arrange(&self.p.printer, &self.p.objects, self.gap) else {
+            self.message = "Anordnung passt mit diesem Abstand nicht auf die Platte".into();
+            return;
+        };
+        if offsets.iter().any(|d| d.length_squared() > 1e-12) {
             self.remember();
+            for (o, delta) in self.p.objects.iter_mut().zip(offsets) {
+                o.position += delta;
+            }
+            self.refresh_draft();
+        }
+        self.top_view();
+        self.message = "Alle Körper auf dem Druckbett angeordnet".into();
+    }
+    fn top_view(&mut self) {
+        let [w, h] = self.p.printer.bed;
+        self.p.view.target = DVec3::new(w / 2., h / 2., 0.);
+        self.p.view.pitch = std::f64::consts::FRAC_PI_2;
+        self.p.view.yaw = -std::f64::consts::FRAC_PI_2;
+        self.p.view.perspective = false;
+        let aspect = if self.rect.is_positive() {
+            f64::from(self.rect.aspect_ratio())
+        } else {
+            1.
+        };
+        self.p.view.distance = (h.max(w / aspect) * 1.4).clamp(8., 5000.);
+    }
+    fn delete(&mut self) {
+        if self.selected.is_empty() {
+            return;
+        }
+        self.remember();
+        self.selected.sort_unstable();
+        for &i in self.selected.iter().rev() {
             self.p.objects.remove(i);
-            self.select(i.checked_sub(1).or(Some(0)));
+        }
+        self.select(None);
+    }
+    fn plate_pointer(&mut self, response: &egui::Response, rect: egui::Rect, ui: &egui::Ui) {
+        let ctx = ui.ctx();
+        let ndc = |p: egui::Pos2| {
+            (
+                2. * (p.x - rect.left()) / rect.width() - 1.,
+                1. - 2. * (p.y - rect.top()) / rect.height(),
+            )
+        };
+        let cam = renderer::camera(&self.p.view, rect, self.px);
+        let multi = ctx.input(|i| i.modifiers.shift || i.modifiers.command);
+        if response.drag_started_by(egui::PointerButton::Primary) {
+            if let Some(start) = ctx.input(|i| i.pointer.press_origin()) {
+                let (x, y) = ndc(start);
+                if let Some((i, hit)) = renderer::pick(&cam, x, y, &self.cache) {
+                    if !self.selected.contains(&i) {
+                        self.toggle_selection(Some(i), multi);
+                    }
+                    let mut lo = DVec2::splat(f64::INFINITY);
+                    let mut hi = -lo;
+                    let starts = self
+                        .selected
+                        .iter()
+                        .map(|&i| {
+                            let (a, b) = self.cache[i].bounds;
+                            lo = lo.min(a.truncate());
+                            hi = hi.max(b.truncate());
+                            (i, self.p.objects[i].position)
+                        })
+                        .collect();
+                    self.drag = Some(MoveDrag {
+                        hit: hit.as_dvec3(),
+                        starts,
+                        lo,
+                        hi,
+                        recorded: false,
+                    });
+                } else {
+                    self.marquee =
+                        Some((start, if multi { self.selected.clone() } else { vec![] }));
+                }
+            }
+        }
+        if let Some((start, base)) = self.marquee.take() {
+            let pos = ctx.input(|i| i.pointer.latest_pos()).unwrap_or(start);
+            let area = egui::Rect::from_two_pos(start, pos).intersect(rect);
+            ui.painter()
+                .rect_filled(area, 0., Color32::from_rgba_unmultiplied(80, 180, 160, 32));
+            ui.painter().rect_stroke(
+                area,
+                0.,
+                egui::Stroke::new(1., ACCENT),
+                egui::StrokeKind::Inside,
+            );
+            let mut ids = base.clone();
+            let matrix = macroquad::camera::Camera::matrix(&cam);
+            for (i, solid) in self.cache.iter().enumerate() {
+                let (a, b) = solid.bounds;
+                let clip = matrix * ((a + b) * 0.5).as_vec3().extend(1.);
+                if clip.w <= 0. {
+                    continue;
+                }
+                let p = clip.truncate() / clip.w;
+                let screen = egui::pos2(
+                    rect.center().x + p.x * rect.width() * 0.5,
+                    rect.center().y - p.y * rect.height() * 0.5,
+                );
+                if area.contains(screen) && !ids.contains(&i) {
+                    ids.push(i);
+                }
+            }
+            if ids != self.selected {
+                self.selected = ids;
+                self.sel = self.selected.last().copied();
+                self.refresh_draft();
+            }
+            if ctx.input(|i| i.pointer.primary_down()) {
+                self.marquee = Some((start, base));
+            }
+            return;
+        }
+        if let Some(mut drag) = self.drag.take() {
+            if let Some(pos) = response.interact_pointer_pos() {
+                let (x, y) = ndc(pos);
+                if let Some(at) = renderer::xy_at(&cam, x, y, drag.hit.z as f32) {
+                    let mut d = at - drag.hit.truncate();
+                    if self.snap {
+                        let anchor = drag.starts[0].1.truncate();
+                        let step = self.p.view.grid;
+                        d = ((anchor + d) / step).round() * step - anchor;
+                    }
+                    let bed = DVec2::from_array(self.p.printer.bed);
+                    for axis in 0..2 {
+                        let low = -drag.lo[axis];
+                        let high = bed[axis] - drag.hi[axis];
+                        if low <= high {
+                            d[axis] = d[axis].clamp(low, high);
+                        }
+                    }
+                    if d.length_squared() > 1e-8 || drag.recorded {
+                        if !drag.recorded {
+                            self.remember();
+                            drag.recorded = true;
+                        }
+                        for &(i, start) in &drag.starts {
+                            self.p.objects[i].position = start + d.extend(0.);
+                        }
+                        if let (Some(i), Some(draft)) = (self.sel, &mut self.draft) {
+                            draft.position = self.p.objects[i].position;
+                        }
+                        self.message = format!("Verschoben · ΔX {:.1} · ΔY {:.1} mm", d.x, d.y);
+                    }
+                } else {
+                    self.message = "Zum Verschieben die Draufsicht wählen".into();
+                }
+            }
+            if ctx.input(|i| i.pointer.primary_down()) {
+                self.drag = Some(drag);
+            }
+        } else if response.clicked_by(egui::PointerButton::Primary) {
+            if let Some(pos) = response.interact_pointer_pos() {
+                let (x, y) = ndc(pos);
+                self.toggle_selection(
+                    renderer::pick(&cam, x, y, &self.cache).map(|hit| hit.0),
+                    multi,
+                );
+            }
         }
     }
     fn undo(&mut self, redo: bool) {
@@ -238,22 +486,28 @@ impl Studio {
             self.select(self.sel.or(Some(0)));
         }
     }
+    fn bounds_selected(&self) -> Option<(DVec3, DVec3)> {
+        self.selected
+            .iter()
+            .map(|i| self.p.objects[*i].mesh().bounds())
+            .reduce(|(a, b), (c, d)| (a.min(c), b.max(d)))
+    }
     fn place(&mut self, center: bool) {
-        if let Some(i) = self.sel {
-            let (lo, hi) = self.p.objects[i].mesh().bounds();
+        if let Some((lo, hi)) = self.bounds_selected() {
             let mut delta = DVec3::new(0., 0., -lo.z);
             if center {
                 delta.x = (self.p.printer.bed[0] - lo.x - hi.x) * 0.5;
                 delta.y = (self.p.printer.bed[1] - lo.y - hi.y) * 0.5;
             }
             self.remember();
-            self.p.objects[i].position += delta;
-            self.select(Some(i));
+            for &i in &self.selected {
+                self.p.objects[i].position += delta;
+            }
+            self.refresh_draft();
         }
     }
     fn focus(&mut self) {
-        if let Some(i) = self.sel {
-            let (a, b) = self.p.objects[i].mesh().bounds();
+        if let Some((a, b)) = self.bounds_selected() {
             self.p.view.target = (a + b) * 0.5;
             self.p.view.distance = ((b - a).length() * 2.).clamp(8., 5000.);
         }
@@ -363,7 +617,7 @@ impl Studio {
         let Some(d) = self.dialog else { return };
         egui::Modal::new("dialog".into()).show(ctx,|ui|{ui.set_min_width(370.);match d{
  Dialog::Combine=>{ui.heading("Boolesche Operation");ui.label("Der ausgewählte Körper ist der Grundkörper.");ui.horizontal(|ui|{for(op,name)in [(Operation::Union,"Vereinigung"),(Operation::Difference,"Differenz"),(Operation::Intersection,"Schnittmenge")]{ui.selectable_value(&mut self.operation,op,name);}});ui.label("Werkzeugkörper");for(i,o)in self.p.objects.iter().enumerate(){if Some(i)!=self.sel{ui.selectable_value(&mut self.operand,i,&o.name);}}if ui.button("Berechnen und übernehmen").clicked(){self.combine();}ui.label(&self.message);},
- Dialog::Help=>{ui.heading("Bedienung");ui.label("Links klicken: Körper auswählen\nRechts ziehen: Ansicht drehen\nMitte ziehen: Ansicht verschieben\nMausrad: zoomen");ui.separator();ui.label("Projekt öffnen: R3DP\nNetzexport: STL binär, OBJ und Modell-3MF in mm.\nWeitere Importformate und CAD-Operationen sind offen.");},
+ Dialog::Help=>{ui.heading("Bedienung");ui.label("Linksklick: auswählen · Umschalt + Klick: Auswahl erweitern\nLinks ziehen: Körper verschieben oder Auswahlrahmen aufziehen\nStrg+C/V: kopieren/einfügen · Strg+D: duplizieren\nRechts ziehen: Ansicht drehen\nMitte ziehen: Ansicht verschieben\nMausrad: zoomen");ui.separator();ui.label("Projekt öffnen: R3DP\nNetzexport: STL binär, OBJ und Modell-3MF in mm.\nWeitere Importformate und CAD-Operationen sind offen.");},
  Dialog::Discard(a)=>{ui.heading("Ungespeicherte Änderungen");ui.label("Sollen die Änderungen verworfen werden?");if ui.button("Verwerfen und fortfahren").clicked(){self.proceed(a);}},
  Dialog::Overwrite(f)=>{ui.heading("Vorhandene Datei ersetzen?");ui.label(&self.entry);if ui.button("Datei ersetzen").clicked(){self.write(f,true);}},
  Dialog::File(t)=>{ui.heading(match t{FileTask::Open=>"Projekt öffnen",FileTask::Profile=>"Druckerprofil laden",FileTask::Write(Output::Project)=>"Projekt speichern",_=>"Netz exportieren"});ui.label("Dateipfad mit Endung");ui.text_edit_singleline(&mut self.entry);
@@ -441,6 +695,15 @@ impl Studio {
                 if item(ui, "Wiederholen") {
                     self.undo(true)
                 }
+                if item(ui, "Alle auswählen") {
+                    self.select_all();
+                }
+                if item(ui, "Kopieren") {
+                    self.copy();
+                }
+                if item(ui, "Einfügen") {
+                    self.insert_copies(self.clipboard.clone(), false);
+                }
                 if item(ui, "Duplizieren") {
                     self.duplicate()
                 }
@@ -507,7 +770,7 @@ impl Studio {
                                     egui::Key::S,
                                     egui::Key::U,
                                     egui::Key::R,
-                                    egui::Key::D,
+                                    egui::Key::P,
                                 ] {
                                     if (self.keys[i] == key || !self.keys.contains(&key))
                                         && ui
@@ -538,14 +801,23 @@ impl Studio {
             .show(ui, |ui| {
                 for i in 0..self.p.objects.len() {
                     if ui
-                        .selectable_label(self.sel == Some(i), &self.p.objects[i].name)
+                        .selectable_label(self.selected.contains(&i), &self.p.objects[i].name)
                         .clicked()
                     {
-                        self.select(Some(i));
+                        self.toggle_selection(
+                            Some(i),
+                            ui.input(|v| v.modifiers.shift || v.modifiers.command),
+                        );
                     }
                 }
             });
         ui.separator();
+        if self.selected.len() > 1 {
+            ui.label(format!(
+                "{} ausgewählt · Eigenschaften des aktiven Körpers",
+                self.selected.len()
+            ));
+        }
         ui.heading("Abmessungen");
         let Some(d) = &mut self.draft else {
             ui.label("Körper erstellen oder auswählen.");
@@ -732,6 +1004,27 @@ impl Studio {
                 ui.separator();
                 match self.tool {
                     0 => {
+                        ui.small("Ziehen zum Verschieben. Umschalt + Klick für mehrere Körper.");
+                        if ui.button("Draufsicht").clicked() {
+                            self.top_view();
+                        }
+                        if ui.button("Alle auswählen").clicked() {
+                            self.select_all();
+                        }
+                        ui.checkbox(&mut self.snap, "Am Raster einrasten");
+                        ui.add(
+                            egui::DragValue::new(&mut self.gap)
+                                .range(0.0..=30.)
+                                .speed(0.5)
+                                .prefix("Abstand ")
+                                .suffix(" mm"),
+                        );
+                        if ui.button("Alle anordnen").clicked() {
+                            self.arrange_plate();
+                        }
+                        if ui.button("Mit Kopien füllen").clicked() {
+                            self.insert_copies(self.selection_copy(), true);
+                        }
                         if ui.button("Auswahl einpassen").clicked() {
                             self.focus()
                         }
@@ -868,18 +1161,8 @@ impl Studio {
                         v.distance =
                             (v.distance * (-f64::from(wheel) * 0.0025).exp()).clamp(8., 5000.);
                     }
-                    if response.clicked() {
-                        if let Some(pos) = response.interact_pointer_pos() {
-                            renderer::sync(&mut self.cache, &self.p);
-                            let cam = renderer::camera(&self.p.view, rect, self.px);
-                            self.select(renderer::pick(
-                                &cam,
-                                2. * (pos.x - rect.left()) / rect.width() - 1.,
-                                1. - 2. * (pos.y - rect.top()) / rect.height(),
-                                &self.cache,
-                            ));
-                        }
-                    }
+                    renderer::sync(&mut self.cache, &self.p);
+                    self.plate_pointer(&response, rect, ui);
                 }
                 ui.painter().text(
                     rect.left_top() + egui::vec2(16., 14.),
@@ -897,7 +1180,45 @@ impl Studio {
                     },
                 );
             });
-        if self.shortcut && self.dialog.is_none() && !ctx.wants_keyboard_input() {
+        if self.shortcut
+            && self.marquee.is_none()
+            && self.drag.is_none()
+            && self.dialog.is_none()
+            && !ctx.wants_keyboard_input()
+        {
+            let (all, copy, paste, dup) = ctx.input(|i| {
+                let cmd = i.modifiers.command;
+                (
+                    cmd && i.key_pressed(egui::Key::A),
+                    cmd && i.key_pressed(egui::Key::C) || i.events.contains(&egui::Event::Copy),
+                    cmd && i.key_pressed(egui::Key::V)
+                        || i.events.iter().any(|e| matches!(e, egui::Event::Paste(_))),
+                    cmd && i.key_pressed(egui::Key::D),
+                )
+            });
+            if all {
+                self.select_all();
+            }
+            if copy {
+                self.copy();
+            }
+            use macroquad::prelude::{is_key_down, is_key_pressed, KeyCode};
+            let paste_native = is_key_pressed(KeyCode::V)
+                && [
+                    KeyCode::LeftControl,
+                    KeyCode::RightControl,
+                    KeyCode::LeftSuper,
+                    KeyCode::RightSuper,
+                ]
+                .into_iter()
+                .any(is_key_down);
+            if paste || paste_native {
+                self.insert_copies(self.clipboard.clone(), false);
+            }
+            if dup {
+                self.duplicate();
+            }
+
             let (z, y, s, del) = ctx.input(|i| {
                 (
                     i.modifiers.command && i.key_pressed(self.keys[0]),
@@ -925,7 +1246,14 @@ impl Studio {
         if self.rect.is_positive() {
             renderer::sync(&mut self.cache, &self.p);
             let cam = renderer::camera(&self.p.view, self.rect, self.px);
-            renderer::draw(&cam, &self.p, &self.cache, self.sel, self.wire, self.dark);
+            renderer::draw(
+                &cam,
+                &self.p,
+                &self.cache,
+                &self.selected,
+                self.wire,
+                self.dark,
+            );
         }
     }
 }

@@ -89,13 +89,25 @@ pub fn camera(v: &View, rect: Rect, px: f32) -> Camera3D {
         ..Default::default()
     }
 }
-pub fn pick(cam: &Camera3D, x: f32, y: f32, cache: &[Solid]) -> Option<usize> {
+pub fn pick(cam: &Camera3D, x: f32, y: f32, cache: &[Solid]) -> Option<(usize, Vec3)> {
     pick_matrix(cam.matrix(), x, y, cache)
 }
-fn pick_matrix(matrix: Mat4, x: f32, y: f32, cache: &[Solid]) -> Option<usize> {
+fn ray(matrix: Mat4, x: f32, y: f32) -> (Vec3, Vec3) {
     let inv = matrix.inverse();
     let origin = inv.project_point3(vec3(x, y, -1.));
     let dir = (inv.project_point3(vec3(x, y, 1.)) - origin).normalize();
+    (origin, dir)
+}
+pub fn xy_at(cam: &Camera3D, x: f32, y: f32, z: f32) -> Option<::glam::DVec2> {
+    let (o, d) = ray(cam.matrix(), x, y);
+    if d.z.abs() < 0.015 {
+        return None;
+    }
+    let t = (z - o.z) / d.z;
+    (t >= 0.).then(|| (o + d * t).truncate().as_dvec2())
+}
+fn pick_matrix(matrix: Mat4, x: f32, y: f32, cache: &[Solid]) -> Option<(usize, Vec3)> {
+    let (origin, dir) = ray(matrix, x, y);
     let mut best = f32::INFINITY;
     let mut index = None;
     for (i, s) in cache.iter().enumerate() {
@@ -119,7 +131,7 @@ fn pick_matrix(matrix: Mat4, x: f32, y: f32, cache: &[Solid]) -> Option<usize> {
             }
         }
     }
-    index
+    index.map(|i| (i, origin + dir * best))
 }
 fn panel(a: f32, b: f32, c: f32, d: f32, z: f32, color: Color) {
     let vertices = [vec3(a, b, z), vec3(c, b, z), vec3(c, d, z), vec3(a, d, z)]
@@ -135,7 +147,7 @@ pub fn draw(
     cam: &Camera3D,
     p: &Project,
     cache: &[Solid],
-    selected: Option<usize>,
+    selected: &[usize],
     wire: bool,
     dark: bool,
 ) {
@@ -191,7 +203,7 @@ pub fn draw(
             for f in &s.mesh.faces {
                 let [a, b, c] = f.map(|k| s.mesh.vertices[k].as_vec3());
                 for (u, v) in [(a, b), (b, c), (c, a)] {
-                    draw_line_3d(u, v, if Some(i) == selected { GOLD } else { grid })
+                    draw_line_3d(u, v, if selected.contains(&i) { GOLD } else { grid })
                 }
             }
         } else {
@@ -199,7 +211,7 @@ pub fn draw(
                 draw_mesh(batch);
             }
         }
-        if Some(i) == selected {
+        if selected.contains(&i) {
             let (lo, hi) = s.bounds;
             let span = (hi - lo).as_vec3() + Vec3::splat(0.4);
             draw_cube_wires(((hi + lo) * 0.5).as_vec3(), span, Color::from_hex(0x62978c));
@@ -226,7 +238,10 @@ mod tests {
             Mat4::perspective_rh_gl(0.8, 1., 0.3, 20000.),
             Mat4::orthographic_rh_gl(-75., 75., -75., 75., 0.3, 20000.),
         ] {
-            assert_eq!(pick_matrix(projection * view, 0., 0., &cache), Some(0));
+            assert_eq!(
+                pick_matrix(projection * view, 0., 0., &cache).map(|h| h.0),
+                Some(0)
+            );
             assert_eq!(pick_matrix(projection * view, 0.95, 0.95, &cache), None);
         }
     }

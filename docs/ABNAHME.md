@@ -1,3 +1,11 @@
+# Abnahme 0.3.0
+
+Im nativen Linux-Fenster wurden zwei 20-mm-Quader per Umschalt-Klick ausgewählt und in der Draufsicht mit einem Mauszug um rund 20,34 mm in X und 10,17 mm in Y verschoben. Die gespeicherten Positionen hatten weiterhin 40 mm Abstand sowie unveränderte Z-Koordinaten. Strg+C/V erzeugte zwei neue Körper. Zwei Undo-Schritte entfernten die Kopien und setzten die Ausgangspositionen wieder ein. Eine Rahmenauswahl mit anschließendem Strg+D erzeugte erneut zwei Kopien.
+
+Ein weiterer Fenstertest belegte die P1S-Platte mit 119 Würfeln von 20 mm Kantenlänge. Die gespeicherten Positionen hielten 3 mm Mindestabstand und die Sperrfläche ein. Ein Undo setzte die Serie auf den ursprünglichen Würfel zurück.
+
+29 automatisierte Tests. Die neuen Fälle prüfen Abstände, Sperrflächen, gedrehte Hüllboxen, Gruppenversatz, Objektlimit beim Kopieren sowie vollständige oder verworfene Anordnungen. Die fünf Cargo-Prüfungen liefen auf Linux. Windows-x64-Programm und Installer wurden gebaut. Ein Start auf Windows bleibt offen.
+
 # Abnahmeprotokoll · 0.2.0 · 20. November 2026
 
 ## J-Wandhaken

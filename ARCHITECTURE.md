@@ -8,6 +8,7 @@ Ein Cargo-Workspace mit einem Paket enthält eine testbare Bibliothek und eine D
 | src/ui.rs | Deutsche Menüs, Auswahl, Eigenschaftsentwurf, Befehle und Dateidialoge |
 | src/renderer.rs | Tiefengeprüfte 3D-Netze, Lichtschattierung, Kamera, Raster, Ray-Picking |
 | src/geometry.rs | Parametrische Quellen, Triangulierung, Rotation und Hüllbox |
+| src/plate.rs | Rechteckbelegung für Kopien und automatische Anordnung unter Berücksichtigung des aktiven Druckerprofils |
 | src/project.rs | Projektzustand, konfigurierbares Druckerprofil, Bereichsprüfung, Undo/Redo |
 | src/files.rs | Begrenzter JSON-Import, atomarer Dateiersatz, STL-, OBJ- und 3MF-Ausgabe |
 

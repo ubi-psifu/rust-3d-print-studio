@@ -1,6 +1,10 @@
-# Rust 3D Print Studio 0.2.0
+# Rust 3D Print Studio 0.3.0
 
 Deutschsprachige native CAD-Anwendung mit parametrischen Skizzen, Pfadextrusionen, Loft, Rotationskörpern, Netzbooleschen und direkter Freiformbearbeitung. Die Oberfläche orientiert sich an der bereitgestellten SVG-Vorlage. Im Ordner **dist/** liegen Linux-Build, portable Windows-x64-EXE und Windows-Installer.
+
+## Die Druckplatte belegen
+
+Unter **Auswahl → Draufsicht** die Teile per Maus verschieben. **Umschalt + Klick** oder ein Rahmen um mehrere Teile wählt eine Gruppe. **Strg+D** legt die Kopie auf einen freien Platz. Für eine Serie **Alle anordnen**, das gewünschte Teil markieren und **Mit Kopien füllen** wählen.
 
 ## Den Wandhaken öffnen
 

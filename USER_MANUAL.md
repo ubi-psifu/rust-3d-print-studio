@@ -1,5 +1,23 @@
 # Bedienungsanleitung
 
+## Druckplatte belegen
+
+Links **Auswahl** öffnen. **Draufsicht** passt die ganze Platte ins Fenster. Zum Verschieben einen Körper mit der linken Maustaste greifen und ziehen. Die Höhe bleibt erhalten. Für die genaue Positionierung **Am Raster einrasten** einschalten. Ein Zug in einer nahezu waagerechten Kameraansicht lässt sich über **Draufsicht** fortsetzen.
+
+| Gewünschte Aktion | Bedienung |
+|---|---|
+| Einzelnen Körper wählen | In die Modellfläche oder auf den Namen rechts klicken. Ein Klick ins Leere hebt die Auswahl auf. |
+| Körper hinzufügen oder abwählen | Umschalt oder Strg halten und auf Körper oder Namen klicken. |
+| Mehrere Körper einrahmen | Auf einer freien Stelle mit der linken Maustaste ziehen. Körper mit Mittelpunkt im Rahmen werden ausgewählt. Umschalt behält die bisherige Auswahl bei. |
+| Auswahl gemeinsam verschieben | Einen bereits markierten Körper ziehen. Relative Abstände und Z-Höhen bleiben erhalten. |
+| Kopie erstellen | Strg+D oder **Duplizieren**. Strg+C und Strg+V verwenden die interne Modell-Zwischenablage. Unter macOS ist die Befehlstaste vorgesehen. |
+| Ganze Platte neu belegen | **Alle anordnen** senkt jeden Körper aufs Bett ab und sucht freie Positionen mit dem eingestellten Abstand. Bei Fehlschlag bleibt die bisherige Belegung erhalten. |
+| Serie eines Teils drucken | Erst **Alle anordnen**, dann ein Teil auswählen und **Mit Kopien füllen** klicken. Mit Strg+Z lässt sich der gesamte Füllvorgang zurücknehmen. |
+| Alles markieren | Strg+A oder **Alle auswählen**. Entf löscht die markierten Körper gemeinsam. |
+
+Für die automatische Belegung sind **3 mm Abstand** zwischen Körpern voreingestellt. Der Abstand ist veränderbar. Das Verfahren verwendet rechteckige XY-Hüllboxen, lässt die Ausrichtung der Teile unverändert und spart die Sperrflächen des geladenen Profils aus. Kopien einer Mehrfachauswahl übernehmen deren Anordnung. Die manuelle Bewegung erlaubt Überlappungen für die Konstruktion. Bereichswarnungen erscheinen unten. Die automatische Belegung ist eine geometrische Platzierung ohne Prüfung des Werkzeugkopf-Freiraums für sequenziellen Druck.
+
+
 ## Ein Modell erstellen
 
 1. Links **Körper → Körper erstellen → Quader** wählen. Der Körper startet mit 20 × 20 × 20 mm mittig auf dem Bett.

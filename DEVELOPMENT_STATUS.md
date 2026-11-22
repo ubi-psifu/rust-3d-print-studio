@@ -1,4 +1,8 @@
-# Entwicklungsstand 0.2.0
+# Entwicklungsstand 0.3.0
+
+## Druckplatten-Werkzeuge
+
+Direktes XY-Ziehen, Gruppen- und Rahmenauswahl, interne Modell-Zwischenablage, platzierte Kopien und automatische Plattenbelegung sind implementiert. Die Anordnung benutzt achsparallele Hüllboxen und behält die Ausrichtung bei. Konkave Teile können dadurch mehr Platz belegen als ihre tatsächliche Kontur. Die Projektgrenzen gelten auch für Serien.
 
 ## Abgeschlossen und überprüft
 
