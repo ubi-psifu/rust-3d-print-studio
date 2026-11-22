@@ -20,6 +20,16 @@ pub fn sync(cache: &mut Vec<Solid>, p: &Project) {
         if cache.get(i).is_some_and(|s| s.model == *o) {
             continue;
         }
+        let solid = Solid::new(o);
+        if i == cache.len() {
+            cache.push(solid)
+        } else {
+            cache[i] = solid
+        }
+    }
+}
+impl Solid {
+    pub fn new(o: &geometry::Object) -> Self {
         let mesh = o.mesh();
         let bounds = mesh.bounds();
         let mut vertices = Vec::with_capacity(mesh.faces.len() * 3);
@@ -40,17 +50,19 @@ pub fn sync(cache: &mut Vec<Solid>, p: &Project) {
                 texture: None,
             })
             .collect();
-        let solid = Solid {
+        Solid {
             model: o.clone(),
             mesh,
             gpu,
             bounds,
-        };
-        if i == cache.len() {
-            cache.push(solid)
-        } else {
-            cache[i] = solid
         }
+    }
+
+    pub fn opening(
+        &self,
+        face: usize,
+    ) -> Result<rust_3d_print_studio::cad::references::PlaneRef, String> {
+        rust_3d_print_studio::cad::references::PlaneRef::bind(&self.model.local_mesh(), face)
     }
 }
 pub fn basis(v: &View) -> (Vec3, Vec3, Vec3) {
@@ -230,6 +242,56 @@ pub fn draw(
 mod tests {
     use super::*;
     use rust_3d_print_studio::geometry::{Object, Shape};
+    #[test]
+    fn click_on_rotated_wedge_binds_local_slope_in_both_projections() {
+        use rust_3d_print_studio::{
+            cad::{references::Side, Feature},
+            files::{self, Output},
+        };
+        let mut project =
+            files::load(std::path::Path::new("examples/modelle/Keilschale.r3dp")).unwrap();
+        let object = &mut project.objects[0];
+        object.rotation.z = 90.;
+        object.position = ::glam::DVec3::new(80., 100., 8.);
+        let Some(Feature::Shell { source, .. }) = &object.feature else {
+            panic!()
+        };
+        let mut outer = object.clone();
+        outer.feature = Some((**source).clone());
+        outer.rebuild().unwrap();
+        let cache = [Solid::new(&outer)];
+        let center = vec3(65., 120., 18.);
+        let view = Mat4::look_at_rh(center + vec3(0., 60., 120.), center, Vec3::X);
+        for projection in [
+            Mat4::perspective_rh_gl(0.8, 1., 0.3, 500.),
+            Mat4::orthographic_rh_gl(-35., 35., -35., 35., 0.3, 500.),
+        ] {
+            let (_, face, hit) = surface_matrix(projection * view, 0., 0., &cache).unwrap();
+            assert!(hit.distance(center) < 0.01);
+            let reference = cache[0].opening(face).unwrap();
+            if let Some(Feature::Shell { side, .. }) = &mut object.feature {
+                *side = Some(Side::Plane(reference));
+            }
+            object.rebuild().unwrap();
+            let mesh = object.mesh();
+            let volume = mesh
+                .faces
+                .iter()
+                .map(|f| {
+                    let [a, b, c] = f.map(|i| mesh.vertices[i]);
+                    a.dot(b.cross(c)) / 6.
+                })
+                .sum::<f64>();
+            assert!((volume.abs() - 4486.).abs() < 1e-3);
+        }
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("Gewählte Schräge.r3dp");
+        files::save(&path, &project, Output::Project, false).unwrap();
+        assert_eq!(
+            files::load(&path).unwrap().objects[0].feature,
+            project.objects[0].feature
+        );
+    }
     #[test]
     fn ray_selects_frontmost_object_in_both_projections() {
         let mut p = Project::default();

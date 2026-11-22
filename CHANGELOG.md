@@ -1,3 +1,7 @@
+# 0.14.0 · Öffnungsfläche im Modell anklicken
+
+Der Inspektor zeigt den Außenkörper einer Aushöhlung in einer eigenen Auswahlansicht. Ein Klick auf eine sichtbare Fläche bindet sie an den Entwurf. F1 erklärt die Auswahl offline.
+
 # 0.13.0 · Schräge Öffnungsflächen
 
 Ebene Flächen am Außenkörper lassen sich geometrisch als Öffnung einer Schale binden. Die Keilschale zeigt die Anwendung auf einer Schräge. Die F1-Hilfe findet CAD-Themen auch in Handbüchern mit Windows-Zeilenenden.

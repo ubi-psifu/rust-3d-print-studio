@@ -107,11 +107,14 @@ impl Object {
         }
         Ok(())
     }
-    pub fn mesh(&self) -> Mesh {
-        let mut m = match &self.cached {
+    pub fn local_mesh(&self) -> Mesh {
+        match &self.cached {
             Some(m) => (**m).clone(),
             None => self.primitive(),
-        };
+        }
+    }
+    pub fn mesh(&self) -> Mesh {
+        let mut m = self.local_mesh();
         let r = self.rotation * (TAU / 360.);
         let rot = DQuat::from_euler(EulerRot::ZYX, r.z, r.y, r.x);
         for v in &mut m.vertices {
