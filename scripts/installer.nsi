@@ -1,5 +1,5 @@
 Unicode true
-Target amd64-unicode
+Target x86-unicode
 RequestExecutionLevel user
 !searchparse /file "../Cargo.toml" 'version = "' STUDIO_VERSION '"'
 Name "Rust 3D Print Studio ${STUDIO_VERSION}"
@@ -12,7 +12,16 @@ ShowInstDetails show
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "German"
 
+!include "x64.nsh"
+Function .onInit
+  ${IfNot} ${RunningX64}
+    MessageBox MB_OK "Rust 3D Print Studio benötigt 64-Bit-Windows."
+    Abort
+  ${EndIf}
+FunctionEnd
+
 Section "Programm"
+  SetRegView 64
   SetOutPath "$INSTDIR"
   File "../dist/rust-3d-print-studio.exe"
   File "../USER_MANUAL.md"
@@ -42,6 +51,7 @@ Section "Programm"
 SectionEnd
 
 Section "Uninstall"
+  SetRegView 64
   Delete "$SMPROGRAMS\Rust 3D Print Studio\Studio.lnk"
   Delete "$SMPROGRAMS\Rust 3D Print Studio\Beispiel.lnk"
   RMDir "$SMPROGRAMS\Rust 3D Print Studio"
