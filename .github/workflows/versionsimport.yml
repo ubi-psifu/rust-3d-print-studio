@@ -22,12 +22,12 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Rust-3D-Print-Studio-0.12.1.zip") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Rust-3D-Print-Studio-0.12.2.zip") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o studio.zip
-          echo '6b463335f0a92a5e3002e7310b87ccfa75157a0eb7456f199ec13b097a94303e  studio.zip' | sha256sum -c
+          echo '47cec1de690f7865a8d9bed68d451dbc2dfb829c7df433734f8b11ee2c93ac64  studio.zip' | sha256sum -c
           unzip -q studio.zip
       - name: Installation, Explorer und Deinstallation prüfen
-        run: ./Rust-3D-Print-Studio-0.12.1/scripts/windows-abnahme.ps1
+        run: ./Rust-3D-Print-Studio-0.12.2/scripts/windows-abnahme.ps1
       - name: OpenGL-Testumgebung für den Windows-Runner vorbereiten
         shell: pwsh
         run: |
@@ -35,45 +35,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Mesa-Installation für Runner fehlgeschlagen' }
       - name: Portables Studio mit Software-OpenGL öffnen und Projekt speichern
         shell: pwsh
-        run: |
-          $bin = 'C:\msys64\mingw64\bin'
-          $env:PATH = "$bin;$env:PATH"
-          $env:GALLIUM_DRIVER = 'llvmpipe'
-          $env:RUST_BACKTRACE = '1'
-          $portable = Resolve-Path './Rust-3D-Print-Studio-0.12.1/dist/rust-3d-print-studio.exe'
-          Copy-Item $portable "$bin/rust-3d-print-studio.exe"
-          $copy = Join-Path $env:RUNNER_TEMP 'Prüfung mit Leerzeichen.r3dp'
-          Copy-Item './Rust-3D-Print-Studio-0.12.1/examples/modelle/Bogenlasche.r3dp' $copy
-          (Get-Item $copy).LastWriteTimeUtc = [datetime]::UtcNow.AddYears(-1)
-          $errfile = Join-Path $env:RUNNER_TEMP 'studio-stderr.txt'
-          Add-Type -Name Keyboard -Namespace StudioTest -MemberDefinition '[System.Runtime.InteropServices.DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, System.UIntPtr extra);'
-          $process = Start-Process "$bin/rust-3d-print-studio.exe" -ArgumentList ('"{0}"' -f $copy) -RedirectStandardError $errfile -PassThru
-          try {
-            $shell = New-Object -ComObject WScript.Shell
-            for ($i=0; $i -lt 40; $i++) {
-              Start-Sleep -Seconds 1
-              $process.Refresh()
-              if ($process.HasExited) { Get-Content $errfile; throw "Programmende $($process.ExitCode)" }
-              if ($process.MainWindowTitle -eq 'Rust 3D Print Studio' -and $shell.AppActivate($process.Id)) {
-                [StudioTest.Keyboard]::keybd_event(17,29,0,[UIntPtr]::Zero)
-                try {
-                  Start-Sleep -Milliseconds 200
-                  [StudioTest.Keyboard]::keybd_event(83,31,0,[UIntPtr]::Zero)
-                  Start-Sleep -Milliseconds 150
-                  [StudioTest.Keyboard]::keybd_event(83,31,2,[UIntPtr]::Zero)
-                  Start-Sleep -Milliseconds 200
-                } finally { [StudioTest.Keyboard]::keybd_event(17,29,2,[UIntPtr]::Zero) }
-                Start-Sleep -Milliseconds 500
-                if ((Get-Item $copy).LastWriteTimeUtc -gt [datetime]::UtcNow.AddMinutes(-5)) {
-                  if ((Get-Content $copy -Raw | ConvertFrom-Json).objects[0].name -ne 'Bogenlasche') { throw 'Falsches Projekt gespeichert' }
-                  Write-Output 'Bogenlasche mit Strg+S im Windows-Fenster gespeichert.'
-                  return
-                }
-              }
-            }
-            Get-Content $errfile
-            throw 'Speichervorgang nicht bestätigt'
-          } finally { if (!$process.HasExited) { $process.Kill(); $process.WaitForExit() } }
+        run: ./Rust-3D-Print-Studio-0.12.2/scripts/windows-tastenabnahme.ps1
   import:
     needs: windows
     if: github.repository == 'ubi-psifu/rust-3d-print-studio' && github.ref == 'refs/heads/main'
@@ -97,33 +59,33 @@ jobs:
             id=$(jq -er --arg file "$1" '.[] | select(.name == $file) | .id' "$dir/assets.json")
             curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o "$dir/$1"
           }
-          download version-0.12.1.bundle
-          echo "df1bda938129303375c52a3b05e55d0edf3eb6477494f3b4ddb95144d2285834  $dir/version-0.12.1.bundle" | sha256sum -c
-          git bundle verify "$dir/version-0.12.1.bundle"
-          git fetch "$dir/version-0.12.1.bundle" refs/heads/windows-abnahme:refs/remotes/import/versions 'refs/tags/v*:refs/tags/v*'
-          tags=(v0.12.1)
+          download version-0.12.2.bundle
+          echo "9bb655696a2cf1baa6f745b0526ef5581397f0a0c265a7b509dbbcf62ecfddac  $dir/version-0.12.2.bundle" | sha256sum -c
+          git bundle verify "$dir/version-0.12.2.bundle"
+          git fetch --no-tags "$dir/version-0.12.2.bundle" refs/heads/kurze-tasten:refs/remotes/import/versions
+          tags=(v0.12.2)
           for tag in "${tags[@]}"; do
             v=${tag#v}
             file="Rust-3D-Print-Studio-$v.zip"
-            git show "$tag:docs/releases/$v.md" > "$dir/$v.md"
+            git show "refs/remotes/import/versions:docs/releases/$v.md" > "$dir/$v.md"
             sha=$(grep -oE '[0-9a-f]{64}' "$dir/$v.md" | tail -1)
             download "$file"
             echo "$sha  $dir/$file" | sha256sum -c
           done
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'Windows-Installer 0.12.1 integrieren' refs/remotes/import/versions
-          if git ls-remote --exit-code --tags origin refs/tags/v0.12.1 > /dev/null; then
-            git diff --exit-code v0.12.1 HEAD -- . ':(exclude).github/workflows'
+          git merge --no-edit -m 'Plattenbedienung 0.12.2 integrieren' refs/remotes/import/versions
+          if git ls-remote --exit-code --tags origin refs/tags/v0.12.2 > /dev/null; then
+            git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
             git push origin HEAD:refs/heads/main
           else
-            git diff --exit-code v0.12.1 HEAD -- . ':(exclude).github/workflows'
-            git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.12.1
+            git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
+            git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.12.2
           fi
           for tag in "${tags[@]}"; do
             v=${tag#v}
             if gh release view "$tag" > /dev/null 2>&1; then continue; fi
             latest=false
-            if [[ $tag == v0.12.1 ]]; then latest=true; fi
+            if [[ $tag == v0.12.2 ]]; then latest=true; fi
             gh release create "$tag" "$dir/Rust-3D-Print-Studio-$v.zip" --verify-tag --title "Rust 3D Print Studio $v" --notes-file "$dir/$v.md" --latest="$latest"
           done
