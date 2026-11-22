@@ -2,7 +2,7 @@
 
 ## Nächste Abnahmen
 
-1. Nach der erfolgreichen Windows-Server-Abnahme die Windows-11-Bedienung mit Hardware-Grafiktreiber prüfen. Kurze Tastenkombinationen untersuchen: Der Windows-Fenstertest reagierte auf getrennte Tastendrücke, während ein sehr kurzer simulierter Tastendruck keine bestätigte Speicherung ergab.
+1. Nach der erfolgreichen Windows-Server-Abnahme die Windows-11-Bedienung mit Hardware-Grafiktreiber prüfen. Für kurze Tastenkombinationen gibt es seit 0.12.2 Regressionstests und eine Fensterabnahme mit der portablen EXE.
 2. Für den CAD-Ausbau einen präzisen Geometriekern und dauerhafte Flächenbezüge erproben. STEP-Import und -Export benötigen einen geprüften Roundtrip.
 3. Bei der Druckvorbereitung größere Importmodelle, Mehrfilament-Slicing und die physische Passung der Beispielteile prüfen.
 

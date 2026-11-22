@@ -167,3 +167,7 @@ Mit **In einzelne Features auflösen** wird der Generator im Entwurf durch seine
 **Kontrollgitter** verformt einen Körper trilinear über acht Eckpunkte. Die X-Symmetrie koppelt die Versätze gegenüberliegender Gitterpunkte. **Biegen / Verdrehen / Verjüngen** wirkt entlang der lokalen Z-Höhe. Skalierung und Spiegelung sind über den Transformationsknoten möglich. **Flächenverbund** beginnt mit sechs bearbeitbaren Flächengittern. Die Nahttoleranz bestimmt, welche benachbarten Randpunkte verschweißt werden. Offene Ränder werden beim Aufbau eines Volumens gemeldet.
 
 **Netzreparatur vorbereiten** schweißt nahe Punkte, entfernt doppelte oder entartete Dreiecke und korrigiert widersprüchliche Nachbarorientierungen. Vor Übernahme erscheinen die Punkt- und Flächenzahlen im Entwurf. Die globale Änderung lässt sich rückgängig machen. **Modell prüfen** meldet Profilgrenzen, offene oder inkonsistente Kanten, Selbstschnitte nicht benachbarter Dreiecke und die Fläche steiler abwärts gerichteter Dreiecke oberhalb der Unterseite. Überhänge sind eine geometrische Orientierungshilfe. Material, Schichthaftung, Schrauben, Wandbefestigung und Lastfall bedürfen separater praktischer Prüfung.
+
+## Tastenkürzel auf der Druckplatte
+
+Mit Strg+A wählst du alle Objekte aus. Strg+D legt eine Kopie der Auswahl auf der Platte ab. Strg+S speichert das Projekt. Du kannst beide Tasten sofort loslassen. Beim Bearbeiten eines Textfeldes bleiben die Tasten dem Feld zugeordnet.

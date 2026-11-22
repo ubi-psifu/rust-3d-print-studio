@@ -1,3 +1,7 @@
+# 0.12.2 · Kurze Tastenkombinationen
+
+Auswahl, Duplizieren, Rückgängig, Wiederholen und Speichern berücksichtigen die beim Tastendruck gehaltene Befehlstaste, auch wenn beide Tasten vor dem nächsten Bild losgelassen werden.
+
 # 0.12.1 · Windows-Projekte öffnen
 
 Der Installer registriert R3DP für „Öffnen mit“ und verwendet die Cargo-Paketversion in der Windows-Programmliste.
