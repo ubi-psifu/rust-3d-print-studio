@@ -1,3 +1,11 @@
+# Abnahme 0.7.0
+
+Die sechs Austausch- und Skizzentests sowie der neue Sicherungstest ergänzen die 41 vorherigen Tests. Alle 48 Tests, Formatprüfung, Workspace-Check, Clippy mit Warnungen als Fehler sowie die optimierten Builds für Linux und Windows x64 liefen erfolgreich. Das NSIS-Installationspaket wurde gebaut.
+
+Im Linux-Fenster wurde die bemaßte Platte geöffnet und dupliziert. Nach dem Sicherungsintervall enthielt der Checkpoint zwei Körper und das Originalprojekt einen. Anschließend wurde der Prozess hart beendet. Beim Neustart ohne Projektargument bot das Studio die Sicherung an. Die wiederhergestellte Kopie wurde über den Speicherdialog als neue R3DP-Datei geschrieben. Sie enthielt beide Körper, das ursprüngliche Projekt weiterhin einen.
+
+Die automatisierte Geometrieprüfung ergab 48 × 30 × 6 mm für die Beispielplatte und bestätigte identische Grenzen sowie Dreieckszahlen nach Export und erneutem Import als ASCII-STL und ASCII-PLY. Keine neue Bambu-Studio- oder Windows-Laufzeitabnahme und kein physischer Druck in dieser Version.
+
 # Abnahme 0.6.0
 
 Rust 1.88.0 unter Linux. Formatierung, Check aller Targets im Workspace, Clippy mit Warnungen als Fehler, 41 Tests sowie optimierte Linux- und Windows-x64-Builds liefen erfolgreich mit gesperrter Abhängigkeitsauflösung. Die neuen Fälle prüfen unter anderem eine Serie mit zwölf Körpern und Undo, Konflikte und ausgelassene Felder, numerische Abstände, Netzexport mit erneutem Import, Schrift mit Innenkonturen und die Gehäuse- und Kragenmaße.

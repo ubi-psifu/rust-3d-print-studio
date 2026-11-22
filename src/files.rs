@@ -42,6 +42,8 @@ pub fn load(path: &Path) -> io::Result<Project> {
 pub enum Output {
     Project,
     Stl,
+    StlAscii,
+    Ply,
     ThreeMf,
     Obj,
 }
@@ -49,7 +51,8 @@ impl Output {
     pub fn ext(self) -> &'static str {
         match self {
             Self::Project => "r3dp",
-            Self::Stl => "stl",
+            Self::Stl | Self::StlAscii => "stl",
+            Self::Ply => "ply",
             Self::ThreeMf => "3mf",
             Self::Obj => "obj",
         }
@@ -83,6 +86,8 @@ pub fn save(path: &Path, p: &Project, format: Output, overwrite: bool) -> io::Re
                 }
                 out.write_all(&data)?;
             }
+            Output::StlAscii => stl_ascii(&mut out, p)?,
+            Output::Ply => crate::ply::write(&mut out, p)?,
             Output::Stl => stl(&mut out, p)?,
             Output::Obj => obj(&mut out, p)?,
             Output::ThreeMf => three_mf(&mut out, p, None)?,
@@ -113,6 +118,26 @@ fn stl(mut out: impl Write, p: &Project) -> io::Result<()> {
         }
     }
     Ok(())
+}
+fn stl_ascii(mut out: impl Write, p: &Project) -> io::Result<()> {
+    writeln!(out, "solid Platte")?;
+    for object in &p.objects {
+        let mesh = object.mesh();
+        for face in mesh.faces {
+            let [a, b, c] = face.map(|i| mesh.vertices[i]);
+            let n = (b - a).cross(c - a).normalize_or_zero();
+            writeln!(
+                out,
+                "  facet normal {} {} {}\n    outer loop",
+                n.x, n.y, n.z
+            )?;
+            for v in [a, b, c] {
+                writeln!(out, "      vertex {} {} {}", v.x, v.y, v.z)?;
+            }
+            writeln!(out, "    endloop\n  endfacet")?;
+        }
+    }
+    writeln!(out, "endsolid Platte")
 }
 fn obj(mut out: impl Write, p: &Project) -> io::Result<()> {
     let mut base = 1;

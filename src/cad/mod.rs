@@ -6,6 +6,7 @@ mod hook;
 pub mod inspect;
 mod modifiers;
 pub mod sketch;
+mod sketch_solver;
 pub mod surfaces;
 use crate::geometry::Mesh;
 use boolmesh::prelude::*;

@@ -11,6 +11,7 @@ use rust_3d_print_studio::{
 use std::path::{Path, PathBuf};
 #[derive(Clone, Copy)]
 enum Action {
+    Recover(usize),
     New,
     Open,
     Quit,
@@ -25,6 +26,7 @@ enum FileTask {
 }
 #[derive(Clone, Copy)]
 enum Dialog {
+    Recovery,
     File(FileTask),
     Overwrite(Output),
     Discard(Action),
@@ -43,6 +45,9 @@ struct MoveDrag {
     recorded: bool,
 }
 pub struct Studio {
+    backups: rust_3d_print_studio::recovery::Worker,
+    checkpoint: std::time::Instant,
+    copies: Vec<(std::time::SystemTime, PathBuf)>,
     layout: Option<crate::layout_ui::Editor>,
     axis: Option<usize>,
     step: DVec2,
@@ -85,7 +90,14 @@ pub struct Studio {
 const ACCENT: Color32 = Color32::from_rgb(91, 201, 182);
 impl Studio {
     pub fn new(path: Option<PathBuf>) -> Self {
+        let copies = rust_3d_print_studio::recovery::directory()
+            .and_then(|d| rust_3d_print_studio::recovery::list(&d))
+            .unwrap_or_default();
+        let offer_recovery = path.is_none() && !copies.is_empty();
         let mut app = Self {
+            backups: Default::default(),
+            checkpoint: std::time::Instant::now(),
+            copies,
             layout: None,
             axis: None,
             step: DVec2::new(24., 0.),
@@ -143,6 +155,9 @@ impl Studio {
             app.p.objects.push(o);
             app.select(Some(0));
             app.p.view.distance = 360.;
+        }
+        if offer_recovery {
+            app.dialog = Some(Dialog::Recovery);
         }
         app
     }
@@ -689,6 +704,7 @@ impl Studio {
         self.dialog = None;
         match a {
             Action::New => {
+                self.backups.clear();
                 self.p = Project::default();
                 self.path = None;
                 self.hist = History::default();
@@ -697,7 +713,25 @@ impl Studio {
                 self.message = "Neues Projekt".into();
             }
             Action::Open => self.choose(FileTask::Open),
-            Action::Quit => self.quit = true,
+            Action::Quit => {
+                self.backups.clear();
+                self.quit = true;
+            }
+            Action::Recover(i) => {
+                if let Some((_, path)) = self.copies.get(i) {
+                    match files::load(path) {
+                        Ok(project) => {
+                            self.p = project;
+                            self.hist = History::default();
+                            self.path = None;
+                            self.select(Some(0));
+                            self.dirty = true;
+                            self.message="Sicherung als Kopie geöffnet. Mit Strg+S einen Projektpfad wählen.".into();
+                        }
+                        Err(e) => self.message = format!("Wiederherstellung fehlgeschlagen · {e}"),
+                    }
+                }
+            }
         }
     }
     pub fn request_quit(&mut self) {
@@ -708,6 +742,7 @@ impl Studio {
         match files::save(&path, &self.p, f, overwrite) {
             Ok(()) => {
                 if f == Output::Project {
+                    self.backups.clear();
                     self.path = Some(path);
                     self.dirty = false;
                 }
@@ -751,6 +786,7 @@ impl Studio {
             }
             FileTask::Open => match files::load(path) {
                 Ok(p) => {
+                    self.backups.clear();
                     self.p = p;
                     self.path = Some(path.into());
                     self.select(Some(0));
@@ -908,16 +944,30 @@ impl Studio {
     fn dialogs(&mut self, ctx: &egui::Context) {
         let Some(d) = self.dialog else { return };
         egui::Modal::new("dialog".into()).show(ctx,|ui|{ui.set_min_width(370.);match d{
+ Dialog::Recovery=>{
+     ui.heading("Projektsicherung wiederherstellen");
+     ui.label("Eine Sicherung als neues Projekt öffnen. Die ursprüngliche Datei bleibt erhalten.");
+     let mut chosen=None;
+     egui::ScrollArea::vertical().max_height(260.).show(ui,|ui|{
+         for (i,(time,path)) in self.copies.iter().enumerate(){
+             let minutes=time.elapsed().unwrap_or_default().as_secs()/60;
+             let session=path.parent().and_then(Path::file_name).and_then(|s|s.to_str()).unwrap_or("Sicherung");
+             if ui.button(format!("{session} · vor {minutes} Min.")).on_hover_text(path.display().to_string()).clicked(){chosen=Some(i);}
+         }
+     });
+     if self.copies.is_empty(){ui.label("Keine Sicherung gefunden.");}
+     if let Some(i)=chosen{self.action(Action::Recover(i));}
+ },
  Dialog::Layout=>self.layout_dialog(ui),
  Dialog::Case=>{ui.heading("Gehäuse mit Deckel");vector(ui,"Innenmaße (mm)",&mut self.case.inside,4.0..=500.);for(label,v)in [("Wandstärke",&mut self.case.wall),("Spiel je Seite",&mut self.case.play),("Einstecktiefe",&mut self.case.lip)]{ui.horizontal(|ui|{ui.label(label);ui.add(egui::DragValue::new(v).speed(0.1).suffix(" mm"));});}if ui.button("Gehäuse und Deckel erzeugen").clicked(){self.new_case();}},
  Dialog::Prepare=>{self.preparation.show(ui,&mut self.p,&mut self.hist,&mut self.dirty);if let (Some(i),Some(d))=(self.sel,self.draft.as_mut()){d.filament_slot=self.p.objects[i].filament_slot;}},
  Dialog::Combine=>{ui.heading("Boolesche Operation");ui.label("Der ausgewählte Körper ist der Grundkörper.");ui.horizontal(|ui|{for(op,name)in [(Operation::Union,"Vereinigung"),(Operation::Difference,"Differenz"),(Operation::Intersection,"Schnittmenge")]{ui.selectable_value(&mut self.operation,op,name);}});ui.label("Werkzeugkörper");for(i,o)in self.p.objects.iter().enumerate(){if Some(i)!=self.sel{ui.selectable_value(&mut self.operand,i,&o.name);}}if ui.button("Berechnen und übernehmen").clicked(){self.combine();}ui.label(&self.message);},
- Dialog::Help=>{ui.heading("Bedienung");ui.label("Linksklick: auswählen · Umschalt + Klick: Auswahl erweitern\nLinks ziehen: Körper verschieben oder Auswahlrahmen aufziehen\nStrg+C/V: kopieren/einfügen · Strg+D: duplizieren\nRechts ziehen: Ansicht drehen\nMitte ziehen: Ansicht verschieben\nMausrad: zoomen");ui.separator();ui.label("Projekt öffnen: R3DP\nNetzexport: STL binär, OBJ und Modell-3MF in mm.\nWeitere Importformate und CAD-Operationen sind offen.");},
+ Dialog::Help=>{ui.heading("Bedienung");ui.label("Linksklick: auswählen · Umschalt + Klick: Auswahl erweitern\nLinks ziehen: Körper verschieben oder Auswahlrahmen aufziehen\nStrg+C/V: kopieren/einfügen · Strg+D: duplizieren\nRechts ziehen: Ansicht drehen\nMitte ziehen: Ansicht verschieben\nMausrad: zoomen");ui.separator();ui.label("Projekt öffnen: R3DP\nNetzexport: STL binär/ASCII, ASCII-PLY, OBJ und Modell-3MF in mm.\nWeitere Importformate und CAD-Operationen sind offen.");},
  Dialog::Discard(a)=>{ui.heading("Ungespeicherte Änderungen");ui.label("Sollen die Änderungen verworfen werden?");if ui.button("Verwerfen und fortfahren").clicked(){self.proceed(a);}},
  Dialog::Overwrite(f)=>{ui.heading("Vorhandene Datei ersetzen?");ui.label(&self.entry);if ui.button("Datei ersetzen").clicked(){self.write(f,true);}},
  Dialog::File(t)=>{ui.heading(match t{FileTask::Import=>"Netz importieren",FileTask::Svg=>"SVG-Relief laden",FileTask::Open=>"Projekt öffnen",FileTask::Profile=>"Druckerprofil laden",FileTask::Write(Output::Project)=>"Projekt speichern",_=>"Netz exportieren"});ui.label("Dateipfad mit Endung");ui.text_edit_singleline(&mut self.entry);
- if matches!(t,FileTask::Import){ui.label("Geschlossene STL-, OBJ- oder Modell-3MF-Geometrie");ui.horizontal(|ui|{ui.label("STL/OBJ-Einheit");ui.selectable_value(&mut self.unit,1.,"mm");ui.selectable_value(&mut self.unit,10.,"cm");ui.selectable_value(&mut self.unit,25.4,"Zoll");});ui.checkbox(&mut self.auto_place,"Zusammen auf der Platte absetzen");}
- if matches!(t,FileTask::Write(Output::Stl|Output::Obj|Output::ThreeMf)){ui.label("Exportiert Dreiecksnetze in mm. Konstruktionsparameter bleiben im R3DP-Projekt.");}
+ if matches!(t,FileTask::Import){ui.label("Geschlossene STL-, OBJ-, ASCII-PLY- oder Modell-3MF-Geometrie");ui.horizontal(|ui|{ui.label("STL/OBJ/PLY-Einheit");ui.selectable_value(&mut self.unit,1.,"mm");ui.selectable_value(&mut self.unit,10.,"cm");ui.selectable_value(&mut self.unit,25.4,"Zoll");});ui.checkbox(&mut self.auto_place,"Zusammen auf der Platte absetzen");}
+ if matches!(t,FileTask::Write(Output::Stl|Output::StlAscii|Output::Ply|Output::Obj|Output::ThreeMf)){ui.label("Exportiert Dreiecksnetze in mm. Konstruktionsparameter bleiben im R3DP-Projekt.");}
  if ui.button("Bestätigen").clicked(){self.file_submit(t);}
  if !self.message.is_empty(){ui.colored_label(Color32::from_rgb(233,155,92),&self.message);}}}
  if ui.button(if matches!(d,Dialog::Help|Dialog::Prepare){"Schließen"}else{"Abbrechen"}).clicked(){self.dialog=None;}
@@ -973,12 +1023,25 @@ impl Studio {
                 if item(ui, "Speichern") {
                     self.save()
                 }
+                if item(ui, "Sicherung wiederherstellen …") {
+                    match rust_3d_print_studio::recovery::directory()
+                        .and_then(|dir| rust_3d_print_studio::recovery::list(&dir))
+                    {
+                        Ok(items) => {
+                            self.copies = items;
+                            self.dialog = Some(Dialog::Recovery);
+                        }
+                        Err(e) => self.message = format!("Sicherungen nicht lesbar · {e}"),
+                    }
+                }
                 if item(ui, "Speichern unter …") {
                     self.choose(FileTask::Write(Output::Project))
                 }
                 ui.separator();
                 for (label, f) in [
                     ("STL binär exportieren …", Output::Stl),
+                    ("STL ASCII exportieren …", Output::StlAscii),
+                    ("PLY ASCII exportieren …", Output::Ply),
                     ("3MF exportieren …", Output::ThreeMf),
                     ("OBJ exportieren …", Output::Obj),
                 ] {
@@ -1215,6 +1278,16 @@ impl Studio {
         }
     }
     pub fn frame(&mut self, ctx: &egui::Context) {
+        if self.checkpoint.elapsed() >= std::time::Duration::from_secs(30) {
+            if self.dirty {
+                self.backups.checkpoint(&self.p);
+            }
+            self.checkpoint = std::time::Instant::now();
+        }
+        if let Some(error) = self.backups.error() {
+            self.message = error;
+        }
+
         if let Some(rx) = &self.job {
             match rx.try_recv() {
                 Err(std::sync::mpsc::TryRecvError::Empty) => {

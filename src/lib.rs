@@ -10,3 +10,6 @@ pub mod project;
 pub mod section;
 pub mod slicer;
 pub mod svg;
+
+pub mod ply;
+pub mod recovery;

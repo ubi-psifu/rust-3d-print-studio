@@ -1,3 +1,7 @@
+# Stand 0.7
+
+Der nächste CAD-Schritt betrifft grafische Maßbezüge und stabilere Feature-Referenzen. Der exakte B-Rep-Kern und der STEP-Austausch bleiben offen. Die aktuellen Skizzenbedingungen, Autosicherung und Austauschformate sind in DEVELOPMENT_STATUS.md beschrieben.
+
 # Stand 0.6
 
 Die Plattenwerkzeuge, der grundlegende Netzimport und erste Bauteilgeneratoren sind verfügbar. Nächste Abnahmen betreffen die Windows-Bedienung, größere Importmodelle und die physische Passung des Gehäuses.

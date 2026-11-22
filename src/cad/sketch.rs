@@ -9,6 +9,11 @@ pub enum RuleKind {
     Tangent,
     Mirror,
     Coincident,
+    Fixed,
+    Horizontal,
+    Vertical,
+    Perpendicular,
+    EqualLength,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rule {
@@ -36,6 +41,8 @@ pub struct Sketch {
     pub u: DVec3,
     pub v: DVec3,
     pub planar: bool,
+    #[serde(default)]
+    pub bidirectional: bool,
     pub rules: Vec<Rule>,
     pub segments: Vec<Segment>,
 }
@@ -54,6 +61,7 @@ impl Default for Sketch {
             v: DVec3::Y,
             planar: true,
             rules: vec![],
+            bidirectional: true,
             segments: (0..4)
                 .map(|i| Segment {
                     kind: SegmentKind::Line,
@@ -76,6 +84,13 @@ impl Sketch {
                 .ok_or("Richtung der Bedingung ist unbestimmt".to_owned())
         };
         Ok(match r.kind {
+            RuleKind::Fixed
+            | RuleKind::Horizontal
+            | RuleKind::Vertical
+            | RuleKind::Perpendicular
+            | RuleKind::EqualLength => {
+                return Err("Für diese Bedingung den gemeinsamen Solver aktivieren".into())
+            }
             RuleKind::Distance => {
                 require(r.value > 0. && r.value <= 10000., "Längenmaß ungültig")?;
                 (b, p[a] + unit(p[b] - p[a])? * r.value)
@@ -99,25 +114,26 @@ impl Sketch {
             }
         })
     }
-    pub fn sample(&self, steps: usize) -> Result<Vec<DVec3>> {
+    pub fn solved_points(&self) -> Result<Vec<DVec3>> {
         require(
             (2..=64).contains(&self.points.len())
                 && self.segments.len() <= 96
                 && self.rules.len() <= 64,
             "Skizzenumfang überschritten",
         )?;
-        let u = self.u.normalize_or_zero();
-        let n = u.cross(self.v).normalize_or_zero();
-        require(
-            n.length_squared() > 0.9,
-            "Arbeitsebene benötigt unabhängige Achsen",
-        )?;
-        let v = n.cross(u);
         let mut p = self.points.clone();
         if self.planar {
             for a in &mut p {
                 a.z = 0.;
             }
+        }
+        require(
+            p.iter().all(|v| v.is_finite()),
+            "Ungültige Punktkoordinaten",
+        )?;
+        if self.bidirectional {
+            super::sketch_solver::solve(&mut p, &self.rules, self.planar)?;
+            return Ok(p);
         }
         for _ in 0..32 {
             let mut delta: f64 = 0.;
@@ -137,6 +153,17 @@ impl Sketch {
                 "Widersprüchliche Skizzenbedingungen",
             )?;
         }
+        Ok(p)
+    }
+    pub fn sample(&self, steps: usize) -> Result<Vec<DVec3>> {
+        let mut p = self.solved_points()?;
+        let u = self.u.normalize_or_zero();
+        let n = u.cross(self.v).normalize_or_zero();
+        require(
+            n.length_squared() > 0.9,
+            "Arbeitsebene benötigt unabhängige Achsen",
+        )?;
+        let v = n.cross(u);
         for a in &mut p {
             *a = self.origin + u * a.x + v * a.y + n * a.z;
         }

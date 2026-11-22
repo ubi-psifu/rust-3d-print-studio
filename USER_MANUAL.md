@@ -1,5 +1,17 @@
 # Bedienungsanleitung
 
+## Eine bemaßte Platte ändern
+
+Öffne `examples/modelle/Bemasste-Platte.r3dp`, wähle die Platte und öffne im Skizzeninspektor **Bemaßung und Bedingungen**. Ändere das Abstandsmaß 48 auf 60 mm und wähle **Parameter übernehmen**. Die Extrusion übernimmt die neue Kontur. Die fixierte Ecke bleibt relativ zum Skizzenursprung an ihrem Platz.
+
+**Punkte gemeinsam lösen** verteilt die Korrektur auf die freien beteiligten Punkte. Ein fixierter Punkt behält seine eingegebenen lokalen Koordinaten. Horizontal und vertikal richten die Strecke AB an der U- oder V-Achse der Arbeitsebene aus. Senkrecht, parallel und gleich lang beziehen sich auf AB und CD. Bei Spiegelung ist AB die Achse, C und D sind die Punktpartner. Bei Tangente bezeichnen AB und BD die beiden Griffe. Die Nummerierung der Punkte beginnt bei 0. Bei einer unlösbaren Änderung bleibt das zuletzt übernommene Modell erhalten. Bei alten Projekten ist die gemeinsame Lösung zunächst ausgeschaltet. Sie lässt sich pro Skizze aktivieren.
+
+## Ungespeicherte Arbeit zurückholen
+
+Das Studio sichert übernommene Projektänderungen alle 30 Sekunden im Hintergrund. Jede Programminstanz verwendet einen eigenen Sitzungsordner. Nach einem Abbruch das Studio ohne Projektargument starten oder **Datei → Sicherung wiederherstellen …** wählen. Sitzung anhand ihres Alters wählen und das wiederhergestellte Projekt mit **Strg+S** unter einem Projektpfad speichern. Das Studio bewahrt die gefundene Absturzkopie auf. Ihr Pfad erscheint beim Zeigen auf die Sitzung. Unerledigte Eingaben im Eigenschafteneditor und Änderungen seit der letzten Sicherung können beim Abbruch verloren gehen.
+
+Unter Windows liegen die Sitzungen in `%LOCALAPPDATA%/Rust-3D-Print-Studio/Sicherungen`, unter Linux im XDG-Statusordner, sonst in `~/.local/state/Rust-3D-Print-Studio/Sicherungen`, und unter macOS in `~/Library/Application Support/Rust-3D-Print-Studio/Sicherungen`. Nach regulärem Projektspeichern, Verwerfen beim Projektwechsel oder Beenden entfernt das Studio seine laufende Sicherung.
+
 ## Serien ausrichten und kopieren
 
 Wähle in der linken Leiste **Auswahl** und **Draufsicht**. Klicke ein Teil an und ziehe es mit gedrückter linker Maustaste. **XY**, **X** und **Y** bestimmen die erlaubten Bewegungsrichtungen. Mit **Umschalt + Klick** nimmst du weitere Teile in die Auswahl auf. Ein Rahmen von einer freien Stelle aus erfasst mehrere Teile.
@@ -86,9 +98,10 @@ Im Menü **Datei** den Befehl wählen und einen vollständigen Dateipfad samt En
 | STL binär | Dreiecksnetz | Netz in mm |
 | 3MF | Globale Profileinstellungen aus ungeslicter P1S-Vorlage laden. Einfache Core-Modell-3MF als Geometrie importieren. | Standard-Modellcontainer oder ungeslictes Bambu-Projekt mit Filamentzuordnung |
 | OBJ | Polygonnetz | Geometrie |
-| ASCII-STL | Dreiecksnetz | Offen |
+| ASCII-STL | Dreiecksnetz | Netz in mm |
+| ASCII-PLY 1.0 | XYZ und indizierte Polygonflächen eines geschlossenen Netzes | Eine indizierte Dreiecksgeometrie in mm |
 | SVG | Geschlossene Konturen als Relief | Schichtzeichnungen |
-| STEP/STP, PLY, GLTF/GLB, G-Code | Offen | Offen |
+| STEP/STP, binäres PLY, GLTF/GLB, G-Code | Offen | Offen |
 
 „Offen“ bezeichnet eine ausstehende Funktion. Netzexport überträgt Geometrie. Zum späteren Ändern der Konstruktionsparameter zusätzlich das R3DP-Projekt speichern. Ein Standard-3MF aus dem Studio enthält keine Bambu-Druckaufträge. In Bambu Studio die Datei manuell öffnen und die aktuellen Maschinen-, Prozess- und Filamentprofile prüfen.
 

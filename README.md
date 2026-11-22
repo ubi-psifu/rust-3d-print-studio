@@ -1,4 +1,10 @@
-# Rust 3D Print Studio 0.6.0
+# Rust 3D Print Studio 0.7.0
+
+## Version 0.7.0 starten
+
+ZIP entpacken und unter Windows `dist/rust-3d-print-studio.exe` öffnen. Im Menü **Datei → Projekt öffnen …** das Beispiel `examples/modelle/Bemasste-Platte.r3dp` laden. Die 48 × 30 × 6 mm große Platte entsteht aus einer Skizze mit zwei Längenmaßen, einem fixierten Eckpunkt und vier Richtungsbedingungen. Der Inspektor erlaubt das Ändern der Maße und die Neuberechnung.
+
+Neu sind der gemeinsame Solver für Skizzenpunkte, automatische lokale Wiederherstellungskopien, der Export als ASCII-STL und der Austausch einfacher ASCII-PLY-Netze.
 
 ## Neu in 0.6.0
 

@@ -1,3 +1,10 @@
+# 0.7.0 · 21. November 2026
+
+- Bidirektionale Skizzenbedingungen für freie und fixierte Punkte, lokale U-/V-Richtung, gleiche Länge und Rechtwinkligkeit. Kompatibler Rechenweg für bestehende Skizzen.
+- Bemaßte Beispielplatte mit parametrisierter Extrusion.
+- Lokale Autosicherung im 30-Sekunden-Takt und Wiederherstellung als Projektkopie.
+- ASCII-STL-Export und ASCII-PLY-Import und -Export. Sieben zusätzliche Tests.
+
 # 0.6.0 · 21. November 2026
 
 - Rechteck- und Kreismuster mit Vorschau, auslassbare Kopien, Ausrichten, Verteilen und wiederholte XY-Schritte.

@@ -292,8 +292,9 @@ pub fn load(path: &Path, scale: f64) -> R<Vec<Object>> {
     let parts = match ext.as_str() {
         "3mf" => model(f)?,
         "stl" => vec![(name.to_owned(), stl(&read(f)?)?)],
+        "ply" => vec![(name.to_owned(), crate::ply::read(&read(f)?)?)],
         "obj" => obj(&read(f)?, name)?,
-        _ => return Err("STL, OBJ oder Modell-3MF wählen".into()),
+        _ => return Err("STL, OBJ, ASCII-PLY oder Modell-3MF wählen".into()),
     };
     if parts.is_empty() {
         return Err("Datei enthält kein Netz".into());

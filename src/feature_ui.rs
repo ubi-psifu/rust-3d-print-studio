@@ -773,26 +773,54 @@ fn sketch_ui(ui: &mut Ui, s: &mut rust_3d_print_studio::cad::sketch::Sketch) {
         }
     });
     ui.collapsing("Bemaßung und Bedingungen", |ui| {
+        ui.checkbox(&mut s.bidirectional, "Punkte gemeinsam lösen");
+        ui.small(
+            "Punktnummern beginnen bei 0. Fixierte Punkte behalten ihre eingegebenen Koordinaten.",
+        );
+
         let mut remove = None;
         for (i, r) in s.rules.iter_mut().enumerate() {
             ui.push_id(i, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     for (kind, label) in [
                         (RuleKind::Distance, "Abstand"),
+                        (RuleKind::Fixed, "Fixieren"),
+                        (RuleKind::Horizontal, "Horizontal"),
+                        (RuleKind::Vertical, "Vertikal"),
+                        (RuleKind::Perpendicular, "Senkrecht"),
+                        (RuleKind::EqualLength, "Gleich lang"),
                         (RuleKind::Parallel, "Parallel"),
                         (RuleKind::Tangent, "Tangente"),
                         (RuleKind::Mirror, "Spiegelung"),
                         (RuleKind::Coincident, "Koinzident"),
                     ] {
-                        ui.selectable_value(&mut r.kind, kind, label);
+                        if ui.selectable_value(&mut r.kind, kind, label).clicked()
+                            && matches!(
+                                kind,
+                                RuleKind::Fixed
+                                    | RuleKind::Horizontal
+                                    | RuleKind::Vertical
+                                    | RuleKind::Perpendicular
+                                    | RuleKind::EqualLength
+                            )
+                        {
+                            s.bidirectional = true;
+                        }
                     }
                 });
                 ui.horizontal_wrapped(|ui| {
-                    for v in &mut r.ids {
+                    let count = r.point_count();
+                    for (label, v) in ["A", "B", "C", "D"].into_iter().zip(&mut r.ids[..count]) {
+                        if r.kind == RuleKind::Tangent && label == "C" {
+                            continue;
+                        }
+                        ui.label(label);
                         ui.add(egui::DragValue::new(v).range(0..=max));
                     }
                 });
-                num(ui, "Maß", &mut r.value);
+                if r.kind == RuleKind::Distance {
+                    num(ui, "Maß", &mut r.value);
+                }
                 if ui.small_button("Bedingung entfernen").clicked() {
                     remove = Some(i);
                 }

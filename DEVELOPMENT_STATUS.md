@@ -1,4 +1,12 @@
-# Entwicklungsstand 0.6.0
+# Entwicklungsstand 0.7.0
+
+## Version 0.7.0
+
+Die neue Skizzenberechnung kann mehrere freie Punkte in der Ebene oder im Raum verändern. Ein neues Beispiel verbindet die Lösung mit der parametrischen Extrusion. Der Solver prüft die Restabweichung. Bei ungünstigen Startlagen kann eine lösbare Skizze die Iterationsgrenze erreichen. Exaktes B-Rep, STEP sowie ein vollständiger NURBS-Flächeneditor und allgemeine lokale Kantenrundungen stehen weiterhin aus.
+
+Lokale Sicherungen mit getrennten Sitzungen und Wiederherstellung als Kopie sind integriert. Die 2-MiB-Grenze gilt auch für Sicherungen. ASCII-STL kann jetzt geschrieben werden. ASCII-PLY 1.0 unterstützt Geometrie ohne zusätzliche Farbfelder, Normalen oder andere Attribute. Der Export fasst alle Körper in einem Netz zusammen.
+
+Formatierung, Check, Clippy, 48 automatisierte Tests und Release-Builds für Linux und Windows x64 wurden erfolgreich ausgeführt. Windows-Laufzeit, Installation auf einem Windows-System und physischer Druck stehen aus. Die folgenden Abschnitte enthalten auch Abnahmen älterer Versionen.
 
 ## Stand vom 21. November 2026
 
@@ -28,13 +36,13 @@ Der Wandhaken ist als Generator, frei editierbarer Feature-Baum, binäre STL und
 
 | Bereich | Implementiert | Ausstehend oder begrenzt |
 |---|---|---|
-| Skizzen | Kontrollpunkte grafisch und numerisch, Ebenen und räumliche Skizzen, Linienzüge, Kreis-/Ellipsenbögen, Bézier, B-Spline/NURBS, Hilfsgeometrie, fünf gerichtete Bedingungen | Allgemeiner bidirektionaler Constraint-Solver und interaktive Bemaßung direkt auf dem Hauptmodell fehlen. |
+| Skizzen | Kontrollpunkte grafisch und numerisch, Ebenen und räumliche Skizzen, Linienzüge, Kreis-/Ellipsenbögen, Bézier, B-Spline/NURBS, Hilfsgeometrie, gerichtete Altbedingungen und zehn gemeinsam lösbare Bedingungen | Lokaler iterativer Solver mit begrenzter Iterationszahl. Eine Freiheitsgradanalyse und grafische Maßpfeile am Hauptmodell fehlen. |
 | Volumen | Offene/geschlossene Sweeps, Profilskalierung und Verdrehung, gerundete Spitze, Loft, Führung über Zwischenversätze, Extrusion, Rotation, Shell und Flächenverbund | Geschlossener Sweep hat konstante Skalierung und keine zusätzliche Verdrehung. Keine beliebigen unabhängigen Loft-Leitkurven. Shell ist ein Netzversatz mit optionaler ebener Öffnung oben. |
 | Konstruktionshistorie | Editierbarer Feature-Baum, variable Maße mit Formeln, Neuaufbau mit letztem gültigem Stand, v1-Migration | Kein exakter B-Rep-Kern, keine dauerhafte topologische Referenzierung. Nummern von Kanten und Flächen können sich bei größerer Quelländerung verschieben. |
 | Freeform | Dreiecksecken, Kanten-/Flächenversatz, Unterteilung, Glättung, 2×2×2-Gitter, Symmetrie, Verdrehen, Verjüngen, Biegen, Skalieren | Kein NURBS-Flächeneditor mit Trimmkurven. Selektive Flächenersetzung und beliebige Gitterauflösung fehlen. |
 | Körperbearbeitung | Drei Netzboolesche, ebener Schnitt, gewölbter Werkzeugkörper per Differenz, konvexe Stützkanten mit Fase/variabler Rundung, toleranzbasierte Reparatur | Freie gekrümmte Schnittfläche ohne geschlossenen Werkzeugkörper und allgemeine lokale Fillets an konkaven Kanten fehlen. Kein automatisches Füllen beliebiger Löcher. |
 | Haken | Acht Voreinstellungen, variable Profile und Spitzen, Lochmuster, Senkungen, Rippe, gerundete Platte, auflösbare freie Konstruktion | Öffnungsweite und tatsächliche Gesamttiefe ergeben sich aus Pfad und Profil. Es gibt noch keine inverse Maßsteuerung dieser beiden Größen. Kantenübergänge an der Rippe sind scharf. |
 | Druckprüfung | P1S-Grenzen, Sperrfläche, Kanteninzidenz/-orientierung, entartete Flächen, numerische Gültigkeit, Selbstschnittprüfung, Überhangfläche | Dreiecke mit gemeinsamen Eckpunktindizes werden vom Selbstschnitttest ausgenommen. Allgemeine Mindestwandstärke, Kerbspannungen, Haftung und Werkstoffschrumpfung sind nicht simuliert. |
-| Dateien/Plattform | R3DP v1 lesen und v2 schreiben, STL binär, OBJ und 3MF exportieren, Windows-EXE und Installer gebaut, Linux-Fenster geprüft | STEP, Autosicherung, native Windows-/macOS-Abnahme und Lastprüfung offen. |
+| Dateien/Plattform | R3DP v1 lesen und v2 schreiben, STL binär, OBJ und 3MF exportieren, Windows-EXE und Installer gebaut, Linux-Fenster geprüft | STEP, Liste zuletzt geöffneter Projekte, native Windows-/macOS-Abnahme und Lastprüfung offen. |
 
 Grenzen pro Projekt sind 2 MiB, 128 Körper und 64 Undo-Schritte. Pro Feature-Baum gelten 128 Auswertungsknoten und 24 Verschachtelungsebenen. Die gespeicherten CAD-Parameter bleiben mit f64 erhalten. Tessellierte Kantenrundungen, Senkungen und Kreisquerschnitte sind segmentabhängig. Die begrenzte Selbstschnittprüfung kann bei sehr aufwendigen Netzen einen Prüfaufwandfehler melden. Neue Objekte und Boolesche können während der ersten Berechnung die Oberfläche kurz anhalten.

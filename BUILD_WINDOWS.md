@@ -1,5 +1,7 @@
 # Windows 11 x64
 
+Der x64-Build 0.7.0 enthält den neuen Skizzensolver und die Wiederherstellung im lokalen Benutzerprofil. Für den Start der mitgelieferten EXE sind weder Rust noch eine Internetverbindung erforderlich. Windows-Laufzeit und Installation auf einem Windows-Gerät stehen aus.
+
 Für 0.6.0 wurden die x64-EXE und das NSIS-Paket unter Linux erstellt. Ein Lauf auf Windows und eine Installation auf einem Windows-Testgerät stehen aus.
 
 Für CAD, Schichtplanung und SVG-Export genügt die portable Studio-EXE. Für eine druckerspezifische .gcode.3mf werden zusätzlich eine lokale Bambu-Studio-Installation und eine eigene ungeslicte P1S-Projektvorlage benötigt. Installer und Vorlage können per Datenträger auf den Offline-Rechner übertragen werden. Der Windows-Build aus Quellcode benötigt vorab die in Cargo.lock fixierten Abhängigkeiten, die Windows-Toolchain und das SDK.

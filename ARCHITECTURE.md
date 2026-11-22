@@ -1,5 +1,7 @@
 # Architektur und Datenmodell
 
+`cad/sketch_solver.rs` löst in lokalen Skizzenkoordinaten. Der Solver projiziert skalare Restabweichungen über numerische Ableitungen auf freie Punktkoordinaten. Fixierte Koordinaten sind aus den Korrekturen ausgeschlossen. Skizzen ohne serialisierte Solverwahl verwenden beim Laden den gerichteten Altpfad. `recovery.rs` verarbeitet Sicherungs- und Aufräumaufträge je Instanz in einem Hintergrundthread in Auftragsreihenfolge. Für den atomaren Austausch verwendet es den R3DP-Schreiber. `ply.rs` verarbeitet das begrenzte ASCII-Geometrieprofil.
+
 `layout.rs` plant Veränderungen an einer Auswahl in Millimetern. `layout_ui.rs` zeigt denselben Plan, der beim Bestätigen auf eine Projektkopie angewendet wird. Die Historie speichert die Änderung als Einheit. `import.rs` erzeugt Mesh-Features aus unterstützten Austauschformaten. `svg.rs` liest geschlossene Vektorkonturen. `cad/accessories.rs` erzeugt Schild, Gehäuse und Deckel aus gespeicherten Parametern.
 
 ## Lokale Engine
