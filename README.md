@@ -1,5 +1,7 @@
 # Rust 3D Print Studio
 
+Mit dem Windows-Installer ab 0.12.1 lassen sich R3DP-Projekte im Explorer über **Öffnen mit** an das Studio übergeben.
+
 Eine deutschsprachige Desktop-Anwendung zum Konstruieren von 3D-Druckteilen und zum Anordnen auf der Druckplatte des Bambu Lab P1S. Modelle und Projekte bleiben auf dem eigenen Rechner. Für die Modellierung ist kein Konto erforderlich.
 
 ## Herunterladen und starten

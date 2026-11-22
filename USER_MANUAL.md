@@ -1,5 +1,7 @@
 # Bedienungsanleitung
 
+Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der rechten Maustaste anklicken und unter **Öffnen mit** Rust 3D Print Studio auswählen.
+
 ## Kanten und Öffnungsflächen binden
 
 Unter **Modellieren → Kante abrunden / fasen** eine scharfe Kante über ihre Nummer wählen. **Kante geometrisch binden** merkt sich Anfang, Ende und Nachbarflächen vor dem nächsten Umbau. **Parameter übernehmen** baut den Körper. Wird die Quelle in X, Y oder Z gestreckt, bleibt die Zuordnung für gleiche normierte Endpunkte und Flächennormalen erhalten. Auch die Richtung von Anfangs- und Endradius bleibt erhalten. Wird die Kante geteilt, ersetzt oder mehrdeutig, meldet der Editor den fehlenden Bezug. Dann die Quelle prüfen und eine neue Kante binden.
