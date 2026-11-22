@@ -28,7 +28,7 @@ jobs:
           download() {
             local id
             id=$(jq -er --arg file "$1" '.[] | select(.name == $file) | .id' "$dir/assets.json")
-            gh api -H 'Accept: application/octet-stream' "$api/releases/assets/$id" > "$dir/$1"
+            curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o "$dir/$1"
           }
           download quellhistorie.bundle
           echo "993d9c951dbd08fecf9045e129f3e623dc13348a1549d8e51ceb2aee3c56c60f  $dir/quellhistorie.bundle" | sha256sum -c
