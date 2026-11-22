@@ -1,30 +1,42 @@
-# Entwicklungsstand 0.12.0
+# Entwicklungsstand
 
-Radiusbedingungen werden mit anderen Skizzenbedingungen gemeinsam gelöst. Bei kollinearen Bogenpunkten ist der Radius unbestimmt. Ein exakt halbkreisförmiger Startbogen mit zwei fixierten Endpunkten kann eine singuläre Solver-Ausgangslage bilden. 62 Tests bestanden. Das Prüfbeispiel kontrolliert die Bogenhöhe nach dem erneuten Öffnen. STEP, B-Rep und die native Windows-Abnahme bleiben offen.
+## Veröffentlichte Version 0.12.0
 
-# Entwicklungsstand 0.11.0
+| Bereich | Verfügbar | Offene Prüfung oder Grenze |
+| --- | --- | --- |
+| Skizzen | Abstände, Innenwinkel und Radien von Dreipunktbögen. Die Modelle lassen sich nach einer Maßänderung neu aufbauen und als R3DP speichern. | Bei drei kollinearen Punkten ist der Radius unbestimmt. Ein exakter Halbkreis mit fixierten Endpunkten kann den lokalen Solver an seine Grenze bringen. |
+| Modellierung | Parametrische Konstruktion mit tessellierten Körpern, Netzboolesche, geometrisch gebundene scharfe Kanten und ebene Hohlkörperöffnungen auf sechs Außenseiten. | Allgemeine dauerhafte B-Rep-Flächenbezüge, exakte CAD-Volumenkörper und STEP-Austausch bleiben offen. |
+| Druckplatte | Mehrfachauswahl, direktes Verschieben, Kopieren, Muster und automatische Anordnung im P1S-Profil. | Die Platzsuche nutzt achsparallele Hüllboxen. Bei konkaven Teilen können freie Bereiche ungenutzt bleiben. |
+| Slicing | Geometrische Schnittansicht und SVG-Schichtstapel. Die lokale Bambu-Studio-CLI erzeugt mit passender Vorlage druckerspezifische Dateien. | Die erfolgreiche Mehrfilament-Übergabe und die Abnahme eines vollständigen Mehrfilament-Slicinglaufs sind getrennte Prüfschritte. Letztere ist offen. |
+| Plattformen | Release-Paket mit Linux-x64-Programm, Windows-x64-EXE und NSIS-Installer. | Praktische Windows-Abnahme und macOS-Abnahme stehen aus. |
+
+Für 0.12.0 bestanden unter Linux 62 automatisierte Tests einschließlich der Radiusänderung mit Speichern und erneutem Öffnen. Formatierung, Workspace-Check, Clippy und beide Release-Builds liefen erfolgreich. [Release und Download](https://github.com/ubi-psifu/rust-3d-print-studio/releases/tag/v0.12.0)
+
+## Frühere Prüfstände
+
+Die folgenden Einträge beschreiben jeweils die damalige Version. Für heutige Funktionen und offene Arbeiten gilt die Übersicht oben.
+
+### Version 0.11.0
 
 Winkelmaße für ebene und räumliche Skizzen sind integriert. Der gemeinsame lokale Solver unterstützt Innenwinkel zwischen 0 und 180 Grad ausschließlich der Grenzen. Widersprüche beim grafischen Setzen belassen den Entwurf im vorherigen Zustand. Der Beispieltest ändert die Lasche von 60° auf 75°, baut den Körper neu auf und kontrolliert die Höhe nach dem Laden. 60 Tests und alle Cargo-Prüfungen bestanden. EXE und Installer wurden gebaut. Praktische Windows-Abnahme offen. Radiusbemaßung, STEP und exaktes B-Rep bleiben offen.
 
-# Entwicklungsstand 0.10.0
-
-## Version 0.10.0
+### Version 0.10.0
 
 Rundungen und Fasen können einen geometrischen Kantenbezug speichern. Er erkennt die Endpunkte und die angrenzenden Normalen relativ zur lokalen Hüllbox. Fehlt ein eindeutiger Treffer, schlägt die Neuberechnung mit einer Meldung fehl. Hohlkörper unterstützen zusammenhängende ebene Öffnungsflächen auf sechs lokalen Außenseiten. Ältere Projekte behalten ihre nummerierte Kante bzw. die obere Öffnung. Beliebige gekrümmte Flächen, durch Teilung entstandene Kanten und semantische B-Rep-Bezüge bleiben offen.
 
 57 Tests sowie die Cargo-Prüfungen unter Linux bestanden. Windows-Programm und Setup wurden unter Linux gebaut. Windows-Laufzeit und physischer Druck bleiben ungeprüft.
 
-## Version 0.9.0
+### Version 0.9.0
 
 Die grafische Bemaßungsansicht für Skizzenextrusionen und skizzierte Sweep-Pfade zeigt berechnete lokale Punkte, Kontur und Abstandsmaße. Vorhandene Maßzahlen sowie Punktpaare können ausgewählt werden. Widersprüchliche Abstände werden geprüft, bevor sie in den Entwurf gelangen. Beim Einfügen und Entfernen von Kontrollpunkten führt der Editor die Punktindizes von Segmenten und Bedingungen nach. Verwendete Punkte sind gegen versehentliches Entfernen geschützt.
 
 Die Bemaßungsansicht liegt im Inspektor. Winkel- und Radiusmaße, persistente Referenzen auf Modellkanten oder -flächen und der STEP-Austausch bleiben offen. Formelausdrücke mit Positionsindizes im Feature-Baum werden bei Strukturänderungen nicht umgeschrieben. Bei deckungsgleichen Punkten einer Projektion eine andere Ansicht oder die numerischen Punktfelder verwenden. Im Linux-Bedientest wurde eine 50-mm-Lasche auf 60 mm geändert, gespeichert, zurückgenommen und wiederhergestellt. Windows-Laufzeit und physischer Druck stehen aus.
 
-## Kontexthilfe
+### Kontexthilfe
 
 Die acht Hauptwerkzeuge, Konstruktionsarten im Inspektor, sechs Plattenmodi, vier Druckvorbereitungsreiter und Datei- und Wiederherstellungsdialoge sind mit der Offline-Anleitung verbunden. F1 berücksichtigt auch den Mauszeiger über den Hauptwerkzeugen und ausgewählten Plattenbefehlen. Einzelne Zahlenfelder besitzen keine eigenen Hilfeartikel. Zwei neue Tests prüfen Kontextverweise und Suchverhalten.
 
-## Version 0.7.0
+### Version 0.7.0
 
 Die neue Skizzenberechnung kann mehrere freie Punkte in der Ebene oder im Raum verändern. Ein neues Beispiel verbindet die Lösung mit der parametrischen Extrusion. Der Solver prüft die Restabweichung. Bei ungünstigen Startlagen kann eine lösbare Skizze die Iterationsgrenze erreichen. Exaktes B-Rep, STEP sowie ein vollständiger NURBS-Flächeneditor und allgemeine lokale Kantenrundungen stehen weiterhin aus.
 
@@ -32,27 +44,27 @@ Lokale Sicherungen mit getrennten Sitzungen und Wiederherstellung als Kopie sind
 
 Formatierung, Check, Clippy, 48 automatisierte Tests und Release-Builds für Linux und Windows x64 wurden erfolgreich ausgeführt. Windows-Laufzeit, Installation auf einem Windows-System und physischer Druck stehen aus. Die folgenden Abschnitte enthalten auch Abnahmen älterer Versionen.
 
-## Stand vom 21. November 2026
+### Stand vom 21. November 2026
 
 Plattenlayout mit Mustern und Referenzkanten, Import geschlossener Fremdnetze, Schrift- und SVG-Reliefs sowie parametrisches Gehäuse und Deckel sind integriert. Die Platzprüfung arbeitet mit achsparallelen Hüllboxen. Das Projektformat begrenzt die serialisierten Daten auf 2 MiB. Der 3MF-Geometrieimport deckt einfache Modellcontainer ab. Komplexe Bambu-Projekte verwenden den separaten Vorlagenablauf. Der SVG-Import deckt einen Teil der Pfadbefehle und Grundformen ab. Ältere R3DP-Projekte können geöffnet werden. Projekte mit neuen Konstruktionstypen benötigen beim erneuten Öffnen Version 0.6.
 
 41 automatisierte Tests erfolgreich. Release für Linux und Windows x64 gebaut. Windows-Laufzeit, physische Passung und erneute Bambu-Studio-Abnahme der neuen Version stehen aus. Die nachfolgenden Slicer-Prüfungen stammen aus früheren Versionen.
 
-## Offline-Engine
+### Offline-Engine
 
 Eigener Rust-Kern für horizontale Konturen und wechselnde Linienfüllung mit Innenaussparungen. Export des vollständigen Modellstapels als SVG/ZIP. P1S-Druckdateien erstellt die separat installierte lokale Bambu-CLI. Offline-Abnahme unter Linux mit gesperrten IPv4-/IPv6-Sockets und Einzelfilamentprofil. Ein Mehrfilamentversuch mit der CLI 02.09.01.70 und einer aus Presets erzeugten Zweifilament-Vorlage endete mit einem Absturz des externen Prozesses. Die Ursache ist offen. Mehrfilament-Projektübergabe wurde in 0.4 geprüft. Das Mehrfilament-Slicing ist noch nicht abgenommen. Physischer Druck und Windows-Laufzeitprüfung stehen aus. Lokale Druckwarteschlange, Kamera und Bestandsverwaltung sind weiterhin offen.
 
-## Lokale Druckvorbereitung
+### Lokale Druckvorbereitung
 
 Vorlagenbasierte P1S-Übergabe, Objektfilamente, vier Prozessparameter, geometrische Schnittansicht und externer Slicerstart sind implementiert. Der Bambu-Pfad für Standardinstallationen wird gesucht. Weitere Installationsorte lassen sich manuell eintragen. Die funktionsbezogene Abgrenzung für Cloud, Gerätezugriff und Vorschau steht in [docs/SLICER_INTEGRATION.md](docs/SLICER_INTEGRATION.md).
 
 Die Abnahme prüft das erneute Einlesen von zwei Teilen mit Bambu Studio 02.09.01.70. Eine physische AMS-Zuordnung und ein Druck waren nicht Teil der Abnahme. Zusätzliche Einschränkungen sind das Einzelplattenformat, P1S-Vorlagen mit rechteckiger Bettkontur sowie sitzungsbezogene Vorlagenwahl. Direkte Gerätekommunikation, integrierte Werkzeugwegvorschau und Cloud-Connector sind offen.
 
-## Druckplatten-Werkzeuge
+### Druckplatten-Werkzeuge
 
 Direktes XY-Ziehen, Gruppen- und Rahmenauswahl, interne Modell-Zwischenablage, platzierte Kopien und automatische Plattenbelegung sind implementiert. Die Anordnung benutzt achsparallele Hüllboxen und behält die Ausrichtung bei. Konkave Teile können dadurch mehr Platz belegen als ihre tatsächliche Kontur. Die Projektgrenzen gelten auch für Serien.
 
-## Abgeschlossen und überprüft
+### Abgeschlossen und überprüft
 
 Die Linux-Oberfläche folgt der bereitgestellten SVG-Gliederung mit Werkzeugspalte, Modellansicht, Objektinspektor und grünen Prüf- und Exportschaltflächen. Das Startmodell entspricht dem Bohrquader mit 80 × 80 × 40 mm und 28 mm Bohrung. Aktive Funktionen und Bedienfolgen stehen im USER_MANUAL.md.
 
