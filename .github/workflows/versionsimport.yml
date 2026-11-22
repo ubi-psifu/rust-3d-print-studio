@@ -28,8 +28,44 @@ jobs:
           unzip -q studio.zip
       - name: Installation, Explorer und Deinstallation prüfen
         run: ./Rust-3D-Print-Studio-0.12.1/scripts/windows-abnahme.ps1
-      - name: Beispiel im Fenster öffnen und speichern
-        run: ./Rust-3D-Print-Studio-0.12.1/scripts/windows-abnahme.ps1 -MitFenster
+      - name: OpenGL-Testumgebung für den Windows-Runner vorbereiten
+        shell: pwsh
+        run: |
+          & C:\msys64\usr\bin\bash.exe -lc 'pacman -Sy --needed --noconfirm mingw-w64-x86_64-mesa'
+          if ($LASTEXITCODE -ne 0) { throw 'Mesa-Installation für Runner fehlgeschlagen' }
+      - name: Portables Studio mit Software-OpenGL öffnen und Projekt speichern
+        shell: pwsh
+        run: |
+          $bin = 'C:\msys64\mingw64\bin'
+          $env:PATH = "$bin;$env:PATH"
+          $env:GALLIUM_DRIVER = 'llvmpipe'
+          $env:RUST_BACKTRACE = '1'
+          $portable = Resolve-Path './Rust-3D-Print-Studio-0.12.1/dist/rust-3d-print-studio.exe'
+          Copy-Item $portable "$bin/rust-3d-print-studio.exe"
+          $copy = Join-Path $env:RUNNER_TEMP 'Prüfung mit Leerzeichen.r3dp'
+          Copy-Item './Rust-3D-Print-Studio-0.12.1/examples/modelle/Bogenlasche.r3dp' $copy
+          (Get-Item $copy).LastWriteTimeUtc = [datetime]::UtcNow.AddYears(-1)
+          $errfile = Join-Path $env:RUNNER_TEMP 'studio-stderr.txt'
+          $process = Start-Process "$bin/rust-3d-print-studio.exe" -ArgumentList ('"{0}"' -f $copy) -RedirectStandardError $errfile -PassThru
+          try {
+            $shell = New-Object -ComObject WScript.Shell
+            for ($i=0; $i -lt 40; $i++) {
+              Start-Sleep -Seconds 1
+              $process.Refresh()
+              if ($process.HasExited) { Get-Content $errfile; throw "Programmende $($process.ExitCode)" }
+              if ($process.MainWindowTitle -eq 'Rust 3D Print Studio' -and $shell.AppActivate($process.Id)) {
+                $shell.SendKeys('^s')
+                Start-Sleep -Milliseconds 500
+                if ((Get-Item $copy).LastWriteTimeUtc -gt [datetime]::UtcNow.AddMinutes(-5)) {
+                  if ((Get-Content $copy -Raw | ConvertFrom-Json).objects[0].name -ne 'Bogenlasche') { throw 'Falsches Projekt gespeichert' }
+                  Write-Output 'Bogenlasche mit Strg+S im Windows-Fenster gespeichert.'
+                  return
+                }
+              }
+            }
+            Get-Content $errfile
+            throw 'Speichervorgang nicht bestätigt'
+          } finally { if (!$process.HasExited) { $process.Kill(); $process.WaitForExit() } }
   import:
     needs: windows
     if: github.repository == 'ubi-psifu/rust-3d-print-studio' && github.ref == 'refs/heads/main'
