@@ -12,7 +12,7 @@ jobs:
     name: Windows-Paket prüfen
     runs-on: windows-2022
     permissions:
-      contents: read
+      contents: write
     timeout-minutes: 10
     steps:
       - name: Archiv aus dem Importentwurf prüfen
@@ -22,7 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Rust-3D-Print-Studio-0.12.1.zip") | .id')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "Rust-3D-Print-Studio-0.12.1.zip") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o studio.zip
           echo '6b463335f0a92a5e3002e7310b87ccfa75157a0eb7456f199ec13b097a94303e  studio.zip' | sha256sum -c
           unzip -q studio.zip
