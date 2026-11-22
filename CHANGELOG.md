@@ -1,3 +1,7 @@
+# 0.12.0 · 22. November 2026
+
+Treibendes Radiusmaß für Dreipunkt-Kreisbögen und Beispiel Bogenlasche.
+
 # 0.11.0 · 22. November 2026
 
 Innenwinkel im Skizzeninspektor über drei Kontrollpunkte setzen, durch Anklicken der Gradzahl bearbeiten und im Projekt speichern.

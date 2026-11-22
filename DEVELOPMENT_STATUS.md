@@ -1,3 +1,7 @@
+# Entwicklungsstand 0.12.0
+
+Radiusbedingungen werden mit anderen Skizzenbedingungen gemeinsam gelöst. Bei kollinearen Bogenpunkten ist der Radius unbestimmt. Ein exakt halbkreisförmiger Startbogen mit zwei fixierten Endpunkten kann eine singuläre Solver-Ausgangslage bilden. 62 Tests bestanden. Das Prüfbeispiel kontrolliert die Bogenhöhe nach dem erneuten Öffnen. STEP, B-Rep und die native Windows-Abnahme bleiben offen.
+
 # Entwicklungsstand 0.11.0
 
 Winkelmaße für ebene und räumliche Skizzen sind integriert. Der gemeinsame lokale Solver unterstützt Innenwinkel zwischen 0 und 180 Grad ausschließlich der Grenzen. Widersprüche beim grafischen Setzen belassen den Entwurf im vorherigen Zustand. Der Beispieltest ändert die Lasche von 60° auf 75°, baut den Körper neu auf und kontrolliert die Höhe nach dem Laden. 60 Tests und alle Cargo-Prüfungen bestanden. EXE und Installer wurden gebaut. Praktische Windows-Abnahme offen. Radiusbemaßung, STEP und exaktes B-Rep bleiben offen.

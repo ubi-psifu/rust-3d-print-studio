@@ -1,3 +1,7 @@
+# Kreisradius ab 0.12
+
+Tessellierung und Skizzensolver verwenden denselben räumlichen Umkreismittelpunkt. Drei Punktindizes und ein Millimeterwert bilden die persistente Bedingung.
+
 # Winkelbedingungen ab 0.11
 
 Angle referenziert drei Kontrollpunkte. Der zweite Index ist der Scheitel. Gradwerte werden serialisiert und im Solver als Differenz zweier Winkel im Bogenmaß ausgewertet. Die grafische Eingabe löst eine Arbeitskopie vor der Übernahme.

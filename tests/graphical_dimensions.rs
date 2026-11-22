@@ -131,3 +131,35 @@ fn angle_drives_example_extrusion_and_survives_project_roundtrip() {
     let (lo, hi) = restored.objects[0].mesh().bounds();
     assert!(((hi - lo).y - 20. * 75_f64.to_radians().sin()).abs() < 1e-5);
 }
+
+#[test]
+fn radius_controls_arc_after_project_reload() {
+    let mut project = files::load(Path::new("examples/modelle/Bogenlasche.r3dp")).unwrap();
+    let obj = &mut project.objects[0];
+    let Some(Feature::SketchExtrude { sketch, .. }) = &mut obj.feature else {
+        panic!()
+    };
+    sketch.dimension_arc(0).unwrap();
+    assert!(sketch.dimension_arc(0).is_err());
+    let rule = sketch.rules.last_mut().unwrap();
+    assert!((rule.value - 12.5).abs() < 1e-8);
+    rule.value = 15.;
+    obj.rebuild().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("Bogen.r3dp");
+    files::save(&path, &project, Output::Project, false).unwrap();
+    let restored = files::load(&path).unwrap();
+    let (lo, hi) = restored.objects[0].mesh().bounds();
+    assert!(((hi - lo).y - (15. - 125_f64.sqrt())).abs() < 1e-5);
+}
+#[test]
+fn collinear_arc_rejects_radius_without_modification() {
+    use rust_3d_print_studio::cad::sketch::SegmentKind;
+    let mut s = Sketch::default();
+    s.segments[0].kind = SegmentKind::Arc;
+    s.segments[0].ids = [0, 1, 2, 0];
+    s.points[2] = (s.points[0] + s.points[1]) / 2.;
+    let original = s.clone();
+    assert!(s.dimension_arc(0).is_err());
+    assert_eq!(s, original);
+}

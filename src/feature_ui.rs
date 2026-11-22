@@ -802,6 +802,7 @@ fn sketch_ui(ui: &mut Ui, s: &mut rust_3d_print_studio::cad::sketch::Sketch) {
     }
     let max = s.points.len().saturating_sub(1);
     ui.collapsing("Kontur und Hilfslinien", |ui| {
+        let mut radius_segment = None;
         let mut remove = None;
         for (i, seg) in s.segments.iter_mut().enumerate() {
             ui.push_id(i, |ui| {
@@ -824,11 +825,25 @@ fn sketch_ui(ui: &mut Ui, s: &mut rust_3d_print_studio::cad::sketch::Sketch) {
                         ui.add(egui::DragValue::new(v).range(0..=max));
                     }
                 });
+                if seg.kind == SegmentKind::Arc && ui.small_button("Radius bemaßen").clicked() {
+                    radius_segment = Some(i);
+                }
                 ui.checkbox(&mut seg.construction, "Hilfsgeometrie");
                 if ui.small_button("Segment entfernen").clicked() {
                     remove = Some(i);
                 }
             });
+        }
+        let id = ui.id().with("radiusmeldung");
+        if let Some(i) = radius_segment {
+            let message = s.dimension_arc(i).map_or_else(
+                |e| e,
+                |_| "Radius unter Bemaßung und Bedingungen bearbeiten.".to_string(),
+            );
+            ui.data_mut(|d| d.insert_temp(id, message));
+        }
+        if let Some(message) = ui.data(|d| d.get_temp::<String>(id)) {
+            ui.small(message);
         }
         if let Some(i) = remove {
             s.segments.remove(i);
@@ -891,6 +906,8 @@ fn sketch_ui(ui: &mut Ui, s: &mut rust_3d_print_studio::cad::sketch::Sketch) {
                 });
                 if r.kind == RuleKind::Distance {
                     num(ui, "Maß", &mut r.value);
+                } else if r.kind == RuleKind::Radius {
+                    num(ui, "Bogenradius (mm)", &mut r.value);
                 } else if r.kind == RuleKind::Angle {
                     num(ui, "Innenwinkel (°) · Scheitel B", &mut r.value);
                 }

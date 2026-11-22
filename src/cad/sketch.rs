@@ -15,6 +15,7 @@ pub enum RuleKind {
     Perpendicular,
     EqualLength,
     Angle,
+    Radius,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rule {
@@ -46,6 +47,21 @@ pub struct Sketch {
     pub bidirectional: bool,
     pub rules: Vec<Rule>,
     pub segments: Vec<Segment>,
+}
+/// Umkreismittelpunkt des durch drei Punkte festgelegten Kreisbogens.
+pub(super) fn arc_center(a: DVec3, b: DVec3, c: DVec3) -> Result<DVec3> {
+    let x = b - a;
+    let y = c - a;
+    let n = x.cross(y);
+    require(
+        n.length() > 1e-8,
+        "Bogenpunkte liegen auf einer Geraden oder fallen zusammen",
+    )?;
+    let center = a
+        + (y.cross(n) * x.length_squared() + n.cross(x) * y.length_squared())
+            / (2. * n.length_squared());
+    require(center.is_finite(), "Ungültiger Bogenmittelpunkt")?;
+    Ok(center)
 }
 impl Default for Sketch {
     fn default() -> Self {
@@ -183,6 +199,38 @@ impl Sketch {
         *self = next;
         Ok(())
     }
+    /// Fügt zum gewählten Bogen ein Radiusmaß mit seinem aktuellen Wert hinzu.
+    pub fn dimension_arc(&mut self, segment: usize) -> Result<()> {
+        let seg = self.segments.get(segment).ok_or("Bogensegment fehlt")?;
+        require(seg.kind == SegmentKind::Arc, "Kreisbogen wählen")?;
+        let [a, b, c, _] = seg.ids;
+        let points = self.solved_points()?;
+        require(
+            [a, b, c].iter().all(|&id| id < points.len()),
+            "Bogenpunkt fehlt",
+        )?;
+        let radius = points[a].distance(arc_center(points[a], points[b], points[c])?);
+        let mut key = [a, b, c];
+        key.sort_unstable();
+        if self.rules.iter().any(|r| {
+            let [i, j, k, _] = r.ids;
+            let mut indices = [i, j, k];
+            indices.sort_unstable();
+            r.kind == RuleKind::Radius && indices == key
+        }) {
+            return Err("Für diese Bogenpunkte besteht bereits ein Radiusmaß".into());
+        }
+        let mut next = self.clone();
+        next.bidirectional = true;
+        next.rules.push(Rule {
+            kind: RuleKind::Radius,
+            ids: [a, b, c, 0],
+            value: radius,
+        });
+        next.solved_points()?;
+        *self = next;
+        Ok(())
+    }
     fn target(&self, r: &Rule, p: &[DVec3]) -> Result<(usize, DVec3)> {
         let [a, b, c, d] = r.ids;
         require(
@@ -198,6 +246,7 @@ impl Sketch {
             | RuleKind::Horizontal
             | RuleKind::Vertical
             | RuleKind::Perpendicular
+            | RuleKind::Radius
             | RuleKind::Angle
             | RuleKind::EqualLength => {
                 return Err("Für diese Bedingung den gemeinsamen Solver aktivieren".into())
@@ -295,13 +344,8 @@ impl Sketch {
                 SegmentKind::Line => vec![a, b],
                 SegmentKind::Bezier => Curve::Bezier(vec![a, b, c, d]).sample(steps)?,
                 SegmentKind::Arc => {
-                    let x = b - a;
-                    let y = c - a;
-                    let norm = x.cross(y);
-                    require(norm.length() > 1e-8, "Bogenpunkte liegen auf einer Geraden")?;
-                    let center = a
-                        + (y.cross(norm) * x.length_squared() + norm.cross(x) * y.length_squared())
-                            / (2. * norm.length_squared());
+                    let center = arc_center(a, b, c)?;
+                    let norm = (b - a).cross(c - a);
                     let u = a - center;
                     let v = norm.normalize().cross(u);
                     let angle = |p: DVec3| {

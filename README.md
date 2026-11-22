@@ -1,4 +1,6 @@
-# Rust 3D Print Studio 0.11.0
+# Rust 3D Print Studio 0.12.0
+
+**Neu in Version 0.12.0:** Öffne `examples/modelle/Bogenlasche.r3dp`. Wähle im Skizzeninspektor unter **Kontur und Hilfslinien** beim Bogen **Radius bemaßen**. Unter **Bemaßung und Bedingungen** erscheint der aktuelle Radius von 12,5 mm. Ändere ihn auf 15 mm und wähle **Parameter übernehmen**. Die fixierten Endpunkte bleiben 20 mm auseinander und der Bogen wird flacher.
 
 **Version 0.11.0** bringt editierbare Innenwinkel. Öffne das Beispiel `examples/modelle/Winkellasche.r3dp`, klicke in der grafischen Bemaßung auf **60°**, gib **75°** ein und wähle **Maß setzen → Parameter übernehmen**. Die beiden fixierten Basispunkte und die 20 mm lange Flanke bleiben erhalten.
 

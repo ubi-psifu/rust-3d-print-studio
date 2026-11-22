@@ -14,6 +14,8 @@ Drücke **F1**, um die Hilfe zum aktiven Werkzeug oder zum geöffneten Dialog zu
 
 ## Abstände und Winkel grafisch bemaßen
 
+Öffne `examples/modelle/Bogenlasche.r3dp`. Wähle im Skizzeninspektor unter **Kontur und Hilfslinien** beim Bogen **Radius bemaßen**. Unter **Bemaßung und Bedingungen** erscheint der aktuelle Radius von 12,5 mm. Ändere ihn auf 15 mm und wähle **Parameter übernehmen**. Die fixierten Endpunkte bleiben 20 mm auseinander und der Bogen wird flacher. Das Maß bezieht sich auf die drei Bogenpunkte. Es bleibt bei einer Änderung des Segmenttyps als Bedingung an diesen Punkten erhalten, bis du es entfernst.
+
 Für ein Winkelmaß im Skizzeninspektor **Innenwinkel** wählen. Klicke auf einen Endpunkt, dann den Scheitelpunkt und zuletzt den anderen Endpunkt. Gib den gewünschten Winkel in Grad ein und klicke auf **Maß setzen**. Eine vorhandene grüne Gradzahl kannst du direkt anklicken und bearbeiten. Mit **Parameter übernehmen** wird der Körper neu berechnet. Bei räumlichen Skizzen gilt der Winkel zwischen den beiden räumlichen Strecken, auch in der XY-, XZ- oder YZ-Ansicht. Die Wahl eines Winkelmaßes aktiviert den gemeinsamen Solver. Er kann freie Punkte verschieben. Zwei parallel liegende Schenkel als Ausgangslage gegebenenfalls zuerst leicht gegeneinander drehen.
 
 Öffne zum Ausprobieren `examples/modelle/Bemasste-Lasche.r3dp`. Wähle die Lasche rechts in der Objektliste. Klappe unter **Skizzenextrusion** die **Grafische Bemaßung** auf. Die Vorschau zeigt die berechnete Kontur und vorhandene Abstandsmaße in Millimetern. Klicke auf die gelbe **50.00**, ändere den Wert auf **60 mm** und wähle **Maß setzen**. Nach **Parameter übernehmen** wird die Lasche 60 mm breit. **Strg+Z** nimmt die Modelländerung zurück.

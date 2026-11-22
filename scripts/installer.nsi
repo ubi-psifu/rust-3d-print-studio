@@ -1,7 +1,7 @@
 Unicode true
 Target amd64-unicode
 RequestExecutionLevel user
-Name "Rust 3D Print Studio 0.11.0"
+Name "Rust 3D Print Studio 0.12.0"
 OutFile "../dist/Rust-3D-Print-Studio-Setup-x64.exe"
 InstallDir "$LOCALAPPDATA\Rust 3D Print Studio"
 ShowInstDetails show
@@ -24,6 +24,7 @@ Section "Programm"
   File "../examples/modelle/Bemasste-Platte.r3dp"
   File "../examples/modelle/Bemasste-Lasche.r3dp"
   File "../examples/modelle/Winkellasche.r3dp"
+  File "../examples/modelle/Bogenlasche.r3dp"
   File "../examples/modelle/Seitlich-offene-Schale.r3dp"
   SetOutPath "$INSTDIR"
   WriteUninstaller "$INSTDIR\Deinstallieren.exe"
@@ -49,6 +50,7 @@ Section "Uninstall"
   Delete "$INSTDIR\examples\Bemasste-Platte.r3dp"
   Delete "$INSTDIR\examples\Bemasste-Lasche.r3dp"
   Delete "$INSTDIR\examples\Winkellasche.r3dp"
+  Delete "$INSTDIR\examples\Bogenlasche.r3dp"
   Delete "$INSTDIR\examples\Seitlich-offene-Schale.r3dp"
   RMDir "$INSTDIR\examples"
   Delete "$INSTDIR\Deinstallieren.exe"
