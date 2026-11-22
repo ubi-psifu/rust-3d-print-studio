@@ -11,6 +11,7 @@ impl Rule {
             | RuleKind::Horizontal
             | RuleKind::Vertical
             | RuleKind::Coincident => 2,
+            RuleKind::Angle => 3,
             _ => 4,
         }
     }
@@ -34,6 +35,15 @@ impl Rule {
                     "Längenmaß ungültig",
                 )?;
                 scalar(ab.length() - self.value)
+            }
+            RuleKind::Angle => {
+                require(
+                    self.value > 0. && self.value < 180.,
+                    "Innenwinkel muss zwischen 0° und 180° liegen",
+                )?;
+                let u = unit(-ab)?;
+                let v = unit(p[self.ids[2]] - b)?;
+                scalar(u.cross(v).length().atan2(u.dot(v)) - self.value.to_radians())
             }
             RuleKind::Horizontal => DVec3::new(ab.y, ab.z, 0.),
             RuleKind::Vertical => DVec3::new(ab.x, ab.z, 0.),

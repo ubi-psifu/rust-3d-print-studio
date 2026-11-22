@@ -40,7 +40,7 @@ pub fn layout(mode: Mode) -> &'static str {
 pub fn feature(f: &Feature) -> &'static str {
     match f {
         Feature::Case(_) | Feature::Relief(_) => CASE,
-        Feature::SketchExtrude { .. } => "Abstände grafisch bemaßen",
+        Feature::SketchExtrude { .. } => "Abstände und Winkel grafisch bemaßen",
         Feature::Hook(_) => "Wandhaken und Konstruktionsbaum",
         Feature::Sweep { .. } => "Sweep",
         Feature::Loft { .. } | Feature::SmoothLoft { .. } => "Loft",

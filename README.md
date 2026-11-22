@@ -1,4 +1,6 @@
-# Rust 3D Print Studio 0.10.0
+# Rust 3D Print Studio 0.11.0
+
+**Version 0.11.0** bringt editierbare Innenwinkel. Öffne das Beispiel `examples/modelle/Winkellasche.r3dp`, klicke in der grafischen Bemaßung auf **60°**, gib **75°** ein und wähle **Maß setzen → Parameter übernehmen**. Die beiden fixierten Basispunkte und die 20 mm lange Flanke bleiben erhalten.
 
 **Version 0.10.0** ergänzt geometrisch gebundene Kanten für Rundungen und Fasen sowie seitliche Öffnungen für Hohlkörper. Zum Ausprobieren `examples/modelle/Seitlich-offene-Schale.r3dp` öffnen. Die vollständigen Downloadpakete stehen unter [GitHub Releases](https://github.com/ubi-psifu/rust-3d-print-studio/releases).
 

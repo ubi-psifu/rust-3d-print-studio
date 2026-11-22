@@ -14,6 +14,7 @@ pub enum RuleKind {
     Vertical,
     Perpendicular,
     EqualLength,
+    Angle,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rule {
@@ -159,6 +160,29 @@ impl Sketch {
         *self = next;
         Ok(())
     }
+    /// Innenwinkel A–B–C in Grad, mit B als Scheitelpunkt.
+    pub fn set_angle(&mut self, a: usize, b: usize, c: usize, degrees: f64) -> Result<()> {
+        require(
+            a != b && b != c && a != c && [a, b, c].iter().all(|&i| i < self.points.len()),
+            "Drei verschiedene vorhandene Punkte wählen",
+        )?;
+        let mut next = self.clone();
+        next.bidirectional = true;
+        if let Some(rule) = next.rules.iter_mut().find(|r| {
+            r.kind == RuleKind::Angle && (r.ids[..3] == [a, b, c] || r.ids[..3] == [c, b, a])
+        }) {
+            rule.value = degrees;
+        } else {
+            next.rules.push(Rule {
+                kind: RuleKind::Angle,
+                ids: [a, b, c, 0],
+                value: degrees,
+            });
+        }
+        next.solved_points()?;
+        *self = next;
+        Ok(())
+    }
     fn target(&self, r: &Rule, p: &[DVec3]) -> Result<(usize, DVec3)> {
         let [a, b, c, d] = r.ids;
         require(
@@ -174,6 +198,7 @@ impl Sketch {
             | RuleKind::Horizontal
             | RuleKind::Vertical
             | RuleKind::Perpendicular
+            | RuleKind::Angle
             | RuleKind::EqualLength => {
                 return Err("Für diese Bedingung den gemeinsamen Solver aktivieren".into())
             }

@@ -15,12 +15,15 @@ struct Preview {
 struct Selection {
     first: Option<usize>,
     second: Option<usize>,
+    third: Option<usize>,
+    angle: bool,
     value: f64,
     plane: usize,
     message: String,
 }
 impl Selection {
     fn pair(&mut self, a: usize, b: usize, points: &[DVec3]) {
+        self.third = None;
         self.first = Some(a);
         self.second = Some(b);
         self.value = points[a].distance(points[b]);
@@ -50,6 +53,7 @@ pub fn show(ui: &mut Ui, s: &mut Sketch) {
             });
             selection.first = None;
             selection.second = None;
+            selection.third = None;
             ui.data_mut(|d| d.insert_temp(cache, new.clone()));
             new
         }
@@ -60,7 +64,26 @@ pub fn show(ui: &mut Ui, s: &mut Sketch) {
     if preview.points.is_empty() {
         return;
     }
-    ui.small("Zwei Punkte oder ein vorhandenes Maß anklicken.");
+    ui.horizontal(|ui| {
+        let changed = ui
+            .selectable_value(&mut selection.angle, false, "Abstand")
+            .changed();
+        if ui
+            .selectable_value(&mut selection.angle, true, "Innenwinkel")
+            .changed()
+            || changed
+        {
+            selection.first = None;
+            selection.second = None;
+            selection.third = None;
+            selection.message.clear();
+        }
+    });
+    ui.small(if selection.angle {
+        "Endpunkt, Scheitel und zweiten Endpunkt anklicken."
+    } else {
+        "Zwei Punkte oder ein vorhandenes Maß anklicken."
+    });
     if !s.planar {
         ui.horizontal(|ui| {
             for (i, text) in ["XY", "XZ", "YZ"].iter().enumerate() {
@@ -124,26 +147,62 @@ pub fn show(ui: &mut Ui, s: &mut Sketch) {
             color,
         );
         if click.is_some_and(|p| text.expand(2.).contains(p)) {
-            label_hit = Some((a, b));
+            label_hit = Some((a, b, None, r.value));
+        }
+    }
+    for r in s.rules.iter().filter(|r| r.kind == RuleKind::Angle) {
+        let [a, b, c, _] = r.ids;
+        let [pa, pb, pc] = [a, b, c].map(|i| pixel(preview.points[i]));
+        let u = (pa - pb).normalized();
+        let v = (pc - pb).normalized();
+        let color = Color32::LIGHT_GREEN;
+        let radius = 0.4 * pa.distance(pb).min(pc.distance(pb)).min(50.);
+        painter.line_segment([pb + u * radius, pb], (1.5, color));
+        painter.line_segment([pb, pb + v * radius], (1.5, color));
+        let label = painter.text(
+            pb + (u + v).normalized() * (radius + 8.),
+            egui::Align2::CENTER_CENTER,
+            format!("{:.2}°", r.value),
+            egui::FontId::proportional(11.),
+            color,
+        );
+        if click.is_some_and(|p| label.contains(p)) {
+            label_hit = Some((a, b, Some(c), r.value));
         }
     }
     for (i, &p) in preview.points.iter().enumerate() {
-        let color = if [selection.first, selection.second].contains(&Some(i)) {
+        let color = if [selection.first, selection.second, selection.third].contains(&Some(i)) {
             Color32::GOLD
         } else {
             Color32::WHITE
         };
         painter.circle_filled(pixel(p), 4., color);
     }
-    if let Some((a, b)) = label_hit {
+    if let Some((a, b, c, value)) = label_hit {
         selection.pair(a, b, &preview.points);
+        selection.angle = c.is_some();
+        selection.third = c;
+        selection.value = value;
     } else if let Some(pos) = click {
         if let Some(i) = nearest(&preview.points, pixel, pos) {
-            if let (Some(a), None) = (selection.first, selection.second) {
+            if let (true, Some(a), Some(b), None) = (
+                selection.angle,
+                selection.first,
+                selection.second,
+                selection.third,
+            ) {
+                if i != a && i != b {
+                    selection.third = Some(i);
+                    let u = preview.points[a] - preview.points[b];
+                    let v = preview.points[i] - preview.points[b];
+                    selection.value = u.cross(v).length().atan2(u.dot(v)).to_degrees();
+                }
+            } else if let (Some(a), None) = (selection.first, selection.second) {
                 if a != i {
                     selection.pair(a, i, &preview.points);
                 }
             } else {
+                selection.third = None;
                 selection.first = Some(i);
                 selection.second = None;
                 selection.message.clear();
@@ -151,18 +210,32 @@ pub fn show(ui: &mut Ui, s: &mut Sketch) {
         }
     }
     if let (Some(a), Some(b)) = (selection.first, selection.second) {
-        ui.label(format!("Abstand P{a} – P{b}"));
-        ui.add(
-            egui::DragValue::new(&mut selection.value)
-                .speed(0.1)
-                .suffix(" mm")
-                .max_decimals(4),
-        );
-        if ui.button("Maß setzen").clicked() {
-            selection.message = match s.set_distance(a, b, selection.value) {
-                Ok(()) => "Maß im Entwurf gesetzt. Rechts Parameter übernehmen.".into(),
-                Err(e) => e,
-            };
+        if selection.angle && selection.third.is_none() {
+            ui.small(format!(
+                "Scheitel P{b} gewählt · zweiten Endpunkt anklicken"
+            ));
+        } else {
+            ui.label(match selection.third {
+                Some(c) => format!("Innenwinkel P{a} – P{b} – P{c}"),
+                None => format!("Abstand P{a} – P{b}"),
+            });
+            let suffix = if selection.angle { " °" } else { " mm" };
+            ui.add(
+                egui::DragValue::new(&mut selection.value)
+                    .speed(0.1)
+                    .suffix(suffix)
+                    .max_decimals(4),
+            );
+            if ui.button("Maß setzen").clicked() {
+                let result = match selection.third {
+                    Some(c) => s.set_angle(a, b, c, selection.value),
+                    None => s.set_distance(a, b, selection.value),
+                };
+                selection.message = match result {
+                    Ok(()) => "Maß im Entwurf gesetzt. Rechts Parameter übernehmen.".into(),
+                    Err(e) => e,
+                };
+            }
         }
     } else if let Some(a) = selection.first {
         ui.small(format!("P{a} gewählt · zweiten Punkt anklicken"));

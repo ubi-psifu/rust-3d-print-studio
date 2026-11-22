@@ -1,3 +1,7 @@
+# 0.11.0 · 22. November 2026
+
+Innenwinkel im Skizzeninspektor über drei Kontrollpunkte setzen, durch Anklicken der Gradzahl bearbeiten und im Projekt speichern.
+
 # 0.10.0 · 22. November 2026
 
 - Geometrisch gebundene Kanten für Fasen und Rundungen mit Anfangs- und Endmaß. Die Zuordnung übersteht geänderte Netznummern und achsenweise Größenänderungen bei unveränderter normierter Geometrie.

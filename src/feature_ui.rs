@@ -853,6 +853,7 @@ fn sketch_ui(ui: &mut Ui, s: &mut rust_3d_print_studio::cad::sketch::Sketch) {
                 ui.horizontal_wrapped(|ui| {
                     for (kind, label) in [
                         (RuleKind::Distance, "Abstand"),
+                        (RuleKind::Angle, "Innenwinkel"),
                         (RuleKind::Fixed, "Fixieren"),
                         (RuleKind::Horizontal, "Horizontal"),
                         (RuleKind::Vertical, "Vertikal"),
@@ -870,6 +871,7 @@ fn sketch_ui(ui: &mut Ui, s: &mut rust_3d_print_studio::cad::sketch::Sketch) {
                                     | RuleKind::Horizontal
                                     | RuleKind::Vertical
                                     | RuleKind::Perpendicular
+                                    | RuleKind::Angle
                                     | RuleKind::EqualLength
                             )
                         {
@@ -889,6 +891,8 @@ fn sketch_ui(ui: &mut Ui, s: &mut rust_3d_print_studio::cad::sketch::Sketch) {
                 });
                 if r.kind == RuleKind::Distance {
                     num(ui, "Maß", &mut r.value);
+                } else if r.kind == RuleKind::Angle {
+                    num(ui, "Innenwinkel (°) · Scheitel B", &mut r.value);
                 }
                 if ui.small_button("Bedingung entfernen").clicked() {
                     remove = Some(i);

@@ -77,3 +77,57 @@ fn dimensioned_lug_round_trip() {
     assert!(history.undo(&mut p));
     assert_eq!(p, original);
 }
+
+#[test]
+fn angle_is_spatial_and_updates_in_reverse_order() {
+    let mut sketch = Sketch {
+        planar: false,
+        ..Default::default()
+    };
+    sketch.points[2].z = 12.;
+    sketch.set_angle(0, 1, 2, 65.).unwrap();
+    sketch.set_angle(2, 1, 0, 120.).unwrap();
+    assert_eq!(sketch.rules.len(), 1);
+    let p = sketch.solved_points().unwrap();
+    let angle = (p[0] - p[1]).angle_between(p[2] - p[1]).to_degrees();
+    assert!((angle - 120.).abs() < 1e-5);
+    let restored: Sketch = serde_json::from_slice(&serde_json::to_vec(&sketch).unwrap()).unwrap();
+    assert_eq!(restored.solved_points().unwrap(), p);
+}
+#[test]
+fn angle_rejects_conflicts_and_invalid_arms_without_modifying_sketch() {
+    let mut s = Sketch::default();
+    for id in [0, 1, 2] {
+        s.rules.push(Rule {
+            kind: RuleKind::Fixed,
+            ids: [id, 0, 0, 0],
+            value: 0.,
+        });
+    }
+    s.set_angle(0, 1, 2, 90.).unwrap();
+    let before = s.clone();
+    for value in [180., 0., 60., f64::NAN] {
+        assert!(s.set_angle(0, 1, 2, value).is_err());
+    }
+    assert!(s.set_angle(0, 0, 1, 90.).is_err());
+    assert!(s.set_angle(0, 1, 99, 90.).is_err());
+    assert_eq!(s, before);
+    s.points[0] = s.points[1];
+    assert!(s.solved_points().is_err());
+}
+#[test]
+fn angle_drives_example_extrusion_and_survives_project_roundtrip() {
+    let mut p = files::load(Path::new("examples/modelle/Winkellasche.r3dp")).unwrap();
+    let o = &mut p.objects[0];
+    let Some(Feature::SketchExtrude { sketch, .. }) = &mut o.feature else {
+        panic!()
+    };
+    sketch.set_angle(0, 1, 2, 75.).unwrap();
+    o.rebuild().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("Winkel.r3dp");
+    files::save(&path, &p, Output::Project, false).unwrap();
+    let restored = files::load(&path).unwrap();
+    let (lo, hi) = restored.objects[0].mesh().bounds();
+    assert!(((hi - lo).y - 20. * 75_f64.to_radians().sin()).abs() < 1e-5);
+}
