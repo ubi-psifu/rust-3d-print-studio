@@ -1,5 +1,13 @@
 # Änderungshistorie
 
+## 0.2.0 · 20. November 2026
+
+- Oberfläche an die SVG-Vorlage angepasst. Links liegen acht Werkzeuggruppen, rechts der Objektinspektor, die Modellprüfung und der direkte 3MF-Export.
+- R3DP-v2-Featurebaum mit v1-Migration, Kontrollpunkteditor, Arbeitsebenen, gerichteten Bedingungen, Maßvariablen und arithmetischen Beziehungen.
+- Sweep, Loft mit Zwischenprofilen und Führungsversatz, Extrusion, Rotation, Shell, ebener Schnitt, Vereinigung, Differenz, Schnittmenge und Bearbeitung konvexer Kanten.
+- Gitterverformung, Netzglättung, Unterteilung, lokale Änderungen, Flächenverbund und vorbereitete Netzreparatur.
+- Acht Haken-Voreinstellungen, frei auflösbare Konstruktion und Wandhaken-Abnahme in R3DP, STL und 3MF. Linux- und Windows-Builds aktualisiert.
+
 ## 0.1.0 · 20. November 2026
 
 Erster auslieferbarer Stand des Grundsystems und des parametrischen Modell- und Exportablaufs.

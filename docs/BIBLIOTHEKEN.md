@@ -24,3 +24,7 @@ Die Spalte Datum bezeichnet die Veröffentlichung der jüngsten stabilen, nicht 
 | [egui-macroquad](https://docs.rs/egui-macroquad/0.17.3) | 0.17.3 | MIT/Apache-2.0 | 2025-05-21 | Integration von egui in die 3D-Ereignisschleife |
 | [macroquad](https://docs.rs/macroquad/0.4.14) | 0.4.14 | MIT OR Apache-2.0 | 2026-07-30 | Fenster und GPU-Rendering mit Tiefentest |
 | [tempfile](https://docs.rs/tempfile/3.23.0) | 3.23.0 | MIT OR Apache-2.0 | 2026-03-11 | Temporäre Datei für absturzarmen Dateiersatz |
+
+## Ergänzung 0.2.0
+
+boolmesh 0.2.2 ist mit Rust 1.88 als reine Rust-Bibliothek eingebunden und verwendet separat glam 0.32.1. Die Schnittstelle zum Studio übergibt f64-Punktkoordinaten und Dreiecksindizes. Der Kern nutzt die MPL-2.0. Die getesteten Operationen umfassen Vereinigung, Differenz und Schnittmenge. Der unveränderte Paketquellcode liegt unter third_party. [API-Dokumentation](https://docs.rs/boolmesh/0.2.2/boolmesh/)

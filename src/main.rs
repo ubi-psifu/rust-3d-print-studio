@@ -1,4 +1,5 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+mod feature_ui;
 mod renderer;
 mod ui;
 use macroquad::prelude::*;
@@ -21,7 +22,7 @@ async fn main() {
         }
         egui_macroquad::ui(|ctx| app.frame(ctx));
         clear_background(if app.dark {
-            Color::from_hex(0x172329)
+            Color::from_hex(0x171d27)
         } else {
             Color::from_hex(0xe6eeed)
         });

@@ -11,7 +11,7 @@ use rust_3d_print_studio::{
 pub struct Solid {
     model: geometry::Object,
     pub mesh: geometry::Mesh,
-    gpu: Mesh,
+    gpu: Vec<Mesh>,
     pub bounds: (::glam::DVec3, ::glam::DVec3),
 }
 pub fn sync(cache: &mut Vec<Solid>, p: &Project) {
@@ -32,11 +32,14 @@ pub fn sync(cache: &mut Vec<Solid>, p: &Project) {
                 vertices.push(Vertex::new2(v, Vec2::ZERO, Color::from_rgba(r, g, b8, 255)));
             }
         }
-        let gpu = Mesh {
-            indices: (0..vertices.len() as u16).collect(),
-            vertices,
-            texture: None,
-        };
+        let gpu = vertices
+            .chunks(3000)
+            .map(|part| Mesh {
+                indices: (0..part.len() as u16).collect(),
+                vertices: part.to_vec(),
+                texture: None,
+            })
+            .collect();
         let solid = Solid {
             model: o.clone(),
             mesh,
@@ -145,7 +148,7 @@ pub fn draw(
         h,
         -0.3,
         if dark {
-            Color::from_hex(0x26383e)
+            Color::from_hex(0x354358)
         } else {
             Color::from_hex(0xc7d9db)
         },
@@ -161,7 +164,7 @@ pub fn draw(
         );
     }
     let grid = if dark {
-        Color::from_hex(0x456068)
+        Color::from_hex(0x596676)
     } else {
         Color::from_hex(0x9db6bb)
     };
@@ -192,12 +195,14 @@ pub fn draw(
                 }
             }
         } else {
-            draw_mesh(&s.gpu);
+            for batch in &s.gpu {
+                draw_mesh(batch);
+            }
         }
         if Some(i) == selected {
             let (lo, hi) = s.bounds;
             let span = (hi - lo).as_vec3() + Vec3::splat(0.4);
-            draw_cube_wires(((hi + lo) * 0.5).as_vec3(), span, GOLD);
+            draw_cube_wires(((hi + lo) * 0.5).as_vec3(), span, Color::from_hex(0x62978c));
         }
     }
     set_default_camera();

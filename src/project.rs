@@ -88,7 +88,7 @@ pub struct Project {
 impl Default for Project {
     fn default() -> Self {
         Self {
-            version: 1,
+            version: 2,
             name: "Unbenannt".into(),
             printer: Printer::default(),
             view: View::default(),
@@ -99,7 +99,7 @@ impl Default for Project {
 pub const MAX_OBJECTS: usize = 128;
 impl Project {
     pub fn valid(&self) -> bool {
-        self.version == 1
+        self.version == 2
             && self.name.len() <= 160
             && self.objects.len() <= MAX_OBJECTS
             && self.printer.valid()

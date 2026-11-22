@@ -20,8 +20,17 @@ pub fn read_limited(path: &Path) -> io::Result<Vec<u8>> {
     Ok(bytes)
 }
 pub fn load(path: &Path) -> io::Result<Project> {
-    let p: Project = serde_json::from_slice(&read_limited(path)?)
+    let mut p: Project = serde_json::from_slice(&read_limited(path)?)
         .map_err(|e| invalid(&format!("Ungültige Projektdatei: {e}")))?;
+    if p.version == 1 && p.objects.iter().all(|o| o.feature.is_none()) {
+        p.version = 2;
+    }
+    if p.version != 2 || p.objects.len() > crate::project::MAX_OBJECTS {
+        return Err(invalid("Projektversion oder Objektanzahl ungültig"));
+    }
+    for o in &mut p.objects {
+        o.rebuild().map_err(|e| invalid(&e))?;
+    }
     if !p.valid() {
         return Err(invalid(
             "Unbekannte Version oder unzulässige Projektparameter",
@@ -67,7 +76,13 @@ pub fn save(path: &Path, p: &Project, format: Output, overwrite: bool) -> io::Re
     {
         let mut out = BufWriter::new(temp.as_file_mut());
         match format {
-            Output::Project => serde_json::to_writer_pretty(&mut out, p)?,
+            Output::Project => {
+                let data = serde_json::to_vec_pretty(p)?;
+                if data.len() as u64 > LIMIT {
+                    return Err(invalid("Projekt überschreitet die Lesegrenze von 2 MiB"));
+                }
+                out.write_all(&data)?;
+            }
             Output::Stl => stl(&mut out, p)?,
             Output::Obj => obj(&mut out, p)?,
             Output::ThreeMf => three_mf(&mut out, p)?,

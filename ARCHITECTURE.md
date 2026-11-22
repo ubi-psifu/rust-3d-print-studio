@@ -15,11 +15,11 @@ Ein Cargo-Workspace mit einem Paket enthält eine testbare Bibliothek und eine D
 
 Rechtshändiges System mit Z nach oben, Koordinaten in mm. Der lokale Ursprung liegt in der Mitte der Grundfläche. X/Y/Z-Abmessungen werden vor der Rotation angewandt. Die Euler-Winkel wirken auf Punkte in der Reihenfolge X, Y, Z, danach folgt die Translation. Modellrechnung, Exportnetz und Grenzen verwenden f64. GPU-Puffer sowie binäre STL-Koordinaten verwenden f32. Der Renderer erneuert die Netzdaten eines Körpers, wenn sich seine Parameter ändern. Auswahl und Export verwenden dieselben Dreiecke. Ein Tiefenpuffer verdeckt rückwärtige Flächen. Eine Orthoprojektion hat unabhängig von der Tiefe denselben Maßstab.
 
-Die Kontur des Bohrquaders besitzt einen äußeren rechteckigen Ring und einen inneren Kreisring mit gleicher Segmentzahl. Die Mantel- und Ringflächen teilen Eckpunktindizes und bilden einen zusammenhängenden Körper. Das ist eine parametrisierte Durchgangsbohrung. Ein allgemeiner B-Rep- oder Boolescher Kern folgt in Phase 4.
+Die Kontur des Bohrquaders besitzt einen äußeren rechteckigen Ring und einen inneren Kreisring mit gleicher Segmentzahl. Die Mantel- und Ringflächen teilen Eckpunktindizes und bilden einen zusammenhängenden Körper. Das ist eine parametrisierte Durchgangsbohrung. Für allgemeine Netzboolesche verwendet Version 0.2 den separaten Feature-Evaluator.
 
-## Projektformat R3DP v1
+## Basisfelder des Projektformats
 
-UTF-8-JSON mit den Pflichtfeldern version, name, printer, view und objects. Das mitgelieferte Beispiel ist zugleich eine maschinenlesbare Formatvorlage. Objekte enthalten shape, size, position, rotation, bore, name und color. Winkel sind Gradwerte, Kamerawinkel yaw/pitch sind Radiant. Meshes sind vollständig aus diesen Daten ableitbar. Die Erweiterung auf importierte Netze und separate Geometrieressourcen benötigt eine spätere Schemaversion. Unbekannte Felder, Versionen oder außerhalb der Grenzen liegende Parameter führen beim Öffnen zu einer Fehlermeldung.
+UTF-8-JSON mit den Pflichtfeldern version, name, printer, view und objects. Das mitgelieferte Beispiel ist zugleich eine maschinenlesbare Formatvorlage. Objekte enthalten shape, size, position, rotation, bore, name und color. Winkel sind Gradwerte, Kamerawinkel yaw/pitch sind Radiant. Meshes sind vollständig aus diesen Daten ableitbar. Version 2 ergänzt einen verschachtelten Feature-Baum. Direkte Netze liegen in dessen Polygon-Knoten. Unbekannte Felder, Versionen oder außerhalb der Grenzen liegende Parameter führen beim Öffnen zu einer Fehlermeldung.
 
 Lesegrenze 2 MiB, höchstens 128 Objekte und 32 rechteckige Sperrflächen. Vor dem Speichern werden die Daten erneut validiert. Die Datei wird im Zielverzeichnis temporär geschrieben und synchronisiert. Erst dann ersetzt persist die Zieldatei. Bei neuem Ziel verhindert persist_noclobber den unbeabsichtigten Ersatz einer inzwischen angelegten Datei. Gleichzeitige Änderungen bereits geöffneter Projekte werden nicht zusammengeführt.
 
@@ -30,3 +30,13 @@ STL speichert Dreiecke mit Normalen, OBJ indizierte Eckpunkte und Flächen. Beim
 ## Verlauf und Profilprüfung
 
 Bis zu 64 Modellierungsstände werden im Arbeitsspeicher gehalten. Neue Befehle verwerfen die Redo-Verzweigung. Parameterfelder bilden einen Entwurf. Erst die Übernahme erzeugt einen Schritt in der Historie. Die Prüfung vergleicht die transformierte Hüllbox mit dem geladenen Bauraum und den Sperrrechtecken. Das kann in Sperrzonen konservativ warnen. Sie bewertet weder dünne Wände noch die Druckstabilität.
+
+## Parametrischer Kern ab Version 0.2
+
+**src/cad/** enthält einen deterministisch aus seinen Eingaben berechenbaren Feature-Baum. Blattknoten beschreiben Grundkörper, Skizzen, Profile, Flächengitter und explizite Polygonnetze. Elternknoten nehmen diese als Quellen für Boolesche, Transformationen, Verformung, Aushöhlung oder Kantenbearbeitung. Der Hakengenerator erzeugt intern denselben Baum, den die allgemeine Bearbeitung verwendet. Parametrische Kurven werden in f64 ausgewertet. Boolmesh 0.2.2 schneidet orientierte Dreiecksnetze in f64.
+
+Im Projekt steht die Konstruktionsvorschrift. Abgeleitete Mesh-Caches liegen im Arbeitsspeicher. Beim Öffnen wird der Baum vollständig neu berechnet. Beim Übernehmen eines Eigenschaftsentwurfs übernimmt ein Hintergrundthread die Berechnung. Erst ein gültiges Ergebnis ersetzt das bisherige Objekt in einem Undo-Schritt. Projektladen, externe Exporte und einzelne Menüoperationen arbeiten synchron. Die Modellhistorie ist als strukturierter Feature-Baum dauerhaft, die lineare Undo-Historie ist sitzungsbezogen.
+
+**curve.rs** wertet Polylinien, kubische Bézierzüge, Ellipsenbögen und rationale B-Splines mit De Boor aus. **sketch.rs** setzt Kontrollpunkte auf eine Arbeitsebene oder in den Raum und projiziert gerichtete Bedingungen iterativ. Widersprüchliche Restfehler verhindern die Übernahme. **modifiers.rs** enthält u. a. lokale Ebenengleichungen für den Wandversatz und tangentiale Schnittebenen für konvexe Kanten. **surfaces.rs** trianguliert Flächengitter und vernäht Ränder mit einstellbarer Toleranz. **inspect.rs** prüft nach einer Breitphase Dreieckspaare ohne gemeinsame Eckpunktindizes auf Überschneidung.
+
+R3DP v2 öffnet bestehende v1-Projekte. Speichern erzeugt v2. Die Rollen „parametrisches Feature“ und „direktes Polygonnetz“ sind im Schema explizit. Die Umwandlung in ein Netz erfordert **Parameter übernehmen** und ist über Undo umkehrbar. Ein analytischer B-Rep-Kern und dauerhaft stabile Flächenbenennungen bleiben offen.

@@ -40,6 +40,10 @@ impl Shape {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Object {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub feature: Option<crate::cad::Feature>,
+    #[serde(skip)]
+    cached: Option<std::sync::Arc<Mesh>>,
     pub name: String,
     pub shape: Shape,
     pub size: DVec3,
@@ -48,7 +52,8 @@ pub struct Object {
     pub bore: f64,
     pub color: [u8; 3],
 }
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Mesh {
     pub vertices: Vec<DVec3>,
     pub faces: Vec<[usize; 3]>,
@@ -57,6 +62,8 @@ impl Object {
     pub fn new(shape: Shape, position: DVec3) -> Self {
         Self {
             name: shape.label().into(),
+            feature: None,
+            cached: None,
             shape,
             size: DVec3::splat(20.),
             position,
@@ -66,7 +73,8 @@ impl Object {
         }
     }
     pub fn valid(&self) -> bool {
-        self.name.chars().count() <= 120
+        self.feature.is_some() == self.cached.is_some()
+            && self.name.chars().count() <= 120
             && self.position.is_finite()
             && self.position.abs().max_element() <= 10000.
             && self.rotation.is_finite()
@@ -78,7 +86,30 @@ impl Object {
             && (!self.shape.hollow()
                 || (self.bore >= 0.02 && self.bore < self.size.x.min(self.size.y)))
     }
+    pub fn rebuild(&mut self) -> Result<(), String> {
+        if let Some(f) = &self.feature {
+            let mesh = f.build()?;
+            let (lo, hi) = mesh.bounds();
+            self.size = hi - lo;
+            self.cached = Some(std::sync::Arc::new(mesh));
+        } else {
+            self.cached = None;
+        }
+        Ok(())
+    }
     pub fn mesh(&self) -> Mesh {
+        let mut m = match &self.cached {
+            Some(m) => (**m).clone(),
+            None => self.primitive(),
+        };
+        let r = self.rotation * (TAU / 360.);
+        let rot = DQuat::from_euler(EulerRot::ZYX, r.z, r.y, r.x);
+        for v in &mut m.vertices {
+            *v = rot * *v + self.position;
+        }
+        m
+    }
+    fn primitive(&self) -> Mesh {
         let square = matches!(self.shape, Shape::Box | Shape::BoredBox | Shape::Pyramid);
         let n = match self.shape {
             Shape::Box | Shape::Pyramid => 4,
@@ -139,11 +170,6 @@ impl Object {
                     m.faces.push([inner + 1, n + i, n + j]);
                 }
             }
-        }
-        let r = self.rotation * (TAU / 360.);
-        let rotation = DQuat::from_euler(EulerRot::ZYX, r.z, r.y, r.x);
-        for v in &mut m.vertices {
-            *v = rotation * *v + self.position;
         }
         m
     }

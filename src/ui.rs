@@ -1,6 +1,7 @@
-use crate::renderer;
+use crate::{feature_ui, renderer};
 use egui_macroquad::egui::{self, Color32, RichText};
 use glam::DVec3;
+use rust_3d_print_studio::cad::{inspect, validate, Feature, Operation};
 use rust_3d_print_studio::{
     files::{self, Output},
     geometry::{Object, Shape},
@@ -25,9 +26,14 @@ enum Dialog {
     Overwrite(Output),
     Discard(Action),
     Help,
+    Combine,
 }
 pub struct Studio {
     p: Project,
+    tool: usize,
+    pending: Option<(usize, std::sync::mpsc::Receiver<Result<Object, String>>)>,
+    operand: usize,
+    operation: Operation,
     hist: History,
     sel: Option<usize>,
     draft: Option<Object>,
@@ -51,6 +57,10 @@ impl Studio {
     pub fn new(path: Option<PathBuf>) -> Self {
         let mut app = Self {
             p: Project::default(),
+            tool: 1,
+            pending: None,
+            operand: 0,
+            operation: Operation::Difference,
             hist: History::default(),
             sel: None,
             draft: None,
@@ -78,6 +88,15 @@ impl Studio {
                 }
                 Err(e) => app.message = e.to_string(),
             }
+        } else {
+            let mut o = Object::new(Shape::BoredBox, DVec3::new(128., 128., 0.));
+            o.size = DVec3::new(80., 80., 40.);
+            o.bore = 28.;
+            o.name = "Bauteil 01".into();
+            o.color = [201, 207, 218];
+            app.p.objects.push(o);
+            app.select(Some(0));
+            app.p.view.distance = 360.;
         }
         app
     }
@@ -101,6 +120,92 @@ impl Studio {
         self.p.objects.push(o);
         self.select(Some(self.p.objects.len() - 1));
         self.message = "Körper erstellt".into();
+    }
+    fn feature_object(&mut self, f: Feature) {
+        if self.p.objects.len() >= MAX_OBJECTS {
+            self.message = "Objektgrenze erreicht".into();
+            return;
+        }
+        let [x, y] = self.p.printer.bed;
+        let mut o = Object::new(Shape::Box, DVec3::new(x / 2., y / 2., 0.));
+        o.name = f.name().into();
+        o.color = [196, 207, 218];
+        o.feature = Some(f);
+        match o.rebuild() {
+            Ok(()) => {
+                self.remember();
+                self.p.objects.push(o);
+                self.select(Some(self.p.objects.len() - 1));
+                self.focus();
+                self.message = "Konstruktion erstellt".into();
+            }
+            Err(e) => self.message = e,
+        }
+    }
+    fn source(o: &Object) -> Feature {
+        o.feature.clone().unwrap_or(Feature::Primitive {
+            shape: o.shape,
+            size: o.size,
+            bore: o.bore,
+        })
+    }
+    fn combine(&mut self) {
+        let Some(i) = self.sel else { return };
+        let j = self.operand;
+        if i == j || j >= self.p.objects.len() {
+            self.message = "Zwei verschiedene Körper auswählen".into();
+            return;
+        }
+        let origin = self.p.objects[i].position;
+        let positioned = |o: &Object| Feature::Transform {
+            source: Box::new(Self::source(o)),
+            translation: o.position - origin,
+            rotation: o.rotation,
+            scale: DVec3::ONE,
+        };
+        let f = Feature::Boolean {
+            operation: self.operation,
+            left: Box::new(positioned(&self.p.objects[i])),
+            right: Box::new(positioned(&self.p.objects[j])),
+        };
+        let mut o = self.p.objects[i].clone();
+        o.rotation = DVec3::ZERO;
+        o.feature = Some(f);
+        match o.rebuild() {
+            Ok(()) => {
+                self.remember();
+                self.p.objects[i] = o;
+                self.p.objects.remove(j);
+                self.select(Some(i - usize::from(j < i)));
+                self.dialog = None;
+                self.message = "Körperschnitt übernommen".into();
+            }
+            Err(e) => self.message = e,
+        }
+    }
+    fn check_model(&mut self) {
+        if let Some(i) = self.sel {
+            let mesh = self.p.objects[i].mesh();
+            self.message = match validate(&mesh).and_then(|_| inspect::intersections(&mesh)) {
+                Ok(()) => {
+                    let (a, b) = mesh.bounds();
+                    let mut overhang = 0.;
+                    for f in &mesh.faces {
+                        let [p, q, r] = f.map(|j| mesh.vertices[j]);
+                        let n = (q - p).cross(r - p);
+                        if n.normalize_or_zero().z < -std::f64::consts::FRAC_1_SQRT_2
+                            && p.z.max(q.z).max(r.z) > a.z + 0.01
+                        {
+                            overhang += n.length() / 2.;
+                        }
+                    }
+                    format!("{} · geschlossen · Selbstschnittprüfung bestanden · Überhang >45°: {:.1} mm²",self.p.printer.warning(a,b).unwrap_or("Profilgrenzen eingehalten"),overhang)
+                }
+                Err(e) => e,
+            };
+        } else {
+            self.message = "Zuerst einen Körper auswählen".into();
+        }
     }
     fn duplicate(&mut self) {
         if let Some(i) = self.sel {
@@ -257,6 +362,7 @@ impl Studio {
     fn dialogs(&mut self, ctx: &egui::Context) {
         let Some(d) = self.dialog else { return };
         egui::Modal::new("dialog".into()).show(ctx,|ui|{ui.set_min_width(370.);match d{
+ Dialog::Combine=>{ui.heading("Boolesche Operation");ui.label("Der ausgewählte Körper ist der Grundkörper.");ui.horizontal(|ui|{for(op,name)in [(Operation::Union,"Vereinigung"),(Operation::Difference,"Differenz"),(Operation::Intersection,"Schnittmenge")]{ui.selectable_value(&mut self.operation,op,name);}});ui.label("Werkzeugkörper");for(i,o)in self.p.objects.iter().enumerate(){if Some(i)!=self.sel{ui.selectable_value(&mut self.operand,i,&o.name);}}if ui.button("Berechnen und übernehmen").clicked(){self.combine();}ui.label(&self.message);},
  Dialog::Help=>{ui.heading("Bedienung");ui.label("Links klicken: Körper auswählen\nRechts ziehen: Ansicht drehen\nMitte ziehen: Ansicht verschieben\nMausrad: zoomen");ui.separator();ui.label("Projekt öffnen: R3DP\nNetzexport: STL binär, OBJ und Modell-3MF in mm.\nWeitere Importformate und CAD-Operationen sind offen.");},
  Dialog::Discard(a)=>{ui.heading("Ungespeicherte Änderungen");ui.label("Sollen die Änderungen verworfen werden?");if ui.button("Verwerfen und fortfahren").clicked(){self.proceed(a);}},
  Dialog::Overwrite(f)=>{ui.heading("Vorhandene Datei ersetzen?");ui.label(&self.entry);if ui.button("Datei ersetzen").clicked(){self.write(f,true);}},
@@ -351,6 +457,14 @@ impl Studio {
                 }
             });
             ui.menu_button("Modellieren", |ui| {
+                for (k,label) in ["Aushöhlen","Kontrollgitter","Ebener Schnitt","Maßbeziehungen"].iter().enumerate(){if item(ui,label){if let Some(o)=&mut self.draft{let source=Box::new(Self::source(o));o.feature=Some(match k{0=>Feature::Shell{source,thickness:1.5,open:true},1=>Feature::Lattice{source,offsets:[DVec3::ZERO;8],symmetric:false},2=>Feature::Cut{source,point:DVec3::Z*(o.size.z/2.),normal:DVec3::Z},_=>Feature::Driven{source,variables:std::collections::BTreeMap::from([("mass1".into(),16.)]),bindings:vec![]}});self.message="Feature im Eigenschaftenbereich übernehmen".into();}}}
+
+                if item(ui,"Kante abrunden / fasen"){if let Some(o)=&mut self.draft{o.feature=Some(Feature::EdgeFinish{source:Box::new(Self::source(o)),edge:0,r1:2.,r2:2.,steps:6});self.message="Kantenmaße im Entwurf bearbeiten".into();}}
+                for(name,f)in feature_ui::templates(){if item(ui,name){self.feature_object(f);}}
+                if item(ui,"Boolesche Operation …"){self.dialog=Some(Dialog::Combine);}
+                if item(ui,"Biegen / Verdrehen / Verjüngen"){if let Some(o)=&mut self.draft{o.feature=Some(Feature::Deform{source:Box::new(Self::source(o)),twist:0.,bend:0.,taper:1.});self.message="Verformung im Entwurf bearbeiten".into();}}
+                if item(ui,"In direktes Polygonnetz umwandeln …"){if let Some(o)=&mut self.draft{let mut local=o.clone();local.position=DVec3::ZERO;local.rotation=DVec3::ZERO;o.feature=Some(Feature::Polygon(local.mesh()));self.message="Entwurf als Netz: Übernehmen ersetzt den Parameterbaum. Rückgängig möglich.".into();}}
+
                 if item(ui, "Quader mit Durchgangsbohrung") {
                     self.add(Shape::BoredBox)
                 }
@@ -432,15 +546,25 @@ impl Studio {
                 }
             });
         ui.separator();
-        ui.heading("Eigenschaften");
+        ui.heading("Abmessungen");
         let Some(d) = &mut self.draft else {
             ui.label("Körper erstellen oder auswählen.");
             return;
         };
         ui.label("Bezeichnung");
         ui.text_edit_singleline(&mut d.name);
-        vector(ui, "Abmessungen · mm", &mut d.size, 0.1..=2000.);
-        if d.shape.hollow() {
+        if let Some(f) = &mut d.feature {
+            ui.label(format!(
+                "X {:.2}   Y {:.2}   Z {:.2} mm",
+                d.size.x, d.size.y, d.size.z
+            ));
+            ui.separator();
+            ui.strong(f.name());
+            feature_ui::edit(ui, f);
+        } else {
+            vector(ui, "Abmessungen · mm", &mut d.size, 0.1..=2000.);
+        }
+        if d.feature.is_none() && d.shape.hollow() {
             ui.horizontal(|ui| {
                 ui.label("Bohrung Ø");
                 ui.add(egui::DragValue::new(&mut d.bore).speed(0.1).suffix(" mm"));
@@ -459,39 +583,95 @@ impl Studio {
                 let step = self.p.view.grid;
                 obj.position = (obj.position / step).round() * step;
             }
-            if obj.valid() {
-                if let Some(i) = self.sel {
-                    self.remember();
-                    self.p.objects[i] = obj;
-                    self.select(Some(i));
-                    self.message = "Parameter übernommen".into();
-                }
-            } else {
-                self.message = "Parameter prüfen · Bohrung muss kleiner als der Körper sein".into();
+            if let Some(i) = self.sel {
+                let (tx, rx) = std::sync::mpsc::channel();
+                self.pending = Some((i, rx));
+                self.message = "Konstruktion wird berechnet".into();
+                std::thread::spawn(move || {
+                    let result = obj.rebuild().and_then(|()| {
+                        if obj.valid() {
+                            Ok(obj)
+                        } else {
+                            Err("Abmessungen, Position und Bohrungsdurchmesser prüfen".into())
+                        }
+                    });
+                    let _ = tx.send(result);
+                });
+            }
+        }
+    }
+    fn await_edit(&mut self, ctx: &egui::Context) -> bool {
+        use std::sync::mpsc::TryRecvError;
+        let Some((index, rx)) = &self.pending else {
+            return false;
+        };
+        let i = *index;
+        match rx.try_recv() {
+            Err(TryRecvError::Empty) => {
+                egui::Modal::new("berechnung".into()).show(ctx, |ui| {
+                    ui.spinner();
+                    ui.label("Konstruktion wird berechnet und geprüft …");
+                });
+                true
+            }
+            result => {
+                self.pending = None;
+                match result {
+                    Ok(Ok(obj)) => {
+                        self.remember();
+                        self.p.objects[i] = obj;
+                        self.select(Some(i));
+                        self.message = "Parameter übernommen".into();
+                    }
+                    Ok(Err(e)) => self.message = e,
+                    Err(_) => self.message = "Neuberechnung abgebrochen".into(),
+                };
+                false
             }
         }
     }
     pub fn frame(&mut self, ctx: &egui::Context) {
+        if self.await_edit(ctx) {
+            return;
+        }
         ctx.set_visuals(if self.dark {
-            egui::Visuals::dark()
+            {
+                let mut v = egui::Visuals::dark();
+                v.panel_fill = Color32::from_rgb(37, 47, 62);
+                v.window_fill = Color32::from_rgb(34, 43, 56);
+                v.extreme_bg_color = Color32::from_rgb(24, 33, 44);
+                v.widgets.inactive.weak_bg_fill = Color32::from_rgb(51, 63, 80);
+                v.selection.bg_fill = Color32::from_rgb(58, 105, 92);
+                v.widgets.active.bg_fill = v.selection.bg_fill;
+                v.override_text_color = Some(Color32::from_rgb(222, 229, 236));
+                v
+            }
         } else {
             egui::Visuals::light()
         });
         egui::TopBottomPanel::top("menus").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.strong("Rust 3D Print Studio");
-                ui.separator();
-                ui.label(
-                    self.path
-                        .as_ref()
-                        .and_then(|p| p.file_name())
-                        .map(|s| s.to_string_lossy())
-                        .unwrap_or_else(|| self.p.name.as_str().into()),
-                );
-                if self.dirty {
-                    ui.label("•");
-                }
-            });
+            let (bar, _) =
+                ui.allocate_exact_size(egui::vec2(ui.available_width(), 28.), egui::Sense::hover());
+            ui.painter().text(
+                bar.center(),
+                egui::Align2::CENTER_CENTER,
+                "Rust 3D Print Studio",
+                egui::FontId::proportional(17.),
+                ui.visuals().text_color(),
+            );
+            let filename = self
+                .path
+                .as_ref()
+                .and_then(|p| p.file_name())
+                .map(|s| s.to_string_lossy())
+                .unwrap_or_else(|| self.p.name.as_str().into());
+            ui.painter().text(
+                bar.left_center(),
+                egui::Align2::LEFT_CENTER,
+                format!("{}{}", filename, if self.dirty { " •" } else { "" }),
+                egui::FontId::proportional(13.),
+                ui.visuals().text_color(),
+            );
             self.menus(ui);
         });
         renderer::sync(&mut self.cache, &self.p);
@@ -503,7 +683,9 @@ impl Studio {
             .count();
         egui::TopBottomPanel::bottom("status").show(ctx, |ui| {
             ui.horizontal_wrapped(|ui| {
-                ui.strong("mm");
+                ui.strong(&self.p.printer.name);
+                ui.separator();
+                ui.strong("Maßeinheit: mm");
                 ui.separator();
                 ui.label(format!("{count} Dreiecke"));
                 if warnings > 0 {
@@ -525,37 +707,135 @@ impl Studio {
         egui::SidePanel::left("tools")
             .exact_width(151.)
             .show(ctx, |ui| {
-                ui.add_space(12.);
-                ui.heading("Körper");
-                ui.add_space(7.);
-                for s in Shape::ALL {
-                    if ui
-                        .add_sized([135., 30.], egui::Button::new(s.label()))
-                        .clicked()
-                    {
-                        self.add(s);
+                ui.add_space(8.);
+                for (i, label) in [
+                    "Auswahl",
+                    "Körper",
+                    "Skizze",
+                    "Drehen",
+                    "Skalieren",
+                    "Bohrung",
+                    "Schneiden",
+                    "Messen",
+                ]
+                .iter()
+                .enumerate()
+                {
+                    let mut b = egui::Button::new(*label);
+                    if self.tool == i {
+                        b = b.fill(Color32::from_rgb(58, 105, 92));
+                    }
+                    if ui.add_sized([133., 34.], b).clicked() {
+                        self.tool = i;
                     }
                 }
-                ui.add_space(12.);
                 ui.separator();
-                ui.heading("Platzieren");
-                if ui.button("Auf Bett absenken").clicked() {
-                    self.place(false)
+                match self.tool {
+                    0 => {
+                        if ui.button("Auswahl einpassen").clicked() {
+                            self.focus()
+                        }
+                        if ui.button("Duplizieren").clicked() {
+                            self.duplicate()
+                        }
+                    }
+                    1 => {
+                        ui.menu_button("Körper erstellen", |ui| {
+                            for s in Shape::ALL {
+                                if item(ui, s.label()) {
+                                    self.add(s);
+                                }
+                            }
+                        });
+                        if ui.button("J-Wandhaken").clicked() {
+                            self.feature_object(Feature::Hook(Default::default()));
+                        }
+                    }
+                    2 => {
+                        for (name, f) in feature_ui::templates()
+                            .into_iter()
+                            .filter(|(_, f)| !matches!(f, Feature::Hook(_)))
+                        {
+                            if ui.button(name).clicked() {
+                                self.feature_object(f);
+                            }
+                        }
+                    }
+                    3 => {
+                        if let Some(d) = &mut self.draft {
+                            vector(ui, "Drehung °", &mut d.rotation, -3600.0..=3600.);
+                            ui.small("Rechts übernehmen");
+                        }
+                    }
+                    4 => {
+                        if let Some(d) = &mut self.draft {
+                            if d.feature.is_some() {
+                                if ui.button("Skalierung anfügen").clicked() {
+                                    d.feature = Some(Feature::Transform {
+                                        source: Box::new(Self::source(d)),
+                                        scale: DVec3::ONE,
+                                        rotation: DVec3::ZERO,
+                                        translation: DVec3::ZERO,
+                                    });
+                                }
+                            } else {
+                                vector(ui, "Maße · mm", &mut d.size, 0.1..=2000.);
+                            }
+                            ui.small("Rechts übernehmen");
+                        }
+                    }
+                    5 => {
+                        if ui.button("Bohrquader erstellen").clicked() {
+                            self.add(Shape::BoredBox)
+                        }
+                        if ui.button("Körper abziehen …").clicked() {
+                            self.operation = Operation::Difference;
+                            self.dialog = Some(Dialog::Combine);
+                        }
+                    }
+                    6 => {
+                        if ui.button("Körperschnitt …").clicked() {
+                            self.dialog = Some(Dialog::Combine)
+                        }
+                    }
+                    _ => {
+                        if let Some(i) = self.sel {
+                            let (a, b) = self.p.objects[i].mesh().bounds();
+                            for (label, v) in [("X", b.x - a.x), ("Y", b.y - a.y), ("Z", b.z - a.z)]
+                            {
+                                ui.label(format!("{label}   {v:.2} mm"));
+                            }
+                        }
+                    }
                 }
-                if ui.button("Mittig platzieren").clicked() {
-                    self.place(true)
-                }
-                ui.add_space(12.);
-                ui.separator();
-                ui.strong(&self.p.printer.name);
-                let pr = &self.p.printer;
-                ui.label(format!("{} × {} × {} mm", pr.bed[0], pr.bed[1], pr.print_z));
-                ui.small("Orange · Sperrfläche");
             });
         egui::SidePanel::right("inspector")
             .default_width(245.)
             .width_range(220.0..=360.)
             .show(ctx, |ui| {
+                egui::TopBottomPanel::bottom("modellaktionen").show_inside(ui, |ui| {
+                    ui.add_space(6.);
+                    if ui
+                        .add_sized(
+                            [ui.available_width(), 32.],
+                            egui::Button::new("Modell prüfen").fill(Color32::from_rgb(49, 92, 82)),
+                        )
+                        .clicked()
+                    {
+                        self.check_model();
+                    }
+                    if ui
+                        .add_sized(
+                            [ui.available_width(), 32.],
+                            egui::Button::new("3MF exportieren")
+                                .fill(Color32::from_rgb(58, 105, 92)),
+                        )
+                        .clicked()
+                    {
+                        self.choose(FileTask::Write(Output::ThreeMf));
+                    }
+                    ui.add_space(6.);
+                });
                 egui::ScrollArea::vertical()
                     .id_salt("inspector_scroll")
                     .show(ui, |ui| {
@@ -656,7 +936,12 @@ fn item(ui: &mut egui::Ui, text: &str) -> bool {
     }
     hit
 }
-fn vector(ui: &mut egui::Ui, label: &str, v: &mut DVec3, range: std::ops::RangeInclusive<f64>) {
+pub(crate) fn vector(
+    ui: &mut egui::Ui,
+    label: &str,
+    v: &mut DVec3,
+    range: std::ops::RangeInclusive<f64>,
+) {
     ui.add_space(7.);
     ui.label(RichText::new(label).strong());
     ui.horizontal_wrapped(|ui| {
