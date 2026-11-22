@@ -1,4 +1,6 @@
-# Rust 3D Print Studio 0.9.0
+# Rust 3D Print Studio 0.10.0
+
+**Version 0.10.0** ergänzt geometrisch gebundene Kanten für Rundungen und Fasen sowie seitliche Öffnungen für Hohlkörper. Zum Ausprobieren `examples/modelle/Seitlich-offene-Schale.r3dp` öffnen. Die vollständigen Downloadpakete stehen unter [GitHub Releases](https://github.com/ubi-psifu/rust-3d-print-studio/releases).
 
 **Grafische Bemaßung ausprobieren:** Öffne `examples/modelle/Bemasste-Lasche.r3dp` und klappe im Inspektor **Grafische Bemaßung** auf. Klicke die Maßzahl an, ändere sie von 50 auf 60 mm und wähle **Maß setzen → Parameter übernehmen**. Für ein neues Maß klicke zwei Punkte an.
 

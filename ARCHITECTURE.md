@@ -1,5 +1,7 @@
 # Architektur und Datenmodell
 
+**cad/references.rs** erzeugt eine Kantensignatur aus normierten Endpunkten und den Normalen der Nachbarflächen im skalierten Raum. Die Auflösung prüft beide Endpunktreihenfolgen und liefert die ursprüngliche Orientierung. Bei der Öffnungsseite prüft ein Nachbarschaftsgraph die Verbindung aller Dreiecke auf der äußeren Ebene. Die optionalen Felder im Feature-Baum erlauben das Lesen älterer Projekte.
+
 Der Bemaßungseditor in `src/dimension_ui.rs` verwendet die gelösten lokalen Skizzenpunkte und dieselbe Segmentsampling-Funktion wie beim Aufbau des Volumenkörpers. Die Vorschau wird bis zu einer Änderung an der Skizze wiederverwendet. `Sketch::set_distance` prüft Änderungen auf einer Kopie und aktualisiert ein bereits vorhandenes Punktpaar in seiner ursprünglichen Richtung. Einfügen und Entfernen von Punkten aktualisieren die Indexbezüge innerhalb der Skizze. Das Dateiformat bleibt lesbar für vorhandene Projekte.
 
 Die Hilfemodule verwenden **USER_MANUAL.md** als eingebettete Kapitelquelle. **src/help.rs** ergänzt kurze werkzeugbezogene Anleitungen, ordnet Kontexten Artikel zu und indiziert Titel und Text einmal beim Start. Der aktuelle Bearbeitungsdialog bleibt beim Anzeigen der Hilfe im Anwendungszustand erhalten.

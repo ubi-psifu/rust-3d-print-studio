@@ -53,6 +53,7 @@ fn shell_cut_and_deform() {
         source: Box::new(cube()),
         thickness: 2.,
         open: true,
+        side: None,
     }
     .build()
     .unwrap();
@@ -262,6 +263,7 @@ fn convex_variable_edge_finish() {
         let f = Feature::EdgeFinish {
             source: Box::new(cube()),
             edge: 0,
+            reference: None,
             r1: 1.,
             r2: 3.,
             steps,

@@ -452,9 +452,24 @@ pub fn edit(ui: &mut Ui, f: &mut Feature) {
             source,
             thickness,
             open,
+            side,
         } => {
             num(ui, "Wandstärke", thickness);
-            ui.checkbox(open, "Obere Ebene öffnen");
+            ui.checkbox(open, "Öffnungsfläche verwenden");
+            if *open {
+                use rust_3d_print_studio::cad::references::Side;
+                let name = Side::ALL
+                    .iter()
+                    .find(|(s, _)| Some(*s) == *side)
+                    .map_or("Oben (Altprojekt)", |(_, s)| *s);
+                egui::ComboBox::from_id_salt(ui.id().with("seite"))
+                    .selected_text(name)
+                    .show_ui(ui, |ui| {
+                        for (s, label) in Side::ALL {
+                            ui.selectable_value(side, Some(s), label);
+                        }
+                    });
+            }
             child(ui, "Außenkörper", source);
         }
         Feature::Cut {
@@ -631,11 +646,40 @@ pub fn edit(ui: &mut Ui, f: &mut Feature) {
         Feature::EdgeFinish {
             source,
             edge,
+            reference,
             r1,
             r2,
             steps,
         } => {
-            integer(ui, "Scharfe Kante", edge, 0, 50000);
+            let id = ui.id().with("kantenbezug");
+            let mut candidate = ui.data(|d| d.get_temp::<usize>(id)).unwrap_or(*edge);
+            integer(ui, "Kantennummer", &mut candidate, 0, 50000);
+            ui.data_mut(|d| d.insert_temp(id, candidate));
+            ui.label(if reference.is_some() {
+                "Geometrischer Bezug gespeichert"
+            } else {
+                "Bezug über Kantennummer"
+            });
+            if ui.button("Kante geometrisch binden").clicked() {
+                let result = source.build().and_then(|m| {
+                    rust_3d_print_studio::cad::references::EdgeRef::bind(&m, candidate)
+                });
+                let message = match result {
+                    Ok(r) => {
+                        *reference = Some(r);
+                        *edge = candidate;
+                        "Kante gebunden. Parameter übernehmen.".into()
+                    }
+                    Err(e) => e,
+                };
+                ui.data_mut(|d| d.insert_temp(id.with("meldung"), message));
+            }
+            if reference.is_none() {
+                *edge = candidate;
+            }
+            if let Some(msg) = ui.data(|d| d.get_temp::<String>(id.with("meldung"))) {
+                ui.label(msg);
+            }
             num(ui, "Anfangsmaß", r1);
             num(ui, "Endmaß", r2);
             integer(ui, "Facetten (1 = Fase)", steps, 1, 16);

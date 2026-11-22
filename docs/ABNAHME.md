@@ -1,3 +1,7 @@
+# Abnahme 0.10.0
+
+Drei neue Tests bestätigen die Zuordnung nach Umnummerierung und ungleichmäßiger Skalierung, die Fehlermeldung bei entfernter Kante mit Erhalt des letzten gültigen Netzes und den R3DP-Rundlauf aller sechs Öffnungsseiten. Das verbleibende Materialvolumen wurde mit den Sollmaßen des Modellquaders verglichen. 57 automatisierte Tests, Formatierung, Workspace-Check, Clippy und Release-Builds für Linux und Windows x64 erfolgreich. Kein manueller Windows-Test.
+
 # Abnahme 0.9.0
 
 Das native Linux-Fenster lud das Projekt Bemasste-Lasche.r3dp. In der grafischen Bemaßung wurde die 50-mm-Maßzahl angeklickt und ein Sollwert von 60 mm eingegeben. Nach Übernahme und Speichern betrug die als Projektwert nachgelesene Breite 60 mm innerhalb einer Toleranz von 0,000001 mm. Undo und Redo mit jeweiligem Speichern ergaben 50 und erneut 60 mm.

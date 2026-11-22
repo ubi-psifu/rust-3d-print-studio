@@ -1120,9 +1120,9 @@ impl Studio {
                 }
             });
             ui.menu_button("Modellieren", |ui| {
-                for (k,label) in ["Aushöhlen","Kontrollgitter","Ebener Schnitt","Maßbeziehungen"].iter().enumerate(){if item(ui,label){if let Some(o)=&mut self.draft{let source=Box::new(Self::source(o));o.feature=Some(match k{0=>Feature::Shell{source,thickness:1.5,open:true},1=>Feature::Lattice{source,offsets:[DVec3::ZERO;8],symmetric:false},2=>Feature::Cut{source,point:DVec3::Z*(o.size.z/2.),normal:DVec3::Z},_=>Feature::Driven{source,variables:std::collections::BTreeMap::from([("mass1".into(),16.)]),bindings:vec![]}});self.message="Feature im Eigenschaftenbereich übernehmen".into();}}}
+                for (k,label) in ["Aushöhlen","Kontrollgitter","Ebener Schnitt","Maßbeziehungen"].iter().enumerate(){if item(ui,label){if let Some(o)=&mut self.draft{let source=Box::new(Self::source(o));o.feature=Some(match k{0=>Feature::Shell{source,thickness:1.5,open:true,side:Some(rust_3d_print_studio::cad::references::Side::Top)},1=>Feature::Lattice{source,offsets:[DVec3::ZERO;8],symmetric:false},2=>Feature::Cut{source,point:DVec3::Z*(o.size.z/2.),normal:DVec3::Z},_=>Feature::Driven{source,variables:std::collections::BTreeMap::from([("mass1".into(),16.)]),bindings:vec![]}});self.message="Feature im Eigenschaftenbereich übernehmen".into();}}}
 
-                if item(ui,"Kante abrunden / fasen"){if let Some(o)=&mut self.draft{o.feature=Some(Feature::EdgeFinish{source:Box::new(Self::source(o)),edge:0,r1:2.,r2:2.,steps:6});self.message="Kantenmaße im Entwurf bearbeiten".into();}}
+                if item(ui,"Kante abrunden / fasen"){if let Some(o)=&mut self.draft{o.feature=Some(Feature::EdgeFinish{source:Box::new(Self::source(o)),edge:0,reference:None,r1:2.,r2:2.,steps:6});self.message="Kantenmaße im Entwurf bearbeiten".into();}}
                 for(name,f)in feature_ui::templates(){if item(ui,name){self.feature_object(f);}}
                 if item(ui,"Boolesche Operation …"){self.dialog=Some(Dialog::Combine);}
                 if item(ui,"Biegen / Verdrehen / Verjüngen"){if let Some(o)=&mut self.draft{o.feature=Some(Feature::Deform{source:Box::new(Self::source(o)),twist:0.,bend:0.,taper:1.});self.message="Verformung im Entwurf bearbeiten".into();}}

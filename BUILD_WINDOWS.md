@@ -1,5 +1,7 @@
 # Windows 11 x64
 
+Für 0.10.0 wurden Windows-x64-Programm und NSIS-Setup unter Linux erstellt. Die Laufzeitabnahme auf Windows steht aus.
+
 Version 0.9 enthält die grafische Bemaßung und die Beispiellasche. Der Installer legt das Projekt unter `examples/Bemasste-Lasche.r3dp` ab.
 
 Ab 0.8 ist das Handbuch in der EXE eingebettet. F1 funktioniert unabhängig vom Installationspfad und von einem Webbrowser.

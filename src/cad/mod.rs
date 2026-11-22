@@ -5,6 +5,7 @@ pub mod dimensions;
 mod hook;
 pub mod inspect;
 mod modifiers;
+pub mod references;
 pub mod sketch;
 mod sketch_solver;
 pub mod surfaces;
@@ -42,6 +43,8 @@ pub enum Feature {
     EdgeFinish {
         source: Box<Feature>,
         edge: usize,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        reference: Option<references::EdgeRef>,
         r1: f64,
         r2: f64,
         steps: usize,
@@ -66,6 +69,8 @@ pub enum Feature {
         source: Box<Feature>,
         thickness: f64,
         open: bool,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        side: Option<references::Side>,
     },
     Lattice {
         source: Box<Feature>,
@@ -220,7 +225,13 @@ impl Feature {
                 source,
                 thickness,
                 open,
-            } => modifiers::shell(source.evaluate(budget, depth + 1)?, *thickness, *open)?,
+                side,
+            } => modifiers::shell(
+                source.evaluate(budget, depth + 1)?,
+                *thickness,
+                *open,
+                *side,
+            )?,
             Self::Lattice {
                 source,
                 offsets,
@@ -270,10 +281,18 @@ impl Feature {
             Self::EdgeFinish {
                 source,
                 edge,
+                reference,
                 r1,
                 r2,
                 steps,
-            } => modifiers::finish(source.evaluate(budget, depth + 1)?, *edge, *r1, *r2, *steps)?,
+            } => modifiers::finish(
+                source.evaluate(budget, depth + 1)?,
+                *edge,
+                reference.as_ref(),
+                *r1,
+                *r2,
+                *steps,
+            )?,
             Self::Sewn { patches, tolerance } => surfaces::sew(patches, *tolerance)?,
             Self::Hook(h) => h.features()?.evaluate(budget, depth + 1)?,
             Self::Sweep {

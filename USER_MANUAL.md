@@ -1,5 +1,11 @@
 # Bedienungsanleitung
 
+## Kanten und Öffnungsflächen binden
+
+Unter **Modellieren → Kante abrunden / fasen** eine scharfe Kante über ihre Nummer wählen. **Kante geometrisch binden** merkt sich Anfang, Ende und Nachbarflächen vor dem nächsten Umbau. **Parameter übernehmen** baut den Körper. Wird die Quelle in X, Y oder Z gestreckt, bleibt die Zuordnung für gleiche normierte Endpunkte und Flächennormalen erhalten. Auch die Richtung von Anfangs- und Endradius bleibt erhalten. Wird die Kante geteilt, ersetzt oder mehrdeutig, meldet der Editor den fehlenden Bezug. Dann die Quelle prüfen und eine neue Kante binden.
+
+Unter **Modellieren → Aushöhlen** die Option **Öffnungsfläche verwenden** aktivieren und eine der sechs lokalen Außenseiten wählen. Eine ebene zusammenhängende Fläche an diesem Extremum dient als Öffnung. Das Beispiel **Seitlich-offene-Schale.r3dp** hat 40 × 30 × 20 mm Außenmaß, 2 mm Wandstärke und eine Öffnung rechts. Die Auswahl bleibt beim erneuten Öffnen des Projekts erhalten.
+
 ## Hilfe im Studio
 
 Drücke **F1**, um die Hilfe zum aktiven Werkzeug oder zum geöffneten Dialog zu lesen. Über den acht Werkzeugschaltflächen erklärt F1 das Werkzeug unter dem Mauszeiger. Beim Bearbeiten eines parametrischen Körpers öffnet **?** neben dem Namen des Konstruktionsschritts die zugehörige Anleitung. In den Plattenwerkzeugen und der Druckvorbereitung richtet sich die Hilfe nach dem aktuellen Modus oder Reiter.

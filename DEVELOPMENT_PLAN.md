@@ -1,3 +1,7 @@
+# Stand 0.10
+
+Geometrische Kantenbezüge und ebene Öffnungen auf sechs Außenseiten sind verfügbar. Für weitergehende Änderungen der Topologie bleiben Feature-Identitäten im präzisen CAD-Kern und der STEP-Austausch offen.
+
 # Stand 0.9
 
 Die grafischen Abstandsmaße im Skizzeninspektor und die Referenzerhaltung für Skizzenpunkte sind umgesetzt. Als nächster Schritt folgen dauerhafte Bezüge für ausgewählte Modellkanten und Flächen nach einer Neuberechnung. Winkel- und Radiusbemaßung sowie der präzise CAD-Kern mit STEP-Austausch stehen aus.

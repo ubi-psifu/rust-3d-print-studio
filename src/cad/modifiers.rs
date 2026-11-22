@@ -1,22 +1,35 @@
+use super::references::{sharp, EdgeRef, Side};
 use super::{boolean, loft, orient, require, Mesh, Operation, Result};
 use glam::{DMat3, DVec3};
 use std::collections::HashMap;
-pub fn shell(mut m: Mesh, t: f64, open: bool) -> Result<Mesh> {
+pub fn shell(mut m: Mesh, t: f64, open: bool, side: Option<Side>) -> Result<Mesh> {
     let (lo, hi) = m.bounds();
     require(
         t > 0.01 && t < (hi - lo).min_element() / 2.,
         "Wandstärke außerhalb des gültigen Bereichs",
     )?;
+    let opening = if open {
+        if let Some(side) = side {
+            side.patch(&m)?
+        } else {
+            m.faces
+                .iter()
+                .map(|f| f.iter().all(|j| (m.vertices[*j].z - hi.z).abs() < 1e-7))
+                .collect()
+        }
+    } else {
+        vec![false; m.faces.len()]
+    };
     let count = m.vertices.len();
     let mut matrices = vec![DMat3::IDENTITY * 1e-9; count];
     let mut normals = vec![DVec3::ZERO; count];
-    for f in &m.faces {
+    for (fi, f) in m.faces.iter().enumerate() {
         let [a, b, c] = f.map(|i| m.vertices[i]);
         let n = (b - a).cross(c - a).normalize();
         let outer = DMat3::from_cols(n * n.x, n * n.y, n * n.z);
         for &i in f {
             matrices[i] += outer;
-            if !(open && f.iter().all(|j| (m.vertices[*j].z - hi.z).abs() < 1e-7)) {
+            if !opening[fi] {
                 normals[i] += n;
             }
         }
@@ -28,9 +41,9 @@ pub fn shell(mut m: Mesh, t: f64, open: bool) -> Result<Mesh> {
     let faces = std::mem::take(&mut m.faces);
     let mut boundary = HashMap::new();
     let mut removed = 0;
-    for f in faces {
+    for (fi, f) in faces.into_iter().enumerate() {
         let [a, b, c] = f;
-        if open && f.iter().all(|i| (m.vertices[*i].z - hi.z).abs() < 1e-7) {
+        if opening[fi] {
             removed += 1;
             continue;
         }
@@ -114,24 +127,26 @@ pub fn clip(m: &Mesh, point: DVec3, normal: DVec3) -> Result<Mesh> {
     orient(&mut tool);
     boolean(m, &tool, Operation::Intersection)
 }
-pub fn finish(mut m: Mesh, edge: usize, r1: f64, r2: f64, steps: usize) -> Result<Mesh> {
+pub fn finish(
+    mut m: Mesh,
+    edge: usize,
+    reference: Option<&EdgeRef>,
+    r1: f64,
+    r2: f64,
+    steps: usize,
+) -> Result<Mesh> {
     require(
         (0.01..=100.).contains(&r1) && (0.01..=100.).contains(&r2) && (1..=16).contains(&steps),
         "Radien oder Auflösung ungültig",
     )?;
-    let mut edges = std::collections::BTreeMap::<(usize, usize), Vec<DVec3>>::new();
-    for f in &m.faces {
-        let [a, b, c] = f.map(|i| m.vertices[i]);
-        let n = (b - a).cross(c - a).normalize();
-        for (i, j) in [(f[0], f[1]), (f[1], f[2]), (f[2], f[0])] {
-            edges.entry((i.min(j), i.max(j))).or_default().push(n);
-        }
-    }
-    let ((a, b), ns) = edges
-        .into_iter()
-        .filter(|(_, ns)| ns.len() == 2 && ns[0].dot(ns[1]) < 0.9999)
-        .nth(edge)
-        .ok_or("Kantennummer außerhalb der scharfen Kanten")?;
+    let edges = sharp(&m);
+    let ((a, b), ns) = if let Some(reference) = reference {
+        reference.resolve(&m, &edges)?
+    } else {
+        *edges
+            .get(edge)
+            .ok_or("Kantennummer außerhalb der scharfen Kanten")?
+    };
     let start = m.vertices[a];
     let delta = m.vertices[b] - start;
     let dir = delta.normalize();

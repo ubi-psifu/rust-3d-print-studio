@@ -1,3 +1,9 @@
+# 0.10.0 · 22. November 2026
+
+- Geometrisch gebundene Kanten für Fasen und Rundungen mit Anfangs- und Endmaß. Die Zuordnung übersteht geänderte Netznummern und achsenweise Größenänderungen bei unveränderter normierter Geometrie.
+- Sechs lokale Öffnungsseiten für Hohlkörper. Fehlende oder getrennte Öffnungsflächen werden gemeldet.
+- Beispiel einer seitlich offenen Schale. Drei zusätzliche Regressionstests zu Größenänderung, fehlendem Bezug und Projekt-Rundlauf.
+
 # 0.9.0
 
 - Grafische Abstandsmaße in Skizzenextrusionen und skizzierten Sweep-Pfaden. Bestehendes Maß über seine Zahl wählen oder zwei Punkte für ein Maß anklicken.

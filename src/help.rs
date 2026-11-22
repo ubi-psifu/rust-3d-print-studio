@@ -46,12 +46,13 @@ pub fn feature(f: &Feature) -> &'static str {
         Feature::Loft { .. } | Feature::SmoothLoft { .. } => "Loft",
         Feature::Revolve { .. } => "Rotation",
         Feature::Boolean { .. } => "Boolesche",
-        Feature::Cut { .. } | Feature::EdgeFinish { .. } => "Kanten und Schnitt",
+        Feature::Cut { .. } => "Kanten und Schnitt",
+        Feature::EdgeFinish { .. } => "Kanten und Öffnungsflächen binden",
         Feature::Driven { .. } => "Maßbeziehungen",
         Feature::Transform { .. } => TOOLS[4],
         Feature::Primitive { .. } => TOOLS[1],
         Feature::Extrude { .. } => "Extrusion",
-        Feature::Shell { .. } => "Aushöhlung",
+        Feature::Shell { .. } => "Kanten und Öffnungsflächen binden",
         Feature::Lattice { .. }
         | Feature::Sewn { .. }
         | Feature::Deform { .. }

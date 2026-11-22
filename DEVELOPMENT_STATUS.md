@@ -1,4 +1,10 @@
-# Entwicklungsstand 0.9.0
+# Entwicklungsstand 0.10.0
+
+## Version 0.10.0
+
+Rundungen und Fasen können einen geometrischen Kantenbezug speichern. Er erkennt die Endpunkte und die angrenzenden Normalen relativ zur lokalen Hüllbox. Fehlt ein eindeutiger Treffer, schlägt die Neuberechnung mit einer Meldung fehl. Hohlkörper unterstützen zusammenhängende ebene Öffnungsflächen auf sechs lokalen Außenseiten. Ältere Projekte behalten ihre nummerierte Kante bzw. die obere Öffnung. Beliebige gekrümmte Flächen, durch Teilung entstandene Kanten und semantische B-Rep-Bezüge bleiben offen.
+
+57 Tests sowie die Cargo-Prüfungen unter Linux bestanden. Windows-Programm und Setup wurden unter Linux gebaut. Windows-Laufzeit und physischer Druck bleiben ungeprüft.
 
 ## Version 0.9.0
 

@@ -1199,7 +1199,7 @@ dependencies = [
 
 [[package]]
 name = "rust-3d-print-studio"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "boolmesh",
  "egui-macroquad",
