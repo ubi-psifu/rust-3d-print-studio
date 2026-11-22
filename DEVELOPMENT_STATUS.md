@@ -1,5 +1,13 @@
 # Entwicklungsstand
 
+## Flächenauswahl 0.14.0
+
+Die oberste Aushöhlung im Inspektor kann ihre Öffnungsfläche direkt aus der 3D-Ansicht übernehmen. Die Vorschau berechnet den unbearbeiteten Außenkörper aus dem aktuellen Entwurf und zeigt ihn einzeln mit eigener Kamera. Das Dreieck unter dem Mauszeiger wird umrandet. Ein Treffer bindet die lokale Ebene. Der Projektverlauf erhält beim Übernehmen einen Bearbeitungsschritt. Esc bricht die Auswahl ab. F1 öffnet das eingebettete Kapitel.
+
+68 Rust-Tests sowie Formatierung, Workspace-Check, Clippy mit Warnungen als Fehlern und Linux-Release-Build bestanden lokal. Der neue Test prüft den Bildschirmtreffer bei gedrehtem und verschobenem Keil in beiden Projektionen sowie das Volumen und den gespeicherten Bezug. Beim ersten Fensterlauf fand der Test die Schaltfläche zum Übernehmen im scrollbaren Inspektor nicht. Sie ist jetzt fest bei den Modellaktionen erreichbar. Die Übernahme reiner CAD-Änderungen erhält die bisherige Plattenposition auch bei aktivem Raster. Der Linux-Fenstertest verwendet die echte Oberfläche unter X11. Die Freigabeergebnisse stehen in den Release Notes.
+
+Die Auswahl gilt für die oberste Aushöhlung und eine ebene, zusammenhängende Öffnungsfläche. Bei verschachtelten Aushöhlungen bleibt die numerische Bearbeitung im Featurebaum verfügbar. Als Nächstes folgt die direkte Kantenauswahl für Fasen und Rundungen.
+
 ## CAD-Flächenbezüge 0.13.0
 
 Ebene Öffnungsflächen lassen sich unabhängig von der Dreiecksnummer speichern und neu auflösen. Das Beispiel Keilschale misst 40 × 30 × 20 mm bei 2 mm Wandstärke. Unter Linux bestanden 67 Rust-Tests, Formatierung, Workspace-Check und Clippy. Die Modellabnahme prüfte den Projektrundlauf, die geschlossene und konsistent orientierte Oberfläche und das analytische Volumen von 4 486 mm³. Die zweite Abnahme prüfte den Bezug nach Umsortierung und ungleicher Skalierung sowie die Ablehnung einer fehlenden Ebene. Der erste native Windows-Test deckte einen Fehler beim Erkennen von Kapitelüberschriften mit CRLF auf. Die Korrektur ist durch einen separaten Test abgesichert. Die nativen Rust-Prüfungen bestanden danach unter Windows Server 2022. Beim ersten Paketbau fehlte der amd64-Installer-Stub auf dem Runner. Das Setup nutzt deshalb den regulären Unicode-Stub mit expliziter 64-Bit-Registry. Ein unabhängiges Einlesen der STL- und 3MF-Exporte ergab jeweils ein geschlossenes, konsistent orientiertes Netz mit 20 Dreiecken bei 40 × 30 × 20 mm und 4 486 mm³ Materialvolumen. Die Windows-Fensterprüfung verwendet in dieser Version die Keilschale und kontrolliert den gespeicherten Flächenbezug.

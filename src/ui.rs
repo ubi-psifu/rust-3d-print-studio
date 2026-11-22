@@ -52,6 +52,31 @@ struct MoveDrag {
     hi: DVec2,
     recorded: bool,
 }
+struct OpeningPicker {
+    solid: renderer::Solid,
+    view: View,
+    hint: String,
+}
+impl OpeningPicker {
+    fn new(object: &Object, view: &View) -> Result<Self, String> {
+        let Some(Feature::Shell { source, .. }) = &object.feature else {
+            return Err("Zum Auswählen zuerst eine Aushöhlung bearbeiten.".into());
+        };
+        let mut outer = object.clone();
+        outer.feature = Some((**source).clone());
+        outer.rebuild()?;
+        let solid = renderer::Solid::new(&outer);
+        let (lo, hi) = solid.bounds;
+        let mut view = view.clone();
+        view.target = (lo + hi) * 0.5;
+        view.distance = ((hi - lo).length() * 2.).clamp(8., 5000.);
+        Ok(Self {
+            solid,
+            view,
+            hint: "Klicke auf die gewünschte Fläche des Außenkörpers.".into(),
+        })
+    }
+}
 pub struct Studio {
     help: help::Help,
     hover_help: Option<&'static str>,
@@ -68,6 +93,8 @@ pub struct Studio {
     measure: Vec<DVec3>,
     magnet: bool,
     plane_pick: bool,
+    opening_picker: Option<OpeningPicker>,
+    preparing_picker: Option<std::sync::mpsc::Receiver<Result<OpeningPicker, String>>>,
     preparation: crate::preparation_ui::Panel,
     selected: Vec<usize>,
     clipboard: Vec<Object>,
@@ -120,6 +147,8 @@ impl Studio {
             measure: vec![],
             magnet: true,
             plane_pick: false,
+            opening_picker: None,
+            preparing_picker: None,
             preparation: Default::default(),
             p: Project::default(),
             tool: 0,
@@ -179,6 +208,8 @@ impl Studio {
         self.refresh_draft();
     }
     fn refresh_draft(&mut self) {
+        self.opening_picker = None;
+        self.preparing_picker = None;
         self.draft = self.sel.map(|i| self.p.objects[i].clone());
     }
     fn toggle_selection(&mut self, i: Option<usize>, extend: bool) {
@@ -747,6 +778,8 @@ impl Studio {
         }
     }
     pub fn request_quit(&mut self) {
+        self.opening_picker = None;
+        self.preparing_picker = None;
         self.action(Action::Quit);
     }
     fn write(&mut self, f: Output, overwrite: bool) {
@@ -1257,7 +1290,18 @@ impl Studio {
                     self.help.show_topic(help::feature(f));
                 }
             });
+            let choose_opening = matches!(f, Feature::Shell { .. })
+                && ui.button("Öffnungsfläche in 3D wählen …").clicked();
             ui.push_id(("objektentwurf", self.sel), |ui| feature_ui::edit(ui, f));
+            if choose_opening {
+                let outer = d.clone();
+                let view = self.p.view.clone();
+                let (tx, rx) = std::sync::mpsc::channel();
+                self.preparing_picker = Some(rx);
+                std::thread::spawn(move || {
+                    let _ = tx.send(OpeningPicker::new(&outer, &view));
+                });
+            }
         } else {
             vector(ui, "Abmessungen · mm", &mut d.size, 0.1..=2000.);
         }
@@ -1273,29 +1317,28 @@ impl Studio {
             ui.label("Körperfarbe");
             ui.color_edit_button_srgb(&mut d.color);
         });
-        ui.add_space(8.);
-        if ui.button("Parameter übernehmen").clicked() {
-            let mut obj = d.clone();
-            if self.snap {
-                let step = self.p.view.grid;
-                obj.position = (obj.position / step).round() * step;
-            }
-            if let Some(i) = self.sel {
-                let (tx, rx) = std::sync::mpsc::channel();
-                self.pending = Some((i, rx));
-                self.message = "Konstruktion wird berechnet".into();
-                std::thread::spawn(move || {
-                    let result = obj.rebuild().and_then(|()| {
-                        if obj.valid() {
-                            Ok(obj)
-                        } else {
-                            Err("Abmessungen, Position und Bohrungsdurchmesser prüfen".into())
-                        }
-                    });
-                    let _ = tx.send(result);
-                });
-            }
+    }
+    fn apply_draft(&mut self) {
+        let (Some(i), Some(mut obj)) = (self.sel, self.draft.clone()) else {
+            return;
+        };
+        if self.snap && obj.position != self.p.objects[i].position {
+            let step = self.p.view.grid;
+            obj.position = (obj.position / step).round() * step;
         }
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.pending = Some((i, rx));
+        self.message = "Konstruktion wird berechnet".into();
+        std::thread::spawn(move || {
+            let result = obj.rebuild().and_then(|()| {
+                if obj.valid() {
+                    Ok(obj)
+                } else {
+                    Err("Abmessungen, Position und Bohrungsdurchmesser prüfen".into())
+                }
+            });
+            let _ = tx.send(result);
+        });
     }
     fn await_edit(&mut self, ctx: &egui::Context) -> bool {
         use std::sync::mpsc::TryRecvError;
@@ -1325,6 +1368,69 @@ impl Studio {
                 };
                 false
             }
+        }
+    }
+    fn choose_opening(&mut self, ctx: &egui::Context) {
+        if !self.help.open && ctx.input(|i| i.key_pressed(egui::Key::F1)) {
+            self.help.show_topic("Kanten und Öffnungsflächen binden");
+        }
+        if self.help.open {
+            self.help.draw(ctx);
+            return;
+        }
+        let Some(picker) = &mut self.opening_picker else {
+            return;
+        };
+        let mut close = ctx.input(|i| i.key_pressed(egui::Key::Escape));
+        egui::TopBottomPanel::top("flaechenauswahl").show(ctx, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.strong("Öffnungsfläche wählen");
+                ui.label(&picker.hint);
+                close |= ui.button("Abbrechen").clicked();
+                if ui.small_button("Hilfe (F1)").clicked() {
+                    self.help.show_topic("Kanten und Öffnungsflächen binden");
+                }
+            });
+        });
+        egui::CentralPanel::default()
+            .frame(egui::Frame::NONE)
+            .show(ctx, |ui| {
+                let (rect, response) = ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
+                self.rect = rect;
+                self.px = ctx.pixels_per_point();
+                if close || !rect.is_positive() { return; }
+                navigate(&mut picker.view, &response, rect);
+                let Some(pos) = response.hover_pos() else { return };
+                let clicked = response.clicked_by(egui::PointerButton::Primary);
+                let cam = renderer::camera(&picker.view, rect, self.px);
+                let x = 2. * (pos.x - rect.left()) / rect.width() - 1.;
+                let y = 1. - 2. * (pos.y - rect.top()) / rect.height();
+                let Some((_, face, _)) = renderer::surface(&cam, x, y, std::slice::from_ref(&picker.solid)) else {
+                    if clicked { picker.hint = "Kein Treffer. Bitte auf den Außenkörper klicken.".into(); }
+                    return;
+                };
+                let matrix = macroquad::camera::Camera::matrix(&cam);
+                let corners = picker.solid.mesh.faces[face].map(|i| {
+                    let point = matrix.project_point3(picker.solid.mesh.vertices[i].as_vec3());
+                    rect.center() + egui::vec2(point.x*rect.width()/2., -point.y*rect.height()/2.)
+                });
+                ui.painter().add(egui::Shape::closed_line(corners.to_vec(), (2., ACCENT)));
+                if clicked {
+                    match picker.solid.opening(face) {
+                        Ok(reference) => {
+                            if let Some(Feature::Shell { side, open, .. }) = self.draft.as_mut().and_then(|d| d.feature.as_mut()) {
+                                *side = Some(rust_3d_print_studio::cad::references::Side::Plane(reference));
+                                *open = true;
+                                self.message = "Öffnungsfläche gewählt. Mit „Parameter übernehmen“ die Schale neu berechnen.".into();
+                            }
+                            close = true;
+                        }
+                        Err(e) => picker.hint = e,
+                    }
+                }
+            });
+        if close {
+            self.opening_picker = None;
         }
     }
     pub fn frame(&mut self, ctx: &egui::Context) {
@@ -1379,6 +1485,30 @@ impl Studio {
         } else {
             egui::Visuals::light()
         });
+        if let Some(rx) = &self.preparing_picker {
+            use std::sync::mpsc::TryRecvError;
+            match rx.try_recv() {
+                Err(TryRecvError::Empty) => {
+                    egui::Modal::new("aussenkoerper".into()).show(ctx, |ui| {
+                        ui.spinner();
+                        ui.label("Außenkörper wird berechnet …");
+                    });
+                    return;
+                }
+                result => {
+                    self.preparing_picker = None;
+                    match result {
+                        Ok(Ok(picker)) => self.opening_picker = Some(picker),
+                        Ok(Err(error)) => self.message = error,
+                        Err(_) => self.message = "Berechnung der Außenfläche abgebrochen.".into(),
+                    }
+                }
+            }
+        }
+        if self.opening_picker.is_some() && self.dialog.is_none() {
+            self.choose_opening(ctx);
+            return;
+        }
         egui::TopBottomPanel::top("menus").show(ctx, |ui| {
             let (bar, _) =
                 ui.allocate_exact_size(egui::vec2(ui.available_width(), 28.), egui::Sense::hover());
@@ -1601,6 +1731,16 @@ impl Studio {
             .show(ctx, |ui| {
                 egui::TopBottomPanel::bottom("modellaktionen").show_inside(ui, |ui| {
                     ui.add_space(6.);
+                    if self.draft.is_some()
+                        && ui
+                            .add_sized(
+                                [ui.available_width(), 32.],
+                                egui::Button::new("Parameter übernehmen"),
+                            )
+                            .clicked()
+                    {
+                        self.apply_draft();
+                    }
                     if ui
                         .add_sized(
                             [ui.available_width(), 32.],
@@ -1647,23 +1787,7 @@ impl Studio {
                 self.rect = rect;
                 self.px = ctx.pixels_per_point();
                 if !self.help.open && self.dialog.is_none() && rect.is_positive() {
-                    let v = &mut self.p.view;
-                    let delta = response.drag_delta();
-                    if response.dragged_by(egui::PointerButton::Secondary) {
-                        v.yaw -= f64::from(delta.x) * 0.009;
-                        v.pitch = (v.pitch + f64::from(delta.y) * 0.009).clamp(-1.568, 1.568);
-                    }
-                    if response.dragged_by(egui::PointerButton::Middle) {
-                        let (_, right, up) = renderer::basis(v);
-                        v.target += (-right * delta.x + up * delta.y).as_dvec3() * v.distance * 0.8
-                            / f64::from(rect.height());
-                        v.target = v.target.clamp(DVec3::splat(-20000.), DVec3::splat(20000.));
-                    }
-                    if response.hovered() {
-                        let wheel = ctx.input(|i| i.raw_scroll_delta.y);
-                        v.distance =
-                            (v.distance * (-f64::from(wheel) * 0.0025).exp()).clamp(8., 5000.);
-                    }
+                    navigate(&mut self.p.view, &response, rect);
                     renderer::sync(&mut self.cache, &self.p);
                     self.plate_pointer(&response, rect, ui);
                 }
@@ -1756,6 +1880,18 @@ impl Studio {
     }
     pub fn render(&mut self) {
         if self.rect.is_positive() {
+            if let Some(picker) = &self.opening_picker {
+                let cam = renderer::camera(&picker.view, self.rect, self.px);
+                renderer::draw(
+                    &cam,
+                    &self.p,
+                    std::slice::from_ref(&picker.solid),
+                    &[],
+                    false,
+                    self.dark,
+                );
+                return;
+            }
             renderer::sync(&mut self.cache, &self.p);
             let cam = renderer::camera(&self.p.view, self.rect, self.px);
             renderer::draw(
@@ -1767,6 +1903,23 @@ impl Studio {
                 self.dark,
             );
         }
+    }
+}
+fn navigate(v: &mut View, response: &egui::Response, rect: egui::Rect) {
+    let delta = response.drag_delta();
+    if response.dragged_by(egui::PointerButton::Secondary) {
+        v.yaw -= f64::from(delta.x) * 0.009;
+        v.pitch = (v.pitch + f64::from(delta.y) * 0.009).clamp(-1.568, 1.568);
+    }
+    if response.dragged_by(egui::PointerButton::Middle) {
+        let (_, right, up) = renderer::basis(v);
+        v.target += (-right * delta.x + up * delta.y).as_dvec3() * v.distance * 0.8
+            / f64::from(rect.height());
+        v.target = v.target.clamp(DVec3::splat(-20000.), DVec3::splat(20000.));
+    }
+    if response.hovered() {
+        let wheel = response.ctx.input(|i| i.raw_scroll_delta.y);
+        v.distance = (v.distance * (-f64::from(wheel) * 0.0025).exp()).clamp(8., 5000.);
     }
 }
 fn item(ui: &mut egui::Ui, text: &str) -> bool {
