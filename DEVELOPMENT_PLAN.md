@@ -2,7 +2,7 @@
 
 ## Nächste Abnahmen
 
-1. Windows-x64-Paket auf Windows starten, ein Beispiel öffnen und speichern sowie Installation und Deinstallation prüfen.
+1. Nach der erfolgreichen Windows-Server-Abnahme die Windows-11-Bedienung mit Hardware-Grafiktreiber prüfen. Kurze Tastenkombinationen untersuchen: Der Windows-Fenstertest reagierte auf getrennte Tastendrücke, während ein sehr kurzer simulierter Tastendruck keine bestätigte Speicherung ergab.
 2. Für den CAD-Ausbau einen präzisen Geometriekern und dauerhafte Flächenbezüge erproben. STEP-Import und -Export benötigen einen geprüften Roundtrip.
 3. Bei der Druckvorbereitung größere Importmodelle, Mehrfilament-Slicing und die physische Passung der Beispielteile prüfen.
 

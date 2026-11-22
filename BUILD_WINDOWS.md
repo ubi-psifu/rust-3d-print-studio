@@ -22,6 +22,10 @@ rustup override set 1.88.0
 
 Ein einfacher Anwendungsbuild benötigt nur `cargo build --workspace --release --locked`. Die EXE liegt dann in **target/release/**. Das Skript verwendet ein explizites x64-Ziel und kopiert das Ergebnis nach **dist/**.
 
-## Prüfstand des Downloads 0.12.0
+## Prüfstand des Downloads 0.12.1
+
+Am 22. November 2026 bestand das Release-Paket die Abnahme auf Windows Server 2022. Der Test installierte das Setup im Benutzerprofil, verglich Programm und Beispiel mit den Dateien im ZIP, prüfte die installierte Version 0.12.1 und den registrierten Explorer-Befehl und kontrollierte die Deinstallation. Das portable Studio öffnete mit Mesa-Software-OpenGL eine Kopie der Bogenlasche aus einem Pfad mit Umlaut und Leerzeichen. Strg+S schrieb die Kopie neu. Der Test las die gespeicherte Datei zurück und prüfte den Objektnamen. Der Fenstertest ohne zusätzlichen Grafiktreiber auf diesem Runner endete mit Prozesscode 101. Die Bedienung auf Windows 11 mit einem Hardware-Grafiktreiber bleibt offen. [Windows-Abnahmelauf](https://github.com/ubi-psifu/rust-3d-print-studio/actions/runs/44999456694/job/137137560715)
+
+## Frühere Prüfung von 0.12.0
 
 EXE und NSIS-Setup wurden unter Linux für Windows x64 gebaut. Die 62 automatisierten Tests liefen unter Linux. Ein praktischer Windows-Test von Programmstart, Installation und Deinstallation ist offen. Das Handbuch ist in der EXE eingebettet und lässt sich mit F1 offline öffnen.

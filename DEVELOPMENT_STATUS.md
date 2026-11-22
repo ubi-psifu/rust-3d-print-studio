@@ -2,9 +2,9 @@
 
 ## Windows-Installer 0.12.1
 
-Explorer-Registrierung und Versionsanzeige sind angepasst. Die 62 Tests unter Linux und beide x64-Release-Builds sind erfolgreich. Das Skript scripts/windows-abnahme.ps1 prüft auf einem frischen Windows-Runner Installation, Registry und Deinstallation, optional auch Öffnen und Speichern im Fenster. Ein Windows-11-Arbeitsplatztest steht aus.
+Explorer-Registrierung und Versionsanzeige sind angepasst. Die 62 Tests unter Linux und beide x64-Release-Builds sind erfolgreich. Das Skript scripts/windows-abnahme.ps1 prüft auf einem frischen Windows-Runner Installation, Registry und Deinstallation, optional auch Öffnen und Speichern im Fenster. Am 22. November 2026 bestand das Release-Paket die Abnahme auf Windows Server 2022. Der Test installierte das Setup im Benutzerprofil, verglich Programm und Beispiel mit den Dateien im ZIP, prüfte die installierte Version 0.12.1 und den registrierten Explorer-Befehl und kontrollierte die Deinstallation. Das portable Studio öffnete mit Mesa-Software-OpenGL eine Kopie der Bogenlasche aus einem Pfad mit Umlaut und Leerzeichen. Strg+S schrieb die Kopie neu. Der Test las die gespeicherte Datei zurück und prüfte den Objektnamen. Der Fenstertest ohne zusätzlichen Grafiktreiber auf diesem Runner endete mit Prozesscode 101. Die Bedienung auf Windows 11 mit einem Hardware-Grafiktreiber bleibt offen. [Windows-Abnahmelauf](https://github.com/ubi-psifu/rust-3d-print-studio/actions/runs/44999456694/job/137137560715)
 
-## Veröffentlichte Version 0.12.0
+## Funktionsumfang seit 0.12.0
 
 | Bereich | Verfügbar | Offene Prüfung oder Grenze |
 | --- | --- | --- |
@@ -12,7 +12,7 @@ Explorer-Registrierung und Versionsanzeige sind angepasst. Die 62 Tests unter Li
 | Modellierung | Parametrische Konstruktion mit tessellierten Körpern, Netzboolesche, geometrisch gebundene scharfe Kanten und ebene Hohlkörperöffnungen auf sechs Außenseiten. | Allgemeine dauerhafte B-Rep-Flächenbezüge, exakte CAD-Volumenkörper und STEP-Austausch bleiben offen. |
 | Druckplatte | Mehrfachauswahl, direktes Verschieben, Kopieren, Muster und automatische Anordnung im P1S-Profil. | Die Platzsuche nutzt achsparallele Hüllboxen. Bei konkaven Teilen können freie Bereiche ungenutzt bleiben. |
 | Slicing | Geometrische Schnittansicht und SVG-Schichtstapel. Die lokale Bambu-Studio-CLI erzeugt mit passender Vorlage druckerspezifische Dateien. | Die erfolgreiche Mehrfilament-Übergabe und die Abnahme eines vollständigen Mehrfilament-Slicinglaufs sind getrennte Prüfschritte. Letztere ist offen. |
-| Plattformen | Release-Paket mit Linux-x64-Programm, Windows-x64-EXE und NSIS-Installer. | Praktische Windows-Abnahme und macOS-Abnahme stehen aus. |
+| Plattformen | Release-Paket mit Linux-x64-Programm, Windows-x64-EXE und NSIS-Installer. | Windows-11-Arbeitsplatztest und macOS-Abnahme stehen aus. |
 
 Für 0.12.0 bestanden unter Linux 62 automatisierte Tests einschließlich der Radiusänderung mit Speichern und erneutem Öffnen. Formatierung, Workspace-Check, Clippy und beide Release-Builds liefen erfolgreich. [Release und Download](https://github.com/ubi-psifu/rust-3d-print-studio/releases/tag/v0.12.0)
 
