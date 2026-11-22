@@ -25,9 +25,9 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.13.0-setup.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.13.0-pfade.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo '3cce3e0714b9d90df9438ab9657653a4bb430a4f761181e75b32eeb67b3b95d0  source.bundle' | sha256sum -c
+          echo '4cf2ca9de509385e3d9f20a3827a9479d5fe9cac06f7363a5e0b42fbda4334ca  source.bundle' | sha256sum -c
           git bundle verify source.bundle
           git fetch --no-tags ./source.bundle refs/heads/flaechenbezug:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
@@ -72,9 +72,9 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.13.0-setup.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.13.0-pfade.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo '3cce3e0714b9d90df9438ab9657653a4bb430a4f761181e75b32eeb67b3b95d0  source.bundle' | sha256sum -c
+          echo '4cf2ca9de509385e3d9f20a3827a9479d5fe9cac06f7363a5e0b42fbda4334ca  source.bundle' | sha256sum -c
           git bundle verify source.bundle
           git fetch --no-tags ./source.bundle refs/heads/flaechenbezug:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
