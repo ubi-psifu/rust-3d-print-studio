@@ -1,5 +1,7 @@
 # Rust 3D Print Studio unter Windows
 
+Nach der Installation ab 0.12.1 lässt sich im Explorer unter **Öffnen mit** das Studio für R3DP-Projekte auswählen. Die portable EXE kann einen Projektpfad als erstes Argument entgegennehmen.
+
 ## Windows-x64-Paket verwenden
 
 Unter **Assets** auf der [Release-Seite](https://github.com/ubi-psifu/rust-3d-print-studio/releases/latest) die ZIP-Datei mit dem Programmnamen herunterladen und vollständig entpacken.

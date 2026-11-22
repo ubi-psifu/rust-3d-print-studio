@@ -1,7 +1,8 @@
 Unicode true
 Target amd64-unicode
 RequestExecutionLevel user
-Name "Rust 3D Print Studio 0.12.0"
+!searchparse /file "../Cargo.toml" 'version = "' STUDIO_VERSION '"'
+Name "Rust 3D Print Studio ${STUDIO_VERSION}"
 OutFile "../dist/Rust-3D-Print-Studio-Setup-x64.exe"
 InstallDir "$LOCALAPPDATA\Rust 3D Print Studio"
 ShowInstDetails show
@@ -31,8 +32,11 @@ Section "Programm"
   CreateDirectory "$SMPROGRAMS\Rust 3D Print Studio"
   CreateShortcut "$SMPROGRAMS\Rust 3D Print Studio\Studio.lnk" "$INSTDIR\rust-3d-print-studio.exe"
   CreateShortcut "$SMPROGRAMS\Rust 3D Print Studio\Beispiel.lnk" "$INSTDIR\rust-3d-print-studio.exe" '"$INSTDIR\examples\Wandhaken.r3dp"'
+  WriteRegStr HKCU "Software\Classes\Applications\rust-3d-print-studio.exe" "FriendlyAppName" "Rust 3D Print Studio"
+  WriteRegStr HKCU "Software\Classes\Applications\rust-3d-print-studio.exe\SupportedTypes" ".r3dp" ""
+  WriteRegStr HKCU "Software\Classes\Applications\rust-3d-print-studio.exe\shell\open\command" "" '"$INSTDIR\rust-3d-print-studio.exe" "%1"'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio" "DisplayName" "Rust 3D Print Studio"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio" "DisplayVersion" "0.10.0"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio" "DisplayVersion" "${STUDIO_VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio" "UninstallString" '"$INSTDIR\Deinstallieren.exe"'
 SectionEnd
 
@@ -55,5 +59,6 @@ Section "Uninstall"
   RMDir "$INSTDIR\examples"
   Delete "$INSTDIR\Deinstallieren.exe"
   RMDir "$INSTDIR"
+  DeleteRegKey HKCU "Software\Classes\Applications\rust-3d-print-studio.exe"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rust3DPrintStudio"
 SectionEnd

@@ -1,3 +1,7 @@
+# 0.12.1 · Windows-Projekte öffnen
+
+Der Installer registriert R3DP für „Öffnen mit“ und verwendet die Cargo-Paketversion in der Windows-Programmliste.
+
 # 0.12.0 · 22. November 2026
 
 Treibendes Radiusmaß für Dreipunkt-Kreisbögen und Beispiel Bogenlasche.

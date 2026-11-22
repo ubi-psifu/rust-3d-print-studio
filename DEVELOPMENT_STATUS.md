@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## Windows-Installer 0.12.1
+
+Explorer-Registrierung und Versionsanzeige sind angepasst. Die 62 Tests unter Linux und beide x64-Release-Builds sind erfolgreich. Das Skript scripts/windows-abnahme.ps1 prüft auf einem frischen Windows-Runner Installation, Registry und Deinstallation, optional auch Öffnen und Speichern im Fenster. Ein Windows-11-Arbeitsplatztest steht aus.
+
 ## Veröffentlichte Version 0.12.0
 
 | Bereich | Verfügbar | Offene Prüfung oder Grenze |
