@@ -1,3 +1,7 @@
+# Stand 0.11
+
+Die grafische Winkelbemaßung ergänzt die Abstandsmaße. Nächster Skizzenschritt ist ein treibendes Radiusmaß für Kreisbögen.
+
 # Stand 0.10
 
 Geometrische Kantenbezüge und ebene Öffnungen auf sechs Außenseiten sind verfügbar. Für weitergehende Änderungen der Topologie bleiben Feature-Identitäten im präzisen CAD-Kern und der STEP-Austausch offen.

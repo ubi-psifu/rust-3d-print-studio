@@ -12,7 +12,9 @@ Drücke **F1**, um die Hilfe zum aktiven Werkzeug oder zum geöffneten Dialog zu
 
 Über **Hilfe → Anleitung durchsuchen** öffnest du das Handbuch. Gib ein Stichwort ein und wähle einen Treffer. Im Kapitelmenü kannst du ohne Suchbegriff blättern. **Zurück zur Kontexthilfe** führt zum Ausgangsthema. Mit **Esc** oder **Schließen** kehrst du zu deinen Eingaben zurück. Alle Texte sind im Programm enthalten.
 
-## Abstände grafisch bemaßen
+## Abstände und Winkel grafisch bemaßen
+
+Für ein Winkelmaß im Skizzeninspektor **Innenwinkel** wählen. Klicke auf einen Endpunkt, dann den Scheitelpunkt und zuletzt den anderen Endpunkt. Gib den gewünschten Winkel in Grad ein und klicke auf **Maß setzen**. Eine vorhandene grüne Gradzahl kannst du direkt anklicken und bearbeiten. Mit **Parameter übernehmen** wird der Körper neu berechnet. Bei räumlichen Skizzen gilt der Winkel zwischen den beiden räumlichen Strecken, auch in der XY-, XZ- oder YZ-Ansicht. Die Wahl eines Winkelmaßes aktiviert den gemeinsamen Solver. Er kann freie Punkte verschieben. Zwei parallel liegende Schenkel als Ausgangslage gegebenenfalls zuerst leicht gegeneinander drehen.
 
 Öffne zum Ausprobieren `examples/modelle/Bemasste-Lasche.r3dp`. Wähle die Lasche rechts in der Objektliste. Klappe unter **Skizzenextrusion** die **Grafische Bemaßung** auf. Die Vorschau zeigt die berechnete Kontur und vorhandene Abstandsmaße in Millimetern. Klicke auf die gelbe **50.00**, ändere den Wert auf **60 mm** und wähle **Maß setzen**. Nach **Parameter übernehmen** wird die Lasche 60 mm breit. **Strg+Z** nimmt die Modelländerung zurück.
 

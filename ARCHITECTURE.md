@@ -1,3 +1,7 @@
+# Winkelbedingungen ab 0.11
+
+Angle referenziert drei Kontrollpunkte. Der zweite Index ist der Scheitel. Gradwerte werden serialisiert und im Solver als Differenz zweier Winkel im Bogenmaß ausgewertet. Die grafische Eingabe löst eine Arbeitskopie vor der Übernahme.
+
 # Architektur und Datenmodell
 
 **cad/references.rs** erzeugt eine Kantensignatur aus normierten Endpunkten und den Normalen der Nachbarflächen im skalierten Raum. Die Auflösung prüft beide Endpunktreihenfolgen und liefert die ursprüngliche Orientierung. Bei der Öffnungsseite prüft ein Nachbarschaftsgraph die Verbindung aller Dreiecke auf der äußeren Ebene. Die optionalen Felder im Feature-Baum erlauben das Lesen älterer Projekte.
