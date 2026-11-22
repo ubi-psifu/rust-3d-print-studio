@@ -1,5 +1,11 @@
 # Entwicklungsstand
 
+## CAD-Flächenbezüge 0.13.0
+
+Ebene Öffnungsflächen lassen sich unabhängig von der Dreiecksnummer speichern und neu auflösen. Das Beispiel Keilschale misst 40 × 30 × 20 mm bei 2 mm Wandstärke. Unter Linux bestanden 66 Rust-Tests, Formatierung, Workspace-Check und Clippy. Die Modellabnahme prüfte den Projektrundlauf, die geschlossene und konsistent orientierte Oberfläche und das analytische Volumen von 4 486 mm³. Die zweite Abnahme prüfte den Bezug nach Umsortierung und ungleicher Skalierung sowie die Ablehnung einer fehlenden Ebene. Die Windows-Fensterprüfung verwendet in dieser Version die Keilschale und kontrolliert den gespeicherten Flächenbezug.
+
+Bezüge gelten für eine zusammenhängende gleich orientierte Fläche in der gespeicherten normierten Ebene. Allgemeine gekrümmte B-Rep-Flächen, Auswahl durch Klick in die 3D-Ansicht und STEP bleiben offen.
+
 ## Plattenbedienung 0.12.2
 
 Die Tastenkürzel für die Auswahl und Projektbearbeitung verwenden die beim Tastendruck erfassten Modifikatortasten. Unter Linux bestanden 64 Rust-Tests, Formatierung, Workspace-Check und Clippy mit Warnungen als Fehlern. Das Release enthält Builds für Linux und Windows x64. Der Windows-Fenstertest speichert eine Projektkopie über ein kurzes Strg+S und liest den Objektnamen zurück. Im ersten Lauf bestand die Installerprüfung. WScript.SendKeys bestätigte die Speicherung nicht. Der zweite Test sendet Windows-Tastenereignisse mit expliziten Scancodes ohne Wartezeiten zwischen Drücken und Loslassen. Das Ergebnis steht im Actions-Lauf zur Veröffentlichung. Windows 11 mit Hardware-Grafiktreiber und der STEP-Rundlauf bleiben offen.

@@ -73,3 +73,7 @@ Im Projekt steht die Konstruktionsvorschrift. Abgeleitete Mesh-Caches liegen im 
 **curve.rs** wertet Polylinien, kubische Bézierzüge, Ellipsenbögen und rationale B-Splines mit De Boor aus. **sketch.rs** setzt Kontrollpunkte auf eine Arbeitsebene oder in den Raum und projiziert gerichtete Bedingungen iterativ. Widersprüchliche Restfehler verhindern die Übernahme. **modifiers.rs** enthält u. a. lokale Ebenengleichungen für den Wandversatz und tangentiale Schnittebenen für konvexe Kanten. **surfaces.rs** trianguliert Flächengitter und vernäht Ränder mit einstellbarer Toleranz. **inspect.rs** prüft nach einer Breitphase Dreieckspaare ohne gemeinsame Eckpunktindizes auf Überschneidung.
 
 R3DP v2 öffnet bestehende v1-Projekte. Speichern erzeugt v2. Die Rollen „parametrisches Feature“ und „direktes Polygonnetz“ sind im Schema explizit. Die Umwandlung in ein Netz erfordert **Parameter übernehmen** und ist über Undo umkehrbar. Ein analytischer B-Rep-Kern und dauerhaft stabile Flächenbenennungen bleiben offen.
+
+## Ebene Öffnungsflächen
+
+Der lokale Flächenbezug speichert Einheitsnormale und Stützpunkt im Koordinatensystem der auf einen Einheitswürfel normierten Hüllbox. Der Neuaufbau verlangt Deckung des Stützpunkts und genau eine kantenverbundene, gleich orientierte Dreiecksmenge in der Ebene. Seitenbezüge älterer R3DP-Projekte verwenden weiterhin die bisherigen Achsenextrema.

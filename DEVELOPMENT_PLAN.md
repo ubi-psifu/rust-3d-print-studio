@@ -3,7 +3,7 @@
 ## Nächste Abnahmen
 
 1. Nach der erfolgreichen Windows-Server-Abnahme die Windows-11-Bedienung mit Hardware-Grafiktreiber prüfen. Für kurze Tastenkombinationen gibt es seit 0.12.2 Regressionstests und eine Fensterabnahme mit der portablen EXE.
-2. Für den CAD-Ausbau einen präzisen Geometriekern und dauerhafte Flächenbezüge erproben. STEP-Import und -Export benötigen einen geprüften Roundtrip.
+2. Die ebenen Öffnungsflächen aus 0.13.0 als nächsten Schritt direkt in der 3D-Ansicht auswählen. Für gekrümmte Flächen und exakte Körper einen B-Rep-Kern erproben. STEP-Import und -Export benötigen einen geprüften Roundtrip.
 3. Bei der Druckvorbereitung größere Importmodelle, Mehrfilament-Slicing und die physische Passung der Beispielteile prüfen.
 
 ## Ursprüngliche Entwicklungsphasen
