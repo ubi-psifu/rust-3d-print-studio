@@ -25,14 +25,14 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.20.0-final.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.21.0.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo 'aef9482896d1940e7a09f9489b2b4d6fd34462394a05e61ad01f67c24075a7e7  source.bundle' | sha256sum -c
+          echo '87b7746007994069416db9484ae5c4219c21e484f8b1dc64f3b29fab42c1590e  source.bundle' | sha256sum -c
           git bundle verify source.bundle
-          git fetch --no-tags ./source.bundle refs/heads/stepzylinder:refs/remotes/import/versions
+          git fetch --no-tags ./source.bundle refs/heads/rohr:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'STEP-Zylinderexport 0.20.0 integrieren' refs/remotes/import/versions
+          git merge --no-edit -m 'STEP-Rohrexport 0.21.0 integrieren' refs/remotes/import/versions
           git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
       - name: Windows-x64-Programm und Installer bauen
         shell: pwsh
@@ -71,14 +71,14 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.20.0-final.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.21.0.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo 'aef9482896d1940e7a09f9489b2b4d6fd34462394a05e61ad01f67c24075a7e7  source.bundle' | sha256sum -c
+          echo '87b7746007994069416db9484ae5c4219c21e484f8b1dc64f3b29fab42c1590e  source.bundle' | sha256sum -c
           git bundle verify source.bundle
-          git fetch --no-tags ./source.bundle refs/heads/stepzylinder:refs/remotes/import/versions
+          git fetch --no-tags ./source.bundle refs/heads/rohr:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'STEP-Zylinderexport 0.20.0 integrieren' refs/remotes/import/versions
+          git merge --no-edit -m 'STEP-Rohrexport 0.21.0 integrieren' refs/remotes/import/versions
           git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
       - name: Linux-Build und Modellabnahme
         shell: bash
@@ -100,6 +100,8 @@ jobs:
           python3 -m pip install --only-binary=:all: --target "$RUNNER_TEMP/step-kern" cadquery-ocp-novtk==7.9.3.1.1
           cargo +1.88.0 run --locked --example step_export -- examples/modelle/Referenzzylinder.r3dp "$RUNNER_TEMP/Zylinder.step"
           PYTHONPATH="$RUNNER_TEMP/step-kern" python3 scripts/step-abnahme.py "$RUNNER_TEMP/Zylinder.step"
+          cargo +1.88.0 run --locked --example step_export -- examples/modelle/Referenzrohr.r3dp "$RUNNER_TEMP/Rohr.step"
+          PYTHONPATH="$RUNNER_TEMP/step-kern" python3 scripts/step-abnahme.py "$RUNNER_TEMP/Rohr.step" --rohr
       - name: Öffnungsfläche im Linux-Fenster anklicken und speichern
         run: |
           sudo apt-get update -qq
@@ -125,14 +127,14 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.20.0-final.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.21.0.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo 'aef9482896d1940e7a09f9489b2b4d6fd34462394a05e61ad01f67c24075a7e7  source.bundle' | sha256sum -c
+          echo '87b7746007994069416db9484ae5c4219c21e484f8b1dc64f3b29fab42c1590e  source.bundle' | sha256sum -c
           git bundle verify source.bundle
-          git fetch --no-tags ./source.bundle refs/heads/stepzylinder:refs/remotes/import/versions
+          git fetch --no-tags ./source.bundle refs/heads/rohr:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'STEP-Zylinderexport 0.20.0 integrieren' refs/remotes/import/versions
+          git merge --no-edit -m 'STEP-Rohrexport 0.21.0 integrieren' refs/remotes/import/versions
           git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
       - uses: actions/download-artifact@v4
         with:
@@ -148,11 +150,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          prefix=Rust-3D-Print-Studio-0.20.0
+          prefix=Rust-3D-Print-Studio-0.21.0
           file="$prefix.zip"
-          notes=docs/releases/0.20.0.md
+          notes=docs/releases/0.21.0.md
           sed -i '/^SHA-256 des Downloadarchivs:/d' "$notes"
-          echo "73 Rust-Tests bestanden. Open CASCADE bestätigte vor und nach erneutem STEP-Schreiben genau einen geschlossenen Zylinder mit drei analytischen Flächen, Radius 7 mm, Höhe 19 mm, korrekter Lage, Achsrichtung und Volumen. Linux-Fensterabnahme mit sichtbaren Schnittflächen in den drei Achsrichtungen und bei freier Neigung, Originalvergleich, Vorschauabbruch, Kanten- und Flächenklick, Speichern, Rückgängig und Wiederholen bestanden. Windows-Server-Abnahme bestanden. Die portable EXE öffnete und speicherte die Keilschale samt Flächenbezug. [Prüfprotokoll](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> "$notes"
+          echo "74 Rust-Tests bestanden. Open CASCADE bestätigte am geneigten Referenzrohr vor und nach dem STEP-Rundlauf einen geschlossenen Körper mit vier Flächen, 4 und 7 mm Radius, 19 mm Höhe und 627π mm³ Volumen. Punktproben in drei Höhen bestätigten die freie Bohrung und die Rohrwand. Linux-Fensterabnahme mit sichtbaren Schnittflächen in den drei Achsrichtungen und bei freier Neigung, Originalvergleich, Vorschauabbruch, Kanten- und Flächenklick, Speichern, Rückgängig und Wiederholen bestanden. Windows-Server-Abnahme bestanden. Die portable EXE öffnete und speicherte die Keilschale samt Flächenbezug. [Prüfprotokoll](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> "$notes"
           git add "$notes"
           git commit -m 'STEP-Rundlauf und Plattformabnahme dokumentieren'
           mkdir "$prefix"
@@ -164,7 +166,7 @@ jobs:
           sha=$(sha256sum "$file" | cut -d' ' -f1)
           cp "$notes" release.md
           printf '\nSHA-256 des Downloadarchivs: %s\n' "$sha" >> release.md
-          git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.20.0
-          gh release create v0.20.0 "$file" --verify-tag --notes-file release.md --title 'Rust 3D Print Studio 0.20.0' --latest
-          curl -fsSL --retry 4 "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.20.0/$file" -o public.zip
+          git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.21.0
+          gh release create v0.21.0 "$file" --verify-tag --notes-file release.md --title 'Rust 3D Print Studio 0.21.0' --latest
+          curl -fsSL --retry 4 "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.21.0/$file" -o public.zip
           cmp "$file" public.zip
