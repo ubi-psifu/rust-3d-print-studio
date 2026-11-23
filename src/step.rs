@@ -1,5 +1,9 @@
 //! Analytischer STEP-AP214-Export für Vollzylinder, konzentrische Rohre und Bohrquader.
-use crate::{cad::Feature, geometry::Shape, project::Project};
+use crate::{
+    cad::Feature,
+    geometry::{Object, Shape},
+    project::Project,
+};
 use glam::{DQuat, DVec3, EulerRot};
 use std::io::{self, Write};
 
@@ -51,11 +55,32 @@ fn xyz(v: DVec3) -> String {
 }
 
 pub(crate) fn write_solid(mut out: impl Write, project: &Project) -> io::Result<()> {
-    let [object] = project.objects.as_slice() else {
+    if project.objects.is_empty() {
         return Err(io::Error::other(
-            "Für den STEP-Export genau einen Körper im Projekt verwenden.",
+            "Das Projekt enthält keine Körper für den STEP-Export.",
         ));
-    };
+    }
+    let date = timestamp(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(io::Error::other)?
+            .as_secs(),
+    )?;
+    writeln!(out, "ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('CAD in mm'),'2;1');\nFILE_NAME('Platte.step','{date}',(''),(''),'Rust 3D Print Studio','Rust 3D Print Studio','');\nFILE_SCHEMA(('AUTOMOTIVE_DESIGN'));\nENDSEC;\nDATA;")?;
+    for (index, object) in project.objects.iter().enumerate() {
+        write_object(&mut out, object, index + 1).map_err(|e| {
+            io::Error::new(
+                e.kind(),
+                format!("Objekt {} »{}«: {e}", index + 1, object.name),
+            )
+        })?;
+    }
+    writeln!(out, "ENDSEC;\nEND-ISO-10303-21;")
+}
+
+// Die Formatvorlagen verwenden je Teil drei Stellen für die lokale Entitätsnummer.
+fn write_object(mut out: impl Write, object: &Object, id: usize) -> io::Result<()> {
+    let product = step_name(&object.name);
     let (shape, size, bore) = match &object.feature {
         Some(Feature::Primitive { shape, size, bore }) => (*shape, *size, *bore),
         None => (object.shape, object.size, object.bore),
@@ -67,7 +92,7 @@ pub(crate) fn write_solid(mut out: impl Write, project: &Project) -> io::Result<
     };
     if !matches!(shape, Shape::Cylinder | Shape::Tube | Shape::BoredBox) {
         return Err(io::Error::other(
-            "Für STEP einen Kreiszylinder ein gerades Rohr oder einen Bohrquader verwenden.",
+            "Für STEP einen Kreiszylinder, ein gerades Rohr oder einen Bohrquader verwenden.",
         ));
     }
     if shape != Shape::BoredBox && size.x != size.y {
@@ -77,14 +102,8 @@ pub(crate) fn write_solid(mut out: impl Write, project: &Project) -> io::Result<
     }
     let r = object.rotation * (std::f64::consts::PI / 180.);
     let rotation = DQuat::from_euler(EulerRot::ZYX, r.z, r.y, r.x);
-    let date = timestamp(
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map_err(io::Error::other)?
-            .as_secs(),
-    )?;
     if shape == Shape::BoredBox {
-        return write_bored_box(out, object.position, rotation, size, bore, &date);
+        return write_bored_box(out, object.position, rotation, size, bore, id, &product);
     }
     let axis = rotation * DVec3::Z;
     let radial = rotation * DVec3::X;
@@ -101,6 +120,7 @@ pub(crate) fn write_solid(mut out: impl Write, project: &Project) -> io::Result<
         let inner = bore * 0.5;
         format!(
             include_str!("tube-interior.step.in"),
+            id = id,
             radius = format_args!("{inner:.16E}"),
             top_seam = xyz(top + inner * radial),
             bottom_seam = xyz(bottom + inner * radial)
@@ -111,11 +131,23 @@ pub(crate) fn write_solid(mut out: impl Write, project: &Project) -> io::Result<
     write!(
         out,
         include_str!("cylinder.step.in"),
-        timestamp = date,
-        product = if hollow { "Rohr" } else { "Zylinder" },
-        inner_face = if hollow { ",#101" } else { "" },
-        top_hole = if hollow { ",#120" } else { "" },
-        bottom_hole = if hollow { ",#123" } else { "" },
+        id = id,
+        product = product,
+        inner_face = if hollow {
+            format!(",#{id}101")
+        } else {
+            String::new()
+        },
+        top_hole = if hollow {
+            format!(",#{id}120")
+        } else {
+            String::new()
+        },
+        bottom_hole = if hollow {
+            format!(",#{id}123")
+        } else {
+            String::new()
+        },
         interior = interior,
         axis = xyz(axis),
         radial = xyz(radial),
@@ -133,7 +165,8 @@ fn write_bored_box(
     rotation: DQuat,
     size: DVec3,
     bore: f64,
-    date: &str,
+    id: usize,
+    product: &str,
 ) -> io::Result<()> {
     if !(bore.is_finite() && bore > 0. && bore < size.x.min(size.y)) {
         return Err(io::Error::other(
@@ -147,7 +180,8 @@ fn write_bored_box(
     write!(
         out,
         include_str!("bored-box.step.in"),
-        timestamp = date,
+        id = id,
+        product = product,
         radius = format_args!("{radius:.16E}"),
         bottom_center = point(0., 0., 0.),
         bottom_left_back = point(-half_x, half_y, 0.),
@@ -165,4 +199,20 @@ fn write_bored_box(
         y_axis = xyz(rotation * DVec3::Y),
         z_axis = xyz(rotation * DVec3::Z),
     )
+}
+
+fn step_name(name: &str) -> String {
+    use std::fmt::Write as _;
+    let mut encoded = String::new();
+    for ch in name.chars() {
+        match ch {
+            '\'' => encoded.push_str("''"),
+            ' '..='~' if ch != '\\' => encoded.push(ch),
+            _ if u32::from(ch) <= 0xffff => {
+                write!(encoded, "\\X2\\{:04X}\\X0\\", u32::from(ch)).unwrap()
+            }
+            _ => write!(encoded, "\\X4\\{:08X}\\X0\\", u32::from(ch)).unwrap(),
+        }
+    }
+    encoded
 }

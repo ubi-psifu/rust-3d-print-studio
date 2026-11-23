@@ -1,3 +1,7 @@
+# 0.23.0 · Druckplatte als STEP exportieren
+
+Öffne **examples/modelle/STEP-Platte.r3dp** und verschiebe oder dupliziere ein Teil. Wähle **Datei → CAD-Körper als STEP exportieren …**. Das Studio schreibt alle Körper des Projekts mit ihren Objektnamen und ihrer aktuellen Lage in eine lokale STEP-Datei. Die Teile bleiben einzeln lesbar. Auch Kopien mit gleichem Namen bleiben eigenständige Körper.
+
 # 0.22.0 · Bohrquader als STEP exportieren
 
 Ein einzelner Bohrquader lässt sich mit frei einstellbarer Breite, Tiefe, Höhe und mittiger Durchgangsbohrung offline als STEP exportieren. Position und Drehung bleiben erhalten.

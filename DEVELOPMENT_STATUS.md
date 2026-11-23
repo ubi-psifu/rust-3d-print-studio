@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## STEP-Plattenexport · 0.23.0
+
+Der Offline-Export unterstützt mehrere benannte Körper. Die Open-CASCADE-Abnahme liest drei getrennte Objekte und vergleicht Namen, Volumen und Schwerpunkte mit ihren Sollwerten. Ein Fehler bricht den gesamten Export atomar ab. Unterstützt sind Kreiszylinder, gerade Rohre und Bohrquader. Der Export einer Teilauswahl, allgemeiner STEP-Import und die Prüfung mit Windows-11-Hardwaregrafik bleiben offen. Plattformprüfungen siehe Release Notes.
+
 ## STEP für Bohrquader · 0.22.0
 
 Ein einzelner Bohrquader lässt sich mit frei einstellbarer Breite, Tiefe, Höhe und mittiger Durchgangsbohrung offline als STEP exportieren. Position und Drehung bleiben erhalten. Die geometrische Abnahme kontrolliert die sechs Außenebenen, Bohrungsachse, Innenradius, geschlossene Topologie, Materialproben und Volumen vor und nach erneutem STEP-Schreiben. Plattformabnahme siehe Release Notes. Allgemeiner STEP-Import, versetzte Bohrungen und mehrere Exportkörper bleiben offen.

@@ -39,7 +39,7 @@ fn step_tube_uses_feature_diameter_for_the_inner_wall() {
     save(&path, &project, Output::StepCylinder, false).unwrap();
     let step = std::fs::read_to_string(path).unwrap();
     assert_eq!(step.matches("CYLINDRICAL_SURFACE").count(), 2);
-    assert!(step.contains("CYLINDRICAL_SURFACE('',#46,3.0000000000000000E0)"));
+    assert!(step.contains("CYLINDRICAL_SURFACE('',#1046,3.0000000000000000E0)"));
 }
 
 #[test]
@@ -52,8 +52,29 @@ fn bored_box_keeps_independent_width_and_depth() {
     save(&path, &project, Output::StepCylinder, false).unwrap();
     let original = std::fs::read_to_string(&path).unwrap();
     assert_eq!(original.matches("ADVANCED_FACE(").count(), 7);
-    assert!(original.contains("CYLINDRICAL_SURFACE('',#200,2.5000000000000000E0)"));
+    assert!(original.contains("CYLINDRICAL_SURFACE('',#1200,2.5000000000000000E0)"));
     project.objects[0].bore = project.objects[0].size.y;
+    assert!(save(&path, &project, Output::StepCylinder, true).is_err());
+    assert_eq!(original, std::fs::read_to_string(path).unwrap());
+}
+
+#[test]
+fn step_exports_named_parts_and_rejects_an_empty_plate() {
+    let mut project = load(Path::new("examples/modelle/STEP-Platte.r3dp")).unwrap();
+    project.objects[0].name = "A'B#2\\C😀".into();
+    project.objects[1].name = project.objects[0].name.clone();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("Platte.stp");
+    save(&path, &project, Output::StepCylinder, false).unwrap();
+    let original = std::fs::read_to_string(&path).unwrap();
+    assert_eq!(original.matches("MANIFOLD_SOLID_BREP").count(), 3);
+    assert_eq!(
+        original
+            .matches(r"A''B#2\X2\005C\X0\C\X4\0001F600\X0\")
+            .count(),
+        2
+    );
+    project.objects.clear();
     assert!(save(&path, &project, Output::StepCylinder, true).is_err());
     assert_eq!(original, std::fs::read_to_string(path).unwrap());
 }
