@@ -5,6 +5,7 @@ pub mod dimensions;
 mod hook;
 pub mod inspect;
 mod modifiers;
+pub use modifiers::clip;
 pub mod references;
 pub mod sketch;
 mod sketch_solver;

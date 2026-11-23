@@ -90,6 +90,8 @@ impl GeometryPicker {
     }
 }
 struct EditPreview {
+    section: Option<(renderer::Solid, f64)>,
+    show_section: bool,
     index: usize,
     solid: renderer::Solid,
     view: View,
@@ -126,6 +128,7 @@ pub struct Studio {
     p: Project,
     tool: usize,
     preview: Option<EditPreview>,
+    section_percent: u8,
     pending: Option<(
         usize,
         std::sync::mpsc::Receiver<Result<CalculatedEdit, String>>,
@@ -185,6 +188,7 @@ impl Studio {
             gap: 3.,
             pending: None,
             preview: None,
+            section_percent: 50,
             operand: 0,
             operation: Operation::Difference,
             hist: History::default(),
@@ -1353,6 +1357,7 @@ impl Studio {
         });
     }
     fn calculate_draft(&mut self, preview: bool) {
+        let percent = self.section_percent;
         let mut view = self.p.view.clone();
         let (Some(i), Some(mut obj)) = (self.sel, self.draft.clone()) else {
             return;
@@ -1373,8 +1378,19 @@ impl Studio {
                     let (lo, hi) = solid.bounds;
                     view.target = (hi + lo) * 0.5;
                     view.distance = ((hi - lo).length() * 2.).clamp(8., 5000.);
+                    let section = if matches!(obj.feature, Some(Feature::Shell { .. })) {
+                        Some(
+                            solid
+                                .horizontal_section(percent)
+                                .map_err(|err| format!("Schnittvorschau fehlgeschlagen · {err}"))?,
+                        )
+                    } else {
+                        None
+                    };
                     Ok(CalculatedEdit::Preview(Box::new(EditPreview {
                         index: i,
+                        show_section: section.is_some(),
+                        section,
                         solid,
                         view,
                         original: false,
@@ -1431,7 +1447,17 @@ impl Studio {
         let mut help = ctx.input(|i| i.key_pressed(egui::Key::F1));
         egui::TopBottomPanel::top("ergebnisleiste").show(ctx, |ui| {
             ui.horizontal_wrapped(|ui| {
-                ui.strong("Kantenvorschau");
+                if let Some((_, z)) = &preview.section {
+                    ui.strong("Schalenvorschau");
+                    ui.add_enabled_ui(!preview.original, |ui| {
+                        ui.checkbox(
+                            &mut preview.show_section,
+                            format!("Schnitt bei Z {z:.2} mm"),
+                        );
+                    });
+                } else {
+                    ui.strong("Kantenvorschau");
+                }
                 ui.checkbox(&mut preview.original, "Bisherigen Körper anzeigen");
                 apply = ui.button("Ergebnis übernehmen").clicked();
                 back |= ui.button("Zurück zum Entwurf").clicked();
@@ -1455,7 +1481,11 @@ impl Studio {
         } else if back {
             self.preview = None;
         } else if help {
-            self.help.show_topic("Kantenvorschau");
+            self.help.show_topic(if preview.section.is_some() {
+                "Schalenvorschau"
+            } else {
+                "Kantenvorschau"
+            });
         }
     }
     fn choose_geometry(&mut self, ctx: &egui::Context) {
@@ -1848,9 +1878,16 @@ impl Studio {
             .show(ctx, |ui| {
                 egui::TopBottomPanel::bottom("modellaktionen").show_inside(ui, |ui| {
                     ui.add_space(6.);
+                    let feature = self.draft.as_ref().and_then(|d| d.feature.as_ref());
+                    if matches!(feature, Some(Feature::Shell { .. })) {
+                        ui.add(
+                            egui::Slider::new(&mut self.section_percent, 1..=99)
+                                .text("Schnitthöhe %"),
+                        );
+                    }
                     if matches!(
-                        self.draft.as_ref().and_then(|d| d.feature.as_ref()),
-                        Some(Feature::EdgeFinish { .. })
+                        feature,
+                        Some(Feature::EdgeFinish { .. } | Feature::Shell { .. })
                     ) && ui.button("Vorschau anzeigen").clicked()
                     {
                         self.calculate_draft(true);
@@ -2007,6 +2044,10 @@ impl Studio {
             if let Some(preview) = &self.preview {
                 let solid = if preview.original {
                     self.cache.get(preview.index).unwrap_or(&preview.solid)
+                } else if let Some((section, _)) =
+                    preview.section.as_ref().filter(|_| preview.show_section)
+                {
+                    section
                 } else {
                     &preview.solid
                 };

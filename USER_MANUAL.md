@@ -2,6 +2,12 @@
 
 Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der rechten Maustaste anklicken und unter **Öffnen mit** Rust 3D Print Studio auswählen.
 
+## Schalenvorschau
+
+Öffne **Keilschale.r3dp**, wähle die Schale und stelle im Inspektor die **Schnitthöhe %** ein. Bei 50 % verläuft der horizontale Schnitt auf halber Höhe zwischen Ober- und Unterkante des platzierten Entwurfs. **Vorschau anzeigen** zeigt die untere Hälfte. Die goldenen Flächen zeigen das Material in der Schnittebene. Der Hohlraum bleibt frei.
+
+Über **Schnitt bei Z … mm** wechselst du zwischen Schnitt und vollständigem Entwurf. **Bisherigen Körper anzeigen** zeigt zum Vergleich den bisherigen Projektstand. Drehe die Ansicht mit der rechten Maustaste. **Esc** führt zu deinen Eingaben zurück. **Ergebnis übernehmen** speichert die vollständige Schale als einen rückgängig machbaren Schritt. **F1** öffnet dieses Kapitel offline.
+
 ## Kantenvorschau
 
 Öffne **Kantenquader.r3dp**, wähle den Quader und ändere die Kante oder ihre Maße. Klicke im Inspektor auf **Vorschau anzeigen**. Drehe das Ergebnis mit der rechten Maustaste oder zoome mit dem Mausrad. Über **Bisherigen Körper anzeigen** kannst du den alten und den neuen Stand aus derselben Blickrichtung vergleichen.

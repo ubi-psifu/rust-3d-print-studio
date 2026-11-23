@@ -1,3 +1,7 @@
+# 0.17.0 · Innenraum einer Schale im Schnitt prüfen
+
+Für die oberste Aushöhlung zeigt die 3D-Vorschau den Hohlraum und die Materialfläche bei einer wählbaren Höhe. Übernehmen verwendet die vollständige Schale.
+
 # 0.16.0 · Kantenbearbeitung vor der Übernahme vergleichen
 
 Im Inspektor lässt sich der Entwurf berechnen und aus gleicher Blickrichtung mit dem bisherigen Körper vergleichen. Esc führt zu den Eingaben zurück. F1 erklärt die Vorschau offline.
