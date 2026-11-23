@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## Schalenschnitt 0.17.0
+
+Die 3D-Vorschau der obersten Aushöhlung schneidet das Weltkoordinaten-Netz auf einer im Inspektor gewählten Höhe von 1 bis 99 %. Der CAD-Arbeitsthread berechnet die untere Hälfte samt Schnittflächen. Das abgeleitete Ansichtsnetz wird getrennt vom übernehmbaren Körper gehalten. Die Abnahme vergleicht am seitlich offenen Quader die Materialfläche in drei Höhen mit dem Sollmaß. Die Fensterabnahme verwendet die Keilschale. Die Ergebnisse stehen in den Release Notes. Senkrechte und frei orientierte Schnitte sind offen.
+
 ## Kantenvorschau 0.16.0
 
 Der Inspektor bietet für die oberste Kantenbearbeitung eine isolierte Ergebnisansicht mit eigener Kamera. Original und Ergebnis sind umschaltbar. Esc erhält den Entwurf, Übernehmen erzeugt einen Verlaufsschritt. Die Linux-Fensterabnahme prüft den Bildwechsel, Abbruch, unveränderten Projektstand, Übernahme und Undo/Redo. Prüfergebnisse stehen in den Release Notes. Für Aushöhlungen fehlt noch eine geschnittene Vorschau.

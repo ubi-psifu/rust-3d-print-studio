@@ -33,14 +33,29 @@ impl Solid {
         self.model
     }
     pub fn new(o: &geometry::Object) -> Self {
-        let mesh = o.mesh();
+        Self::from_mesh(o, o.mesh(), None)
+    }
+
+    pub fn horizontal_section(&self, percent: u8) -> Result<(Self, f64), String> {
+        let (lo, hi) = self.bounds;
+        let z = lo.z + (hi.z - lo.z) * f64::from(percent) / 100.;
+        let center = (lo + hi) * 0.5;
+        let plane = ::glam::DVec3::new(center.x, center.y, z);
+        let mesh = rust_3d_print_studio::cad::clip(&self.mesh, plane, -::glam::DVec3::Z)?;
+        Ok((Self::from_mesh(&self.model, mesh, Some(z)), z))
+    }
+
+    fn from_mesh(o: &geometry::Object, mesh: geometry::Mesh, cut_z: Option<f64>) -> Self {
         let bounds = mesh.bounds();
         let mut vertices = Vec::with_capacity(mesh.faces.len() * 3);
         for face in &mesh.faces {
             let [a, b, c] = face.map(|j| mesh.vertices[j].as_vec3());
             let normal = (b - a).cross(c - a).normalize_or_zero();
             let shade = 0.66 + normal.dot(vec3(-0.35, -0.48, 0.8)).max(-0.4) * 0.32;
-            let [r, g, b8] = o.color.map(|v| (v as f32 * shade) as u8);
+            let cap =
+                cut_z.is_some_and(|z| face.iter().all(|&i| (mesh.vertices[i].z - z).abs() < 1e-6));
+            let color = if cap { [255, 186, 65] } else { o.color };
+            let [r, g, b8] = color.map(|v| (v as f32 * shade) as u8);
             for v in [a, b, c] {
                 vertices.push(Vertex::new2(v, Vec2::ZERO, Color::from_rgba(r, g, b8, 255)));
             }
@@ -251,6 +266,32 @@ pub fn draw(
 mod tests {
     use super::*;
     use rust_3d_print_studio::geometry::{Object, Shape};
+    #[test]
+    fn shell_section_retains_cavity_at_world_height() {
+        let project = rust_3d_print_studio::files::load(std::path::Path::new(
+            "examples/modelle/Seitlich-offene-Schale.r3dp",
+        ))
+        .unwrap();
+        let mut object = project.objects[0].clone();
+        object.position.z = 7.;
+        object.rotation.z = 32.;
+        let solid = Solid::new(&object);
+        for percent in [25, 50, 75] {
+            let (section, z) = solid.horizontal_section(percent).unwrap();
+            assert!((z - (7. + 0.2 * f64::from(percent))).abs() < 1e-7);
+            assert!((section.bounds.1.z - z).abs() < 1e-6);
+            let area: f64 = section
+                .mesh
+                .faces
+                .iter()
+                .map(|f| f.map(|i| section.mesh.vertices[i]))
+                .filter(|tri| tri.iter().all(|v| (v.z - z).abs() < 1e-6))
+                .map(|[a, b, c]| (b - a).cross(c - a).length() * 0.5)
+                .sum();
+            assert!((area - (40. * 30. - 38. * 26.)).abs() < 1e-3, "{area}");
+        }
+        assert_eq!(solid.into_model(), object);
+    }
     #[test]
     fn click_on_rotated_wedge_binds_local_slope_in_both_projections() {
         use rust_3d_print_studio::{
