@@ -1,3 +1,7 @@
+# Analytischer STEP-Export
+
+Vollzylinder und Rohr teilen sich Mantel, Stirnebenen und das lokale Achsensystem. Beim Rohr ergänzt der Schreiber einen nach innen gerichteten Zylindermantel und je einen Innenrand der Stirnflächen. Er verwendet die Parameter vor der Tessellierung. Open CASCADE prüft exportierte Dateien unabhängig und wird nur für die Abnahme benötigt.
+
 # Kreisradius ab 0.12
 
 Der NSIS-Installer liest die Paketversion aus Cargo.toml. Die per Benutzer registrierte Explorer-Anwendung übergibt den Projektpfad an den bestehenden Startparameter der EXE.

@@ -1,3 +1,7 @@
+# 0.21.0 · Rohre als STEP exportieren
+
+Der Offline-Export erhält die Durchgangsbohrung eines parametrischen Rohrs, seine Maße und die Plattenlage. Referenzprojekt und Anleitung sind enthalten.
+
 # 0.20.0 · Kreiszylinder als STEP exportieren
 
 Analytischer Export inklusive Plattenposition und Drehung, mit Beispielprojekt, deutscher F1-Hilfe und unabhängiger Geometrieabnahme.

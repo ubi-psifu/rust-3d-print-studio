@@ -1,4 +1,4 @@
-//! Export eines einzelnen Kreiszylinders aus einer R3DP-Datei.
+//! Export eines Kreiszylinders oder Rohrs aus einer R3DP-Datei.
 use rust_3d_print_studio::files::{load, save, Output};
 use std::{io, path::PathBuf};
 
