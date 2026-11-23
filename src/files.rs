@@ -61,6 +61,34 @@ impl Output {
     }
 }
 pub fn save(path: &Path, p: &Project, format: Output, overwrite: bool) -> io::Result<()> {
+    save_scoped(path, p, format, overwrite, None)
+}
+
+pub fn save_step_selection(
+    path: &Path,
+    p: &Project,
+    indices: &[usize],
+    overwrite: bool,
+) -> io::Result<()> {
+    let mut included = vec![false; p.objects.len()];
+    if indices.is_empty() {
+        return Err(invalid("Bitte mindestens einen Körper auswählen."));
+    }
+    for &index in indices {
+        *included
+            .get_mut(index)
+            .ok_or_else(|| invalid("Die Auswahl enthält ein fehlendes Objekt."))? = true;
+    }
+    save_scoped(path, p, Output::StepCylinder, overwrite, Some(&included))
+}
+
+fn save_scoped(
+    path: &Path,
+    p: &Project,
+    format: Output,
+    overwrite: bool,
+    included: Option<&[bool]>,
+) -> io::Result<()> {
     if !p.valid() {
         return Err(invalid("Ungültige Projektparameter"));
     }
@@ -88,7 +116,7 @@ pub fn save(path: &Path, p: &Project, format: Output, overwrite: bool) -> io::Re
                 }
                 out.write_all(&data)?;
             }
-            Output::StepCylinder => crate::step::write_solid(&mut out, p)?,
+            Output::StepCylinder => crate::step::write_solid(&mut out, p, included)?,
             Output::StlAscii => stl_ascii(&mut out, p)?,
             Output::Ply => crate::ply::write(&mut out, p)?,
             Output::Stl => stl(&mut out, p)?,

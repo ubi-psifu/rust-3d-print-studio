@@ -1,5 +1,7 @@
 # Analytischer STEP-Export
 
+Der Auswahlexport prüft die Objektindizes vor dem Schreiben. Eine Maske begrenzt den vorhandenen STEP-Schreiber auf markierte Objekte in Projektreihenfolge. Die Nummern im Fehlerfall beziehen sich auf das vollständige Projekt. Beide Exportvarianten nutzen denselben atomaren Dateiersatz.
+
 Ein AP214-Dokument enthält je Objekt ein eigenes Produkt mit eigener Formrepräsentation. Die Entitätsnummer setzt sich aus dem einsbasierten Objektindex und drei Stellen für die lokale Referenz zusammen. Jeder Körper verwendet seine Plattenkoordinaten. Der Objektname wird als STEP-Zeichenkette kodiert und unabhängig von der eindeutigen Produkt-ID gespeichert.
 
 Der Bohrquader hat eine eigene feste AP214-Topologie. Acht Außenecken, die Naht der Innenwand und die Flächenachsen werden aus den ungerundeten lokalen Parametern in das Plattenkoordinatensystem transformiert. Die sechs Außenflächen teilen sich ihre Kanten, beide Stirnflächen teilen die Kreisränder mit der Bohrung.

@@ -3,7 +3,7 @@
 ## Nächste Abnahmen
 
 1. Nach der erfolgreichen Windows-Server-Abnahme die Windows-11-Bedienung mit Hardware-Grafiktreiber prüfen. Für kurze Tastenkombinationen gibt es seit 0.12.2 Regressionstests und eine Fensterabnahme mit der portablen EXE.
-2. Eine gezielte Auswahl von Plattenobjekten als STEP exportieren. Mehrfachauswahl, ungeeignete Nachbarobjekte und den Erhalt der Plattenkoordinaten praktisch prüfen. Allgemeiner STEP-Import und die Integration eines B-Rep-Kerns für weitere Featuretypen bleiben offen.
+2. Den häufig verwendeten einfachen Quader für den exakten STEP-Export ergänzen und seine Außenmaße, Plattenlage und sein Volumen unabhängig prüfen. Allgemeiner STEP-Import und die Integration eines B-Rep-Kerns für weitere Featuretypen bleiben offen.
 3. Bei der Druckvorbereitung größere Importmodelle, Mehrfilament-Slicing und die physische Passung der Beispielteile prüfen.
 
 ## Ursprüngliche Entwicklungsphasen
