@@ -1,3 +1,7 @@
+# 0.20.0 · Kreiszylinder als STEP exportieren
+
+Analytischer Export inklusive Plattenposition und Drehung, mit Beispielprojekt, deutscher F1-Hilfe und unabhängiger Geometrieabnahme.
+
 # 0.19.0 · Freie Schnittebene
 
 Die Schalenvorschau erlaubt beliebige Richtungen über zwei Winkel in Grad. F1 erklärt die Winkel und den angezeigten Normalabstand.

@@ -40,6 +40,7 @@ pub fn load(path: &Path) -> io::Result<Project> {
 }
 #[derive(Clone, Copy, PartialEq)]
 pub enum Output {
+    StepCylinder,
     Project,
     Stl,
     StlAscii,
@@ -51,6 +52,7 @@ impl Output {
     pub fn ext(self) -> &'static str {
         match self {
             Self::Project => "r3dp",
+            Self::StepCylinder => "step",
             Self::Stl | Self::StlAscii => "stl",
             Self::Ply => "ply",
             Self::ThreeMf => "3mf",
@@ -65,10 +67,10 @@ pub fn save(path: &Path, p: &Project, format: Output, overwrite: bool) -> io::Re
     if format != Output::Project && p.objects.is_empty() {
         return Err(invalid("Projekt enthält keine Körper"));
     }
-    if !path
-        .extension()
-        .is_some_and(|s| s.eq_ignore_ascii_case(format.ext()))
-    {
+    if !path.extension().is_some_and(|s| {
+        s.eq_ignore_ascii_case(format.ext())
+            || (format == Output::StepCylinder && s.eq_ignore_ascii_case("stp"))
+    }) {
         return Err(invalid("Dateiendung passt nicht zum gewählten Format"));
     }
     let dir = path
@@ -86,6 +88,7 @@ pub fn save(path: &Path, p: &Project, format: Output, overwrite: bool) -> io::Re
                 }
                 out.write_all(&data)?;
             }
+            Output::StepCylinder => crate::step::write_cylinder(&mut out, p)?,
             Output::StlAscii => stl_ascii(&mut out, p)?,
             Output::Ply => crate::ply::write(&mut out, p)?,
             Output::Stl => stl(&mut out, p)?,
