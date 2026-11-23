@@ -1,4 +1,4 @@
-//! Analytischer STEP-AP214-Export für Vollzylinder und konzentrische Rohre.
+//! Analytischer STEP-AP214-Export für Vollzylinder, konzentrische Rohre und Bohrquader.
 use crate::{cad::Feature, geometry::Shape, project::Project};
 use glam::{DQuat, DVec3, EulerRot};
 use std::io::{self, Write};
@@ -50,10 +50,10 @@ fn xyz(v: DVec3) -> String {
     format!("({:.16E},{:.16E},{:.16E})", v.x, v.y, v.z)
 }
 
-pub(crate) fn write_cylinder(mut out: impl Write, project: &Project) -> io::Result<()> {
+pub(crate) fn write_solid(mut out: impl Write, project: &Project) -> io::Result<()> {
     let [object] = project.objects.as_slice() else {
         return Err(io::Error::other(
-            "Für den STEP-Export genau einen Zylinder oder ein Rohr im Projekt verwenden.",
+            "Für den STEP-Export genau einen Körper im Projekt verwenden.",
         ));
     };
     let (shape, size, bore) = match &object.feature {
@@ -65,18 +65,27 @@ pub(crate) fn write_cylinder(mut out: impl Write, project: &Project) -> io::Resu
             ))
         }
     };
-    if !matches!(shape, Shape::Cylinder | Shape::Tube) {
+    if !matches!(shape, Shape::Cylinder | Shape::Tube | Shape::BoredBox) {
         return Err(io::Error::other(
-            "Für STEP einen Kreiszylinder oder ein gerades Rohr verwenden.",
+            "Für STEP einen Kreiszylinder ein gerades Rohr oder einen Bohrquader verwenden.",
         ));
     }
-    if size.x != size.y {
+    if shape != Shape::BoredBox && size.x != size.y {
         return Err(io::Error::other(
             "Für einen Kreiszylinder müssen X- und Y-Durchmesser übereinstimmen.",
         ));
     }
     let r = object.rotation * (std::f64::consts::PI / 180.);
     let rotation = DQuat::from_euler(EulerRot::ZYX, r.z, r.y, r.x);
+    let date = timestamp(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(io::Error::other)?
+            .as_secs(),
+    )?;
+    if shape == Shape::BoredBox {
+        return write_bored_box(out, object.position, rotation, size, bore, &date);
+    }
     let axis = rotation * DVec3::Z;
     let radial = rotation * DVec3::X;
     let radius = size.x * 0.5;
@@ -102,12 +111,7 @@ pub(crate) fn write_cylinder(mut out: impl Write, project: &Project) -> io::Resu
     write!(
         out,
         include_str!("cylinder.step.in"),
-        timestamp = timestamp(
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map_err(io::Error::other)?
-                .as_secs()
-        )?,
+        timestamp = date,
         product = if hollow { "Rohr" } else { "Zylinder" },
         inner_face = if hollow { ",#101" } else { "" },
         top_hole = if hollow { ",#120" } else { "" },
@@ -120,5 +124,45 @@ pub(crate) fn write_cylinder(mut out: impl Write, project: &Project) -> io::Resu
         top = xyz(top),
         bottom_seam = xyz(bottom + radius * radial),
         top_seam = xyz(top + radius * radial)
+    )
+}
+
+fn write_bored_box(
+    mut out: impl Write,
+    origin: DVec3,
+    rotation: DQuat,
+    size: DVec3,
+    bore: f64,
+    date: &str,
+) -> io::Result<()> {
+    if !(bore.is_finite() && bore > 0. && bore < size.x.min(size.y)) {
+        return Err(io::Error::other(
+            "Der Bohrungsdurchmesser muss positiv und kleiner als beide Außenmaße sein.",
+        ));
+    }
+    let half_x = size.x / 2.;
+    let half_y = size.y / 2.;
+    let radius = bore / 2.;
+    let point = |x, y, z| xyz(origin + rotation * DVec3::new(x, y, z));
+    write!(
+        out,
+        include_str!("bored-box.step.in"),
+        timestamp = date,
+        radius = format_args!("{radius:.16E}"),
+        bottom_center = point(0., 0., 0.),
+        bottom_left_back = point(-half_x, half_y, 0.),
+        bottom_left_front = point(-half_x, -half_y, 0.),
+        bottom_right_back = point(half_x, half_y, 0.),
+        bottom_right_front = point(half_x, -half_y, 0.),
+        bottom_seam = point(radius, 0., 0.),
+        top_center = point(0., 0., size.z),
+        top_left_back = point(-half_x, half_y, size.z),
+        top_left_front = point(-half_x, -half_y, size.z),
+        top_right_back = point(half_x, half_y, size.z),
+        top_right_front = point(half_x, -half_y, size.z),
+        top_seam = point(radius, 0., size.z),
+        x_axis = xyz(rotation * DVec3::X),
+        y_axis = xyz(rotation * DVec3::Y),
+        z_axis = xyz(rotation * DVec3::Z),
     )
 }

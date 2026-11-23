@@ -1,3 +1,7 @@
+# 0.22.0 · Bohrquader als STEP exportieren
+
+Ein einzelner Bohrquader lässt sich mit frei einstellbarer Breite, Tiefe, Höhe und mittiger Durchgangsbohrung offline als STEP exportieren. Position und Drehung bleiben erhalten.
+
 # 0.21.0 · Rohre als STEP exportieren
 
 Der Offline-Export erhält die Durchgangsbohrung eines parametrischen Rohrs, seine Maße und die Plattenlage. Referenzprojekt und Anleitung sind enthalten.

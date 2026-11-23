@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## STEP für Bohrquader · 0.22.0
+
+Ein einzelner Bohrquader lässt sich mit frei einstellbarer Breite, Tiefe, Höhe und mittiger Durchgangsbohrung offline als STEP exportieren. Position und Drehung bleiben erhalten. Die geometrische Abnahme kontrolliert die sechs Außenebenen, Bohrungsachse, Innenradius, geschlossene Topologie, Materialproben und Volumen vor und nach erneutem STEP-Schreiben. Plattformabnahme siehe Release Notes. Allgemeiner STEP-Import, versetzte Bohrungen und mehrere Exportkörper bleiben offen.
+
 ## Gerade Rohre als STEP · 0.21.0
 
 Der STEP-Export übernimmt den Bohrungsdurchmesser aus dem Grundkörper oder dessen primitiver Konstruktionshistorie. Die unabhängige Abnahme kontrolliert beide Radien, vier Flächen, geschlossene Topologie, Volumen und Materiallage vor und nach einem STEP-Rundlauf. Plattformprüfungen siehe Release Notes. Offen sind versetzte Bohrungen, STEP-Import und weitere Körpertypen.

@@ -88,7 +88,7 @@ pub fn save(path: &Path, p: &Project, format: Output, overwrite: bool) -> io::Re
                 }
                 out.write_all(&data)?;
             }
-            Output::StepCylinder => crate::step::write_cylinder(&mut out, p)?,
+            Output::StepCylinder => crate::step::write_solid(&mut out, p)?,
             Output::StlAscii => stl_ascii(&mut out, p)?,
             Output::Ply => crate::ply::write(&mut out, p)?,
             Output::Stl => stl(&mut out, p)?,
