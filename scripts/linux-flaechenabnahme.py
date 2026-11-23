@@ -109,7 +109,18 @@ def check_model(model):
             xdo("key", "Escape")
             time.sleep(0.5)
             assert save(window, path) == original, "Vorschau hat den Projektstand verändert"
-            button(window, "vorschau", w, h)
+            if model == "Keilschale":
+                for direction in ("seitlich", "frontal"):
+                    button(window, direction, w, h)
+                    button(window, "vorschau", w, h)
+                    cap = cut_color_count(pixels())
+                    button(window, "schnitt", w, h, toolbar=True)
+                    assert cap > cut_color_count(pixels()) + 50, direction
+                    if direction == "seitlich":
+                        xdo("key", "Escape")
+                        time.sleep(0.4)
+            else:
+                button(window, "vorschau", w, h)
             button(window, "ergebnis", w, h, toolbar=True)
             time.sleep(1)
             bound = save(window, path)
