@@ -25,14 +25,14 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.17.0.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.18.0.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo '706297a22999ccef51bfbc42e4e551a8f02d3b316a65916d9f4a8d7e93bdf50a  source.bundle' | sha256sum -c
+          echo '18be5840501b66b3f098f0c5599f90c1fb4aea50e9098d5d43f796dafbb372fb  source.bundle' | sha256sum -c
           git bundle verify source.bundle
-          git fetch --no-tags ./source.bundle refs/heads/schalenschnitt:refs/remotes/import/versions
+          git fetch --no-tags ./source.bundle refs/heads/schnittachsen:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'Schalenvorschau 0.17.0 integrieren' refs/remotes/import/versions
+          git merge --no-edit -m 'Schalenvorschau 0.18.0 integrieren' refs/remotes/import/versions
           git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
       - name: Windows-x64-Programm und Installer bauen
         shell: pwsh
@@ -71,14 +71,14 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.17.0.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.18.0.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo '706297a22999ccef51bfbc42e4e551a8f02d3b316a65916d9f4a8d7e93bdf50a  source.bundle' | sha256sum -c
+          echo '18be5840501b66b3f098f0c5599f90c1fb4aea50e9098d5d43f796dafbb372fb  source.bundle' | sha256sum -c
           git bundle verify source.bundle
-          git fetch --no-tags ./source.bundle refs/heads/schalenschnitt:refs/remotes/import/versions
+          git fetch --no-tags ./source.bundle refs/heads/schnittachsen:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'Schalenvorschau 0.17.0 integrieren' refs/remotes/import/versions
+          git merge --no-edit -m 'Schalenvorschau 0.18.0 integrieren' refs/remotes/import/versions
           git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
       - name: Linux-Build und Modellabnahme
         shell: bash
@@ -118,14 +118,14 @@ jobs:
         run: |
           set -euo pipefail
           api="repos/$GITHUB_REPOSITORY"
-          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.17.0.bundle") | .id' | tr -d '\r')
+          id=$(gh api "$api/releases?per_page=100" | jq -er '.[] | select(.draft and .name == "Versionsimport") | .assets[] | select(.name == "version-0.18.0.bundle") | .id' | tr -d '\r')
           curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "https://api.github.com/$api/releases/assets/$id" -o source.bundle
-          echo '706297a22999ccef51bfbc42e4e551a8f02d3b316a65916d9f4a8d7e93bdf50a  source.bundle' | sha256sum -c
+          echo '18be5840501b66b3f098f0c5599f90c1fb4aea50e9098d5d43f796dafbb372fb  source.bundle' | sha256sum -c
           git bundle verify source.bundle
-          git fetch --no-tags ./source.bundle refs/heads/schalenschnitt:refs/remotes/import/versions
+          git fetch --no-tags ./source.bundle refs/heads/schnittachsen:refs/remotes/import/versions
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git merge --no-edit -m 'Schalenvorschau 0.17.0 integrieren' refs/remotes/import/versions
+          git merge --no-edit -m 'Schalenvorschau 0.18.0 integrieren' refs/remotes/import/versions
           git diff --exit-code refs/remotes/import/versions HEAD -- . ':(exclude).github/workflows'
       - uses: actions/download-artifact@v4
         with:
@@ -141,11 +141,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          prefix=Rust-3D-Print-Studio-0.17.0
+          prefix=Rust-3D-Print-Studio-0.18.0
           file="$prefix.zip"
-          notes=docs/releases/0.17.0.md
+          notes=docs/releases/0.18.0.md
           sed -i '/^SHA-256 des Downloadarchivs:/d' "$notes"
-          echo "70 Rust-Tests bestanden. Die Materialfläche der seitlich offenen Schale betrug auf drei Schnitthöhen jeweils 212 mm². Linux-Fensterabnahme mit sichtbarer Schnittfläche, Originalvergleich, Vorschauabbruch, Kanten- und Flächenklick, Speichern, Rückgängig und Wiederholen bestanden. Windows-Server-Abnahme bestanden. Die portable EXE öffnete und speicherte die Keilschale samt Flächenbezug. [Prüfprotokoll](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> "$notes"
+          echo "71 Rust-Tests bestanden. Seitlich und frontal wurden an der um 90° gedrehten Schale bei 25, 50 und 75 Prozent jeweils 192 bzw. 184 mm² Schnittfläche bestätigt. Linux-Fensterabnahme mit sichtbaren Schnittflächen in allen drei Richtungen, Originalvergleich, Vorschauabbruch, Kanten- und Flächenklick, Speichern, Rückgängig und Wiederholen bestanden. Windows-Server-Abnahme bestanden. Die portable EXE öffnete und speicherte die Keilschale samt Flächenbezug. [Prüfprotokoll](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> "$notes"
           git add "$notes"
           git commit -m 'Abnahme der Schalenvorschau dokumentieren'
           mkdir "$prefix"
@@ -157,7 +157,7 @@ jobs:
           sha=$(sha256sum "$file" | cut -d' ' -f1)
           cp "$notes" release.md
           printf '\nSHA-256 des Downloadarchivs: %s\n' "$sha" >> release.md
-          git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.17.0
-          gh release create v0.17.0 "$file" --verify-tag --notes-file release.md --title 'Rust 3D Print Studio 0.17.0' --latest
-          curl -fsSL --retry 4 "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.17.0/$file" -o public.zip
+          git push --atomic origin HEAD:refs/heads/main HEAD:refs/tags/v0.18.0
+          gh release create v0.18.0 "$file" --verify-tag --notes-file release.md --title 'Rust 3D Print Studio 0.18.0' --latest
+          curl -fsSL --retry 4 "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.18.0/$file" -o public.zip
           cmp "$file" public.zip
