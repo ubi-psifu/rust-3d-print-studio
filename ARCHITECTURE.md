@@ -81,3 +81,5 @@ Der lokale Flächenbezug speichert Einheitsnormale und Stützpunkt im Koordinate
 Die Schalenvorschau schneidet das platzierte Netz im Berechnungsthread mit derselben booleschen Halbraumoperation wie das Schnittwerkzeug. Der Renderer färbt Dreiecke der Schnittebene im abgeleiteten Ansichtsnetz. Der Verlauf übernimmt den separat gehaltenen vollständigen Entwurf.
 
 Bei einer frei gerichteten Schnittebene bestimmt die Projektion der platzierten Netzeckpunkte auf die Einheitsnormale die beiden Grenzlagen. Damit entspricht die prozentuale Lage auch nach Drehungen der Ausdehnung des tatsächlichen Körpers.
+
+Der STEP-Exporter bindet die feste AP214-Topologie eines Kreiszylinders an die ursprünglichen Konstruk­tionsmaße und die Objekttransformation. Die Topologievorlage wurde anhand eines mit Open CASCADE erzeugten Referenzkörpers aufgebaut. Die Desktop-Anwendung benötigt für den Export weder Python noch eine installierte CAD-Bibliothek. Der separate Rundlauftest benutzt Open CASCADE zum Lesen, Schreiben und erneuten Lesen.

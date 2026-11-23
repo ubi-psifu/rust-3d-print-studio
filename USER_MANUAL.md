@@ -2,6 +2,12 @@
 
 Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der rechten Maustaste anklicken und unter **Öffnen mit** Rust 3D Print Studio auswählen.
 
+## Zylinder als STEP exportieren
+
+Öffne **Referenzzylinder.r3dp** und wähle **Datei → Zylinder als STEP exportieren …**. Gib einen lokalen Pfad mit der Endung **.step** oder **.stp** an. Der Export schreibt den Kreismantel, beide ebenen Stirnflächen und ihre gemeinsamen Kanten als geschlossenen CAD-Körper in Millimetern. Position und Drehung auf der Druckplatte werden übernommen. Zum Ändern von Durchmesser oder Höhe öffne das R3DP-Projekt und übernimm die neuen Parameter vor dem Export.
+
+Das Projekt muss genau einen unbearbeiteten Kreiszylinder mit gleichem X- und Y-Durchmesser enthalten. Zusätzliche Objekte, elliptische Querschnitte und bearbeitete Körper werden mit einer Meldung zurückgewiesen. Der STEP-Import in das Studio ist noch offen.
+
 ## Schalenvorschau
 
 Öffne **Keilschale.r3dp**, markiere die Schale und wähle im Inspektor **Frei geneigt**. Der Azimut dreht die Flächennormale in der Draufsicht von +X nach +Y. Der Höhenwinkel kippt die Flächennormale aus der Druckplattenebene in Richtung +Z oder −Z. Zum Ausprobieren verwende **45° Azimut**, **30° Höhenwinkel** und **50 % Schnittlage**.
@@ -147,7 +153,8 @@ Im Menü **Datei** den Befehl wählen und einen vollständigen Dateipfad samt En
 | ASCII-STL | Dreiecksnetz | Netz in mm |
 | ASCII-PLY 1.0 | XYZ und indizierte Polygonflächen eines geschlossenen Netzes | Eine indizierte Dreiecksgeometrie in mm |
 | SVG | Geschlossene Konturen als Relief | Schichtzeichnungen |
-| STEP/STP, binäres PLY, GLTF/GLB, G-Code | Offen | Offen |
+| STEP/STP | Offen | Einzelner Kreiszylinder |
+| Binäres PLY, GLTF/GLB, G-Code | Offen | Offen |
 
 „Offen“ bezeichnet eine ausstehende Funktion. Netzexport überträgt Geometrie. Zum späteren Ändern der Konstruktionsparameter zusätzlich das R3DP-Projekt speichern. Ein Standard-3MF aus dem Studio enthält keine Bambu-Druckaufträge. In Bambu Studio die Datei manuell öffnen und die aktuellen Maschinen-, Prozess- und Filamentprofile prüfen.
 

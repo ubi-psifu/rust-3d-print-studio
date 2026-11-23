@@ -1,5 +1,11 @@
 # Entwicklungsstand
 
+## STEP für Kreiszylinder 0.20.0
+
+Der Offline-Export schreibt einen analytischen AP214-Volumenkörper aus einem einzelnen Zylinder. Der Referenzkörper hat 7 mm Radius, 19 mm Höhe und 30° Neigung. Open CASCADE hat den Rust-Export eingelesen, als STEP geschrieben und erneut eingelesen. Beide Kontrollen bestätigten einen gültigen geschlossenen Körper mit drei Flächen, Radius, Höhe, Position, Ausrichtung und Volumen. Der Rust-Test kontrolliert den Erhalt einer bestehenden Zieldatei bei ungeeigneten Modellen. Die Plattformprüfungen stehen in den Release Notes.
+
+Der Export ist im Rust-Programm eingebettet. Open CASCADE dient hier als unabhängiger Prüfkern. Ein allgemeiner B-Rep-Editor und der Import fremder STEP-Dateien stehen aus. Als nächstes ist ein gerades Rohr als zweiter Referenzkörper vorgesehen.
+
 ## Freie Schnittebene 0.19.0
 
 Azimut und Höhenwinkel stellen die Flächennormale im Koordinatensystem der Druckplatte ein. Der Arbeitsthread projiziert das platzierte Netz auf diese Richtung. Der Geometrietest kontrolliert die Schnittposition, die verbleibende Seite und die Materialfläche einer um zwei Achsen gedrehten Schale bei drei Schnittlagen. Der Fenstertest bedient die freie Vorschau. Prüfergebnisse stehen in den Release Notes. Die Vorschau bleibt auf die oberste Aushöhlung beschränkt. Als nächstes steht die Erprobung eines exakten B-Rep-Körpers mit STEP-Rundlauf an.

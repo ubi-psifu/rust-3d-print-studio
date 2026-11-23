@@ -3,7 +3,7 @@
 ## Nächste Abnahmen
 
 1. Nach der erfolgreichen Windows-Server-Abnahme die Windows-11-Bedienung mit Hardware-Grafiktreiber prüfen. Für kurze Tastenkombinationen gibt es seit 0.12.2 Regressionstests und eine Fensterabnahme mit der portablen EXE.
-2. Als nächsten CAD-Schritt einen B-Rep-Kern für einen exakten zylindrischen Referenzkörper erproben. Den STEP-Rundlauf anhand von Radius, Höhe und geschlossener Topologie prüfen, bevor der Austausch in der Oberfläche freigegeben wird.
+2. Den erprobten STEP-Zylinderexport auf gerade Rohre mit konzentrischer Durchgangsbohrung erweitern. Innenradius, Volumen und geschlossene Topologie unabhängig einlesen und kontrollieren. Allgemeiner STEP-Import und die Integration eines B-Rep-Kerns für weitere Featuretypen bleiben offen.
 3. Bei der Druckvorbereitung größere Importmodelle, Mehrfilament-Slicing und die physische Passung der Beispielteile prüfen.
 
 ## Ursprüngliche Entwicklungsphasen
