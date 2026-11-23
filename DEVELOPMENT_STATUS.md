@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## STEP-Auswahlexport · 0.24.0
+
+Der Exportdialog bietet die gesamte Platte und die aktuelle Auswahl mit Objektanzahl an. Die Abnahme prüft Rohr und Bohrquader neben einem für STEP ungeeigneten Quader. Einschränkungen bestehen bei den unterstützten Körperarten und dem allgemeinen STEP-Import. Als Nächstes folgt der einfache Quader. Prüfergebnisse siehe Release Notes.
+
 ## STEP-Plattenexport · 0.23.0
 
 Der Offline-Export unterstützt mehrere benannte Körper. Die Open-CASCADE-Abnahme liest drei getrennte Objekte und vergleicht Namen, Volumen und Schwerpunkte mit ihren Sollwerten. Ein Fehler bricht den gesamten Export atomar ab. Unterstützt sind Kreiszylinder, gerade Rohre und Bohrquader. Der Export einer Teilauswahl, allgemeiner STEP-Import und die Prüfung mit Windows-11-Hardwaregrafik bleiben offen. Plattformprüfungen siehe Release Notes.

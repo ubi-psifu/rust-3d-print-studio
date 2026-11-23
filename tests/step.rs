@@ -78,3 +78,20 @@ fn step_exports_named_parts_and_rejects_an_empty_plate() {
     assert!(save(&path, &project, Output::StepCylinder, true).is_err());
     assert_eq!(original, std::fs::read_to_string(path).unwrap());
 }
+
+#[test]
+fn selection_keeps_project_numbers_and_skips_an_unsupported_neighbor() {
+    use rust_3d_print_studio::files::save_step_selection;
+    let p = load(Path::new("examples/modelle/STEP-Auswahl.r3dp")).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let target = dir.path().join("Teile.stp");
+    save_step_selection(&target, &p, &[2, 1, 2], false).unwrap();
+    let original = std::fs::read_to_string(&target).unwrap();
+    assert_eq!(original.matches("MANIFOLD_SOLID_BREP").count(), 2);
+    assert!(original.contains("Block #3"));
+    assert!(original.contains("Rohr ''B''"));
+    for indices in [&[][..], &[1, 9], &[0, 2]] {
+        assert!(save_step_selection(&target, &p, indices, true).is_err());
+        assert_eq!(original, std::fs::read_to_string(&target).unwrap());
+    }
+}

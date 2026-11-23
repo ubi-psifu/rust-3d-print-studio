@@ -54,7 +54,11 @@ fn xyz(v: DVec3) -> String {
     format!("({:.16E},{:.16E},{:.16E})", v.x, v.y, v.z)
 }
 
-pub(crate) fn write_solid(mut out: impl Write, project: &Project) -> io::Result<()> {
+pub(crate) fn write_solid(
+    mut out: impl Write,
+    project: &Project,
+    included: Option<&[bool]>,
+) -> io::Result<()> {
     if project.objects.is_empty() {
         return Err(io::Error::other(
             "Das Projekt enthält keine Körper für den STEP-Export.",
@@ -68,6 +72,9 @@ pub(crate) fn write_solid(mut out: impl Write, project: &Project) -> io::Result<
     )?;
     writeln!(out, "ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('CAD in mm'),'2;1');\nFILE_NAME('Platte.step','{date}',(''),(''),'Rust 3D Print Studio','Rust 3D Print Studio','');\nFILE_SCHEMA(('AUTOMOTIVE_DESIGN'));\nENDSEC;\nDATA;")?;
     for (index, object) in project.objects.iter().enumerate() {
+        if included.is_some_and(|mask| !mask[index]) {
+            continue;
+        }
         write_object(&mut out, object, index + 1).map_err(|e| {
             io::Error::new(
                 e.kind(),

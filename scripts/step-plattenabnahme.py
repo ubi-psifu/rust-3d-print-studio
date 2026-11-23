@@ -20,6 +20,9 @@ expected = {
     "Block #3": ((180, 160, 9), -30, (24 * 16 - math.pi * 16) * 19),
 }
 
+if sys.argv[2:] == ["--auswahl"]:
+    del expected["Führung A"]
+
 reader = STEPCAFControl_Reader()
 doc = TDocStd_Document(TCollection_ExtendedString("Abnahme"))
 assert reader.ReadFile(sys.argv[1]) == IFSelect_RetDone and reader.Transfer(doc)
@@ -44,4 +47,4 @@ for index in range(1, labels.Length() + 1):
     center = (base[0] + 9.5 * math.sin(angle), base[1], base[2] + 9.5 * math.cos(angle))
     assert math.dist(props.CentreOfMass().Coord(), center) < 1e-7, name
     assert abs(props.Mass() - volume) < 1e-5, name
-print("Drei benannte, einzeln lesbare Volumenkörper mit Sollvolumen und Plattenlage bestätigt.")
+print(len(expected), "benannte, einzeln lesbare Volumenkörper mit Sollvolumen und Plattenlage bestätigt.")

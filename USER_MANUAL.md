@@ -4,6 +4,8 @@ Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der re
 
 ## CAD-Körper als STEP exportieren
 
+Öffne **examples/modelle/STEP-Auswahl.r3dp**. Klicke im Objektbaum auf das Rohr und mit **Umschalt + Klick** auf den Bohrquader. Wähle **Datei → CAD-Körper als STEP exportieren … → Nur Auswahl (2 Objekte)**. Gib einen Pfad mit der Endung **.step** oder **.stp** an und bestätige. Die exportierten Körper behalten ihre Namen und Plattenkoordinaten. Der unmarkierte Quader bleibt im Projekt. **Gesamte Platte** ist beim Öffnen des Dialogs voreingestellt.
+
 Öffne **examples/modelle/STEP-Platte.r3dp** und verschiebe oder dupliziere ein Teil. Wähle **Datei → CAD-Körper als STEP exportieren …**. Das Studio schreibt alle Körper des Projekts mit ihren Objektnamen und ihrer aktuellen Lage in eine lokale STEP-Datei. Die Teile bleiben einzeln lesbar. Auch Kopien mit gleichem Namen bleiben eigenständige Körper.
 
 Öffne **examples/modelle/Referenzbohrquader.r3dp** und wähle den Bohrquader im Objektbaum. Ändere im Inspektor Breite, Tiefe, Höhe oder Bohrungsdurchmesser. Der Durchmesser muss kleiner als Breite und Tiefe sein. **Datei → CAD-Körper als STEP exportieren …** schreibt sechs ebene Außenflächen und eine zylindrische Innenfläche. Position und Drehung werden übernommen. Die Durchgangsbohrung sitzt mittig und folgt der lokalen Z-Achse.

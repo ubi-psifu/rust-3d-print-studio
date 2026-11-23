@@ -121,6 +121,7 @@ pub struct Studio {
     preparing_picker: Option<std::sync::mpsc::Receiver<Result<GeometryPicker, String>>>,
     preparation: crate::preparation_ui::Panel,
     selected: Vec<usize>,
+    step_selection_only: bool,
     clipboard: Vec<Object>,
     drag: Option<MoveDrag>,
     marquee: Option<(egui::Pos2, Vec<usize>)>,
@@ -183,6 +184,7 @@ impl Studio {
             p: Project::default(),
             tool: 0,
             selected: vec![],
+            step_selection_only: false,
             clipboard: vec![],
             drag: None,
             marquee: None,
@@ -756,6 +758,7 @@ impl Studio {
         }
     }
     fn choose(&mut self, t: FileTask) {
+        self.step_selection_only = false;
         self.entry = match t {
             FileTask::Write(f) => self
                 .path
@@ -821,7 +824,12 @@ impl Studio {
     }
     fn write(&mut self, f: Output, overwrite: bool) {
         let path = PathBuf::from(self.entry.trim());
-        match files::save(&path, &self.p, f, overwrite) {
+        let result = if f == Output::StepCylinder && self.step_selection_only {
+            files::save_step_selection(&path, &self.p, &self.selected, overwrite)
+        } else {
+            files::save(&path, &self.p, f, overwrite)
+        };
+        match result {
             Ok(()) => {
                 if f == Output::Project {
                     self.backups.clear();
@@ -1077,7 +1085,9 @@ impl Studio {
  Dialog::Discard(a)=>{ui.heading("Ungespeicherte Änderungen");ui.label("Sollen die Änderungen verworfen werden?");if ui.button("Verwerfen und fortfahren").clicked(){self.proceed(a);}},
  Dialog::Overwrite(f)=>{ui.heading("Vorhandene Datei ersetzen?");ui.label(&self.entry);if ui.button("Datei ersetzen").clicked(){self.write(f,true);}},
  Dialog::File(t)=>{ui.heading(match t{FileTask::Import=>"Netz importieren",FileTask::Svg=>"SVG-Relief laden",FileTask::Open=>"Projekt öffnen",FileTask::Profile=>"Druckerprofil laden",FileTask::Write(Output::Project)=>"Projekt speichern",FileTask::Write(Output::StepCylinder)=>"CAD-Körper als STEP exportieren",_=>"Netz exportieren"});ui.label("Dateipfad mit Endung");ui.text_edit_singleline(&mut self.entry);
- if matches!(t,FileTask::Write(Output::StepCylinder)){ui.label("Exportiert alle Kreiszylinder, geraden Rohre und Bohrquader des Projekts mit ihren Namen und Plattenpositionen. Enthält das Projekt einen ungeeigneten Körper, zeigt die Fehlermeldung dessen Namen.");}
+ if matches!(t,FileTask::Write(Output::StepCylinder)){ui.radio_value(&mut self.step_selection_only,false,format!("Gesamte Platte ({} Objekte)",self.p.objects.len()));
+ ui.add_enabled_ui(!self.selected.is_empty(), |ui| {ui.radio_value(&mut self.step_selection_only,true,format!("Nur Auswahl ({} Objekte)",self.selected.len()));});
+ ui.label("Kreiszylinder, gerade Rohre und Bohrquader behalten Namen und Plattenlage.");}
  if matches!(t,FileTask::Import){ui.label("Geschlossene STL-, OBJ-, ASCII-PLY- oder Modell-3MF-Geometrie");ui.horizontal(|ui|{ui.label("STL/OBJ/PLY-Einheit");ui.selectable_value(&mut self.unit,1.,"mm");ui.selectable_value(&mut self.unit,10.,"cm");ui.selectable_value(&mut self.unit,25.4,"Zoll");});ui.checkbox(&mut self.auto_place,"Zusammen auf der Platte absetzen");}
  if matches!(t,FileTask::Write(Output::Stl|Output::StlAscii|Output::Ply|Output::Obj|Output::ThreeMf)){ui.label("Exportiert Dreiecksnetze in mm. Konstruktionsparameter bleiben im R3DP-Projekt.");}
  if ui.button("Bestätigen").clicked(){self.file_submit(t);}
@@ -2270,5 +2280,38 @@ mod edge_pick_tests {
         assert_eq!(pick(12., 50.), Some(1));
         assert_eq!(pick(60., 60.), None); // koplanare Diagonale
         assert_eq!(pick(30., 30.), None);
+    }
+}
+
+#[cfg(test)]
+mod step_selection_tests {
+    use super::*;
+
+    #[test]
+    fn overwrite_keeps_scope_and_reopening_defaults_to_whole_plate() {
+        let mut app = Studio::new(Some("examples/modelle/STEP-Auswahl.r3dp".into()));
+        app.toggle_selection(Some(1), false);
+        app.toggle_selection(Some(2), true);
+        let task = FileTask::Write(Output::StepCylinder);
+        app.choose(task);
+        app.step_selection_only = true;
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("Auswahl.step");
+        std::fs::write(&path, "bisheriger Inhalt").unwrap();
+        app.entry = path.display().to_string();
+        app.file_submit(task);
+        assert!(matches!(
+            app.dialog,
+            Some(Dialog::Overwrite(Output::StepCylinder))
+        ));
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "bisheriger Inhalt");
+        app.write(Output::StepCylinder, true);
+        assert!(app.dialog.is_none());
+        let exported = std::fs::read_to_string(&path).unwrap();
+        assert_eq!(exported.matches("MANIFOLD_SOLID_BREP").count(), 2);
+        assert_eq!(app.selected, vec![1, 2]);
+        assert!(!app.dirty);
+        app.choose(task);
+        assert!(!app.step_selection_only);
     }
 }
