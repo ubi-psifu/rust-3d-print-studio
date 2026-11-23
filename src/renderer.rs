@@ -8,6 +8,28 @@ use rust_3d_print_studio::{
     project::{Project, View},
 };
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum SectionAxis {
+    X,
+    Y,
+    Z,
+}
+impl SectionAxis {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::X => "X",
+            Self::Y => "Y",
+            Self::Z => "Z",
+        }
+    }
+    fn normal(self) -> ::glam::DVec3 {
+        match self {
+            Self::X => ::glam::DVec3::X,
+            Self::Y => ::glam::DVec3::Y,
+            Self::Z => ::glam::DVec3::Z,
+        }
+    }
+}
 pub struct Solid {
     model: geometry::Object,
     pub mesh: geometry::Mesh,
@@ -36,26 +58,39 @@ impl Solid {
         Self::from_mesh(o, o.mesh(), None)
     }
 
-    pub fn horizontal_section(&self, percent: u8) -> Result<(Self, f64), String> {
+    pub fn section(&self, axis: SectionAxis, percent: u8) -> Result<(Self, f64), String> {
         let (lo, hi) = self.bounds;
-        let z = lo.z + (hi.z - lo.z) * f64::from(percent) / 100.;
+        let normal = axis.normal();
+        let offset = lo.lerp(hi, f64::from(percent) / 100.).dot(normal);
         let center = (lo + hi) * 0.5;
-        let plane = ::glam::DVec3::new(center.x, center.y, z);
-        let mesh = rust_3d_print_studio::cad::clip(&self.mesh, plane, -::glam::DVec3::Z)?;
-        Ok((Self::from_mesh(&self.model, mesh, Some(z)), z))
+        let plane = center + normal * (offset - center.dot(normal));
+        let mesh = rust_3d_print_studio::cad::clip(&self.mesh, plane, -normal)?;
+        Ok((
+            Self::from_mesh(&self.model, mesh, Some((normal, offset))),
+            offset,
+        ))
     }
 
-    fn from_mesh(o: &geometry::Object, mesh: geometry::Mesh, cut_z: Option<f64>) -> Self {
+    fn from_mesh(
+        o: &geometry::Object,
+        mesh: geometry::Mesh,
+        cut: Option<(::glam::DVec3, f64)>,
+    ) -> Self {
         let bounds = mesh.bounds();
         let mut vertices = Vec::with_capacity(mesh.faces.len() * 3);
         for face in &mesh.faces {
             let [a, b, c] = face.map(|j| mesh.vertices[j].as_vec3());
             let normal = (b - a).cross(c - a).normalize_or_zero();
             let shade = 0.66 + normal.dot(vec3(-0.35, -0.48, 0.8)).max(-0.4) * 0.32;
-            let cap =
-                cut_z.is_some_and(|z| face.iter().all(|&i| (mesh.vertices[i].z - z).abs() < 1e-6));
-            let color = if cap { [255, 186, 65] } else { o.color };
-            let [r, g, b8] = color.map(|v| (v as f32 * shade) as u8);
+            let cap = cut.is_some_and(|(axis, offset)| {
+                face.iter()
+                    .all(|&i| (mesh.vertices[i].dot(axis) - offset).abs() < 1e-6)
+            });
+            let [r, g, b8] = if cap {
+                [255, 186, 65]
+            } else {
+                o.color.map(|v| (v as f32 * shade) as u8)
+            };
             for v in [a, b, c] {
                 vertices.push(Vertex::new2(v, Vec2::ZERO, Color::from_rgba(r, g, b8, 255)));
             }
@@ -277,7 +312,7 @@ mod tests {
         object.rotation.z = 32.;
         let solid = Solid::new(&object);
         for percent in [25, 50, 75] {
-            let (section, z) = solid.horizontal_section(percent).unwrap();
+            let (section, z) = solid.section(SectionAxis::Z, percent).unwrap();
             assert!((z - (7. + 0.2 * f64::from(percent))).abs() < 1e-7);
             assert!((section.bounds.1.z - z).abs() < 1e-6);
             let area: f64 = section
@@ -291,6 +326,40 @@ mod tests {
             assert!((area - (40. * 30. - 38. * 26.)).abs() < 1e-3, "{area}");
         }
         assert_eq!(solid.into_model(), object);
+    }
+    #[test]
+    fn vertical_sections_follow_plate_axes_after_rotation() {
+        let project = rust_3d_print_studio::files::load(std::path::Path::new(
+            "examples/modelle/Seitlich-offene-Schale.r3dp",
+        ))
+        .unwrap();
+        let mut object = project.objects[0].clone();
+        object.rotation.z = 90.;
+        object.position = ::glam::DVec3::new(111., 89., 7.);
+        let solid = Solid::new(&object);
+        for (axis, area) in [
+            (SectionAxis::X, 40. * 20. - 38. * 16.),
+            (SectionAxis::Y, 30. * 20. - 26. * 16.),
+        ] {
+            let n = axis.normal();
+            for percent in [25, 50, 75] {
+                let (cut, offset) = solid.section(axis, percent).unwrap();
+                let (lo, hi) = solid.bounds;
+                let expected = lo.dot(n) + (hi - lo).dot(n) * f64::from(percent) / 100.;
+                assert!((offset - expected).abs() < 1e-6);
+                assert!((cut.bounds.0.dot(n) - lo.dot(n)).abs() < 1e-6);
+                assert!((cut.bounds.1.dot(n) - offset).abs() < 1e-6);
+                let actual: f64 = cut
+                    .mesh
+                    .faces
+                    .iter()
+                    .map(|f| f.map(|i| cut.mesh.vertices[i]))
+                    .filter(|tri| tri.iter().all(|p| (p.dot(n) - offset).abs() < 1e-6))
+                    .map(|[a, b, c]| (b - a).cross(c - a).length() * 0.5)
+                    .sum();
+                assert!((actual - area).abs() < 1e-3, "{actual} / {area}");
+            }
+        }
     }
     #[test]
     fn click_on_rotated_wedge_binds_local_slope_in_both_projections() {

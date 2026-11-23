@@ -4,9 +4,9 @@ Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der re
 
 ## Schalenvorschau
 
-Öffne **Keilschale.r3dp**, wähle die Schale und stelle im Inspektor die **Schnitthöhe %** ein. Bei 50 % verläuft der horizontale Schnitt auf halber Höhe zwischen Ober- und Unterkante des platzierten Entwurfs. **Vorschau anzeigen** zeigt die untere Hälfte. Die goldenen Flächen zeigen das Material in der Schnittebene. Der Hohlraum bleibt frei.
+Öffne **Keilschale.r3dp** und markiere die Schale. Wähle im Inspektor **Seitlich** für einen Schnitt quer zur X-Achse der Druckplatte, **Frontal** für die Y-Achse oder **Horizontal** für die Z-Achse. Die **Schnittlage %** reicht von 1 bis 99 und bezieht sich auf die Ausdehnung der platzierten Schale entlang der gewählten Achse. Bei 50 % liegt die Ebene in der Mitte.
 
-Über **Schnitt bei Z … mm** wechselst du zwischen Schnitt und vollständigem Entwurf. **Bisherigen Körper anzeigen** zeigt zum Vergleich den bisherigen Projektstand. Drehe die Ansicht mit der rechten Maustaste. **Esc** führt zu deinen Eingaben zurück. **Ergebnis übernehmen** speichert die vollständige Schale als einen rückgängig machbaren Schritt. **F1** öffnet dieses Kapitel offline.
+**Vorschau anzeigen** zeigt den Teil auf der Seite der kleineren Koordinaten. Bei einem senkrechten Schnitt blickst du zunächst auf die freigelegte Fläche. Gold kennzeichnet das geschnittene Material. Die Schaltfläche **Schnitt bei … mm** zeigt Achse und absolute Plattenkoordinate an und schaltet zum vollständigen Entwurf um. **Bisherigen Körper anzeigen** zeigt zum Vergleich den bisherigen Projektstand. Drehe die Ansicht mit der rechten Maustaste. **Esc** führt zu deinen Eingaben zurück. **Ergebnis übernehmen** speichert die vollständige Schale als einen rückgängig machbaren Schritt. **F1** öffnet dieses Kapitel offline.
 
 ## Kantenvorschau
 

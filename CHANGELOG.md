@@ -1,3 +1,7 @@
+# 0.18.0 · Senkrechte Schalenschnitte
+
+Seitliche und frontale Schnittvorschau mit absoluter Plattenkoordinate, ausgerichteter Vorschaukamera und deutscher F1-Hilfe.
+
 # 0.17.0 · Innenraum einer Schale im Schnitt prüfen
 
 Für die oberste Aushöhlung zeigt die 3D-Vorschau den Hohlraum und die Materialfläche bei einer wählbaren Höhe. Übernehmen verwendet die vollständige Schale.

@@ -129,6 +129,7 @@ pub struct Studio {
     tool: usize,
     preview: Option<EditPreview>,
     section_percent: u8,
+    section_axis: renderer::SectionAxis,
     pending: Option<(
         usize,
         std::sync::mpsc::Receiver<Result<CalculatedEdit, String>>,
@@ -189,6 +190,7 @@ impl Studio {
             pending: None,
             preview: None,
             section_percent: 50,
+            section_axis: renderer::SectionAxis::Z,
             operand: 0,
             operation: Operation::Difference,
             hist: History::default(),
@@ -1358,6 +1360,7 @@ impl Studio {
     }
     fn calculate_draft(&mut self, preview: bool) {
         let percent = self.section_percent;
+        let axis = self.section_axis;
         let mut view = self.p.view.clone();
         let (Some(i), Some(mut obj)) = (self.sel, self.draft.clone()) else {
             return;
@@ -1379,9 +1382,20 @@ impl Studio {
                     view.target = (hi + lo) * 0.5;
                     view.distance = ((hi - lo).length() * 2.).clamp(8., 5000.);
                     let section = if matches!(obj.feature, Some(Feature::Shell { .. })) {
+                        match axis {
+                            renderer::SectionAxis::Z => {}
+                            renderer::SectionAxis::X => {
+                                view.yaw = 0.;
+                                view.pitch = 0.25;
+                            }
+                            renderer::SectionAxis::Y => {
+                                view.yaw = std::f64::consts::FRAC_PI_2;
+                                view.pitch = 0.25;
+                            }
+                        }
                         Some(
                             solid
-                                .horizontal_section(percent)
+                                .section(axis, percent)
                                 .map_err(|err| format!("Schnittvorschau fehlgeschlagen · {err}"))?,
                         )
                     } else {
@@ -1447,12 +1461,12 @@ impl Studio {
         let mut help = ctx.input(|i| i.key_pressed(egui::Key::F1));
         egui::TopBottomPanel::top("ergebnisleiste").show(ctx, |ui| {
             ui.horizontal_wrapped(|ui| {
-                if let Some((_, z)) = &preview.section {
+                if let Some((_, offset)) = &preview.section {
                     ui.strong("Schalenvorschau");
                     ui.add_enabled_ui(!preview.original, |ui| {
                         ui.checkbox(
                             &mut preview.show_section,
-                            format!("Schnitt bei Z {z:.2} mm"),
+                            format!("Schnitt bei {} {offset:.2} mm", self.section_axis.label()),
                         );
                     });
                 } else {
@@ -1880,9 +1894,17 @@ impl Studio {
                     ui.add_space(6.);
                     let feature = self.draft.as_ref().and_then(|d| d.feature.as_ref());
                     if matches!(feature, Some(Feature::Shell { .. })) {
+                        ui.horizontal(|ui| {
+                            use renderer::SectionAxis::*;
+                            ui.label("Schnitt");
+                            for (axis, name) in [(X, "Seitlich"), (Y, "Frontal"), (Z, "Horizontal")]
+                            {
+                                ui.selectable_value(&mut self.section_axis, axis, name);
+                            }
+                        });
                         ui.add(
                             egui::Slider::new(&mut self.section_percent, 1..=99)
-                                .text("Schnitthöhe %"),
+                                .text("Schnittlage %"),
                         );
                     }
                     if matches!(

@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## Schnittachsen 0.18.0
+
+Die Schalenvorschau bietet drei Schnittrichtungen in Plattenkoordinaten. Die isolierte Kamera richtet sich bei senkrechten Schnitten auf die Materialfläche. Der Geometrietest kontrolliert die erhaltene Körperhälfte und die Materialfläche bei drei Schnittlagen in X und Y nach einer 90°-Drehung. Der Linux-Fenstertest bedient beide neuen Richtungen. Prüfergebnisse stehen in den Release Notes. Frei geneigte Schnitte und die Abnahme mit Windows-11-Hardwaregrafik sind offen.
+
 ## Schalenschnitt 0.17.0
 
 Die 3D-Vorschau der obersten Aushöhlung schneidet das Weltkoordinaten-Netz auf einer im Inspektor gewählten Höhe von 1 bis 99 %. Der CAD-Arbeitsthread berechnet die untere Hälfte samt Schnittflächen. Das abgeleitete Ansichtsnetz wird getrennt vom übernehmbaren Körper gehalten. Die Abnahme vergleicht am seitlich offenen Quader die Materialfläche in drei Höhen mit dem Sollmaß. Die Fensterabnahme verwendet die Keilschale. Die Ergebnisse stehen in den Release Notes. Senkrechte und frei orientierte Schnitte sind offen.
