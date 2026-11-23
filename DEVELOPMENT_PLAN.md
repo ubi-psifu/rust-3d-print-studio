@@ -3,7 +3,7 @@
 ## Nächste Abnahmen
 
 1. Nach der erfolgreichen Windows-Server-Abnahme die Windows-11-Bedienung mit Hardware-Grafiktreiber prüfen. Für kurze Tastenkombinationen gibt es seit 0.12.2 Regressionstests und eine Fensterabnahme mit der portablen EXE.
-2. Nach Flächen- und Kantenauswahl die Vorschau der gewählten Kantenbearbeitung vor dem Übernehmen ergänzen. Für gekrümmte Flächen und exakte Körper einen B-Rep-Kern erproben. STEP-Import und -Export benötigen einen geprüften Roundtrip.
+2. Nach der Kantenvorschau die Vorschau auf Aushöhlungen erweitern und Innenflächen im Schnitt sichtbar machen. Für gekrümmte Flächen und exakte Körper einen B-Rep-Kern erproben. STEP-Import und -Export benötigen einen geprüften Roundtrip.
 3. Bei der Druckvorbereitung größere Importmodelle, Mehrfilament-Slicing und die physische Passung der Beispielteile prüfen.
 
 ## Ursprüngliche Entwicklungsphasen

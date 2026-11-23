@@ -2,6 +2,12 @@
 
 Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der rechten Maustaste anklicken und unter **Öffnen mit** Rust 3D Print Studio auswählen.
 
+## Kantenvorschau
+
+Öffne **Kantenquader.r3dp**, wähle den Quader und ändere die Kante oder ihre Maße. Klicke im Inspektor auf **Vorschau anzeigen**. Drehe das Ergebnis mit der rechten Maustaste oder zoome mit dem Mausrad. Über **Bisherigen Körper anzeigen** kannst du den alten und den neuen Stand aus derselben Blickrichtung vergleichen.
+
+Mit **Zurück zum Entwurf** oder **Esc** bleiben deine Eingaben im Inspektor erhalten. **Ergebnis übernehmen** schreibt die berechnete Geometrie als einen rückgängig machbaren Schritt ins Projekt. Eine fehlgeschlagene Berechnung zeigt eine Fehlermeldung im Studio. F1 öffnet diese Anleitung auch offline.
+
 ## Kanten und Öffnungsflächen binden
 
 Öffne **Kantenquader.r3dp**, markiere den Quader und wähle im Inspektor **Kante in 3D wählen …**. Bewege den Zeiger von der sichtbaren Fläche an ihren Rand. Die hervorgehobene Linie zeigt die Kante, die du mit einem Linksklick bindest. Mit der rechten Maustaste drehst du den Außenkörper. **Esc** bricht ab und **F1** öffnet diese Anleitung. Stelle Anfangsmaß, Endmaß und Facettenzahl ein und klicke auf **Parameter übernehmen**. Eine Facette erzeugt eine Fase.

@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## Kantenvorschau 0.16.0
+
+Der Inspektor bietet für die oberste Kantenbearbeitung eine isolierte Ergebnisansicht mit eigener Kamera. Original und Ergebnis sind umschaltbar. Esc erhält den Entwurf, Übernehmen erzeugt einen Verlaufsschritt. Die Linux-Fensterabnahme prüft den Bildwechsel, Abbruch, unveränderten Projektstand, Übernahme und Undo/Redo. Prüfergebnisse stehen in den Release Notes. Für Aushöhlungen fehlt noch eine geschnittene Vorschau.
+
 ## Kantenauswahl 0.15.0
 
 Die oberste Kantenbearbeitung lässt sich über die isolierte 3D-Ansicht ihres Außenkörpers bedienen. Die Markierung folgt der nächsten scharfen Kante des sichtbaren Dreiecks innerhalb von zehn Bildschirmpunkten. Die Bindung verwendet die lokalen Quelldaten und bleibt im R3DP-Projekt gespeichert. Der Kantenquader und die eingebettete deutsche Anleitung zeigen den Ablauf. Die Beschränkungen des vorhandenen Kantenwerkzeugs gelten weiterhin. Koplanare Triangulationsdiagonalen und verdeckte Kanten sind keine Ziele.

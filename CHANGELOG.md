@@ -1,3 +1,7 @@
+# 0.16.0 · Kantenbearbeitung vor der Übernahme vergleichen
+
+Im Inspektor lässt sich der Entwurf berechnen und aus gleicher Blickrichtung mit dem bisherigen Körper vergleichen. Esc führt zu den Eingaben zurück. F1 erklärt die Vorschau offline.
+
 # 0.15.0 · Kanten für Fasen und Rundungen anklicken
 
 Der Kantenquader zeigt die direkte Bindung einer scharfen Kante in der 3D-Ansicht. Die markierte Kante lässt sich mit Anfangsmaß, Endmaß und Facettenzahl bearbeiten.

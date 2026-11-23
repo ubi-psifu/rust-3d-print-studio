@@ -89,6 +89,16 @@ impl GeometryPicker {
         })
     }
 }
+struct EditPreview {
+    index: usize,
+    solid: renderer::Solid,
+    view: View,
+    original: bool,
+}
+enum CalculatedEdit {
+    Apply(Box<Object>),
+    Preview(Box<EditPreview>),
+}
 pub struct Studio {
     help: help::Help,
     hover_help: Option<&'static str>,
@@ -115,7 +125,11 @@ pub struct Studio {
     gap: f64,
     p: Project,
     tool: usize,
-    pending: Option<(usize, std::sync::mpsc::Receiver<Result<Object, String>>)>,
+    preview: Option<EditPreview>,
+    pending: Option<(
+        usize,
+        std::sync::mpsc::Receiver<Result<CalculatedEdit, String>>,
+    )>,
     operand: usize,
     operation: Operation,
     hist: History,
@@ -170,6 +184,7 @@ impl Studio {
             marquee: None,
             gap: 3.,
             pending: None,
+            preview: None,
             operand: 0,
             operation: Operation::Difference,
             hist: History::default(),
@@ -220,6 +235,8 @@ impl Studio {
         self.refresh_draft();
     }
     fn refresh_draft(&mut self) {
+        self.preview = None;
+        self.pending = None;
         self.geometry_picker = None;
         self.preparing_picker = None;
         self.draft = self.sel.map(|i| self.p.objects[i].clone());
@@ -790,6 +807,8 @@ impl Studio {
         }
     }
     pub fn request_quit(&mut self) {
+        self.preview = None;
+        self.pending = None;
         self.geometry_picker = None;
         self.preparing_picker = None;
         self.action(Action::Quit);
@@ -1333,7 +1352,8 @@ impl Studio {
             ui.color_edit_button_srgb(&mut d.color);
         });
     }
-    fn apply_draft(&mut self) {
+    fn calculate_draft(&mut self, preview: bool) {
+        let mut view = self.p.view.clone();
         let (Some(i), Some(mut obj)) = (self.sel, self.draft.clone()) else {
             return;
         };
@@ -1346,10 +1366,21 @@ impl Studio {
         self.message = "Konstruktion wird berechnet".into();
         std::thread::spawn(move || {
             let result = obj.rebuild().and_then(|()| {
-                if obj.valid() {
-                    Ok(obj)
-                } else {
+                if !obj.valid() {
                     Err("Abmessungen, Position und Bohrungsdurchmesser prüfen".into())
+                } else if preview {
+                    let solid = renderer::Solid::new(&obj);
+                    let (lo, hi) = solid.bounds;
+                    view.target = (hi + lo) * 0.5;
+                    view.distance = ((hi - lo).length() * 2.).clamp(8., 5000.);
+                    Ok(CalculatedEdit::Preview(Box::new(EditPreview {
+                        index: i,
+                        solid,
+                        view,
+                        original: false,
+                    })))
+                } else {
+                    Ok(CalculatedEdit::Apply(Box::new(obj)))
                 }
             });
             let _ = tx.send(result);
@@ -1372,17 +1403,59 @@ impl Studio {
             result => {
                 self.pending = None;
                 match result {
-                    Ok(Ok(obj)) => {
-                        self.remember();
-                        self.p.objects[i] = obj;
-                        self.select(Some(i));
-                        self.message = "Parameter übernommen".into();
-                    }
+                    Ok(Ok(CalculatedEdit::Apply(obj))) => self.commit_edit(i, *obj),
+                    Ok(Ok(CalculatedEdit::Preview(preview))) => self.preview = Some(*preview),
                     Ok(Err(e)) => self.message = e,
                     Err(_) => self.message = "Neuberechnung abgebrochen".into(),
                 };
                 false
             }
+        }
+    }
+    fn commit_edit(&mut self, index: usize, obj: Object) {
+        self.remember();
+        self.p.objects[index] = obj;
+        self.select(Some(index));
+        self.message = "Parameter übernommen".into();
+    }
+    fn show_preview(&mut self, ctx: &egui::Context) {
+        let Some(preview) = self.preview.as_mut() else {
+            return;
+        };
+        if self.help.open {
+            self.help.draw(ctx);
+            return;
+        }
+        let mut back = ctx.input(|i| i.key_pressed(egui::Key::Escape));
+        let mut apply = false;
+        let mut help = ctx.input(|i| i.key_pressed(egui::Key::F1));
+        egui::TopBottomPanel::top("ergebnisleiste").show(ctx, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.strong("Kantenvorschau");
+                ui.checkbox(&mut preview.original, "Bisherigen Körper anzeigen");
+                apply = ui.button("Ergebnis übernehmen").clicked();
+                back |= ui.button("Zurück zum Entwurf").clicked();
+                help |= ui.small_button("Hilfe (F1)").clicked();
+            });
+        });
+        egui::CentralPanel::default()
+            .frame(egui::Frame::NONE)
+            .show(ctx, |ui| {
+                let (rect, response) =
+                    ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
+                self.rect = rect;
+                self.px = ctx.pixels_per_point();
+                navigate(&mut preview.view, &response, rect);
+            });
+        if apply {
+            let index = preview.index;
+            if let Some(result) = self.preview.take() {
+                self.commit_edit(index, result.solid.into_model());
+            }
+        } else if back {
+            self.preview = None;
+        } else if help {
+            self.help.show_topic("Kantenvorschau");
         }
     }
     fn choose_geometry(&mut self, ctx: &egui::Context) {
@@ -1544,6 +1617,10 @@ impl Studio {
                     }
                 }
             }
+        }
+        if self.preview.is_some() && self.dialog.is_none() {
+            self.show_preview(ctx);
+            return;
         }
         if self.geometry_picker.is_some() && self.dialog.is_none() {
             self.choose_geometry(ctx);
@@ -1771,6 +1848,13 @@ impl Studio {
             .show(ctx, |ui| {
                 egui::TopBottomPanel::bottom("modellaktionen").show_inside(ui, |ui| {
                     ui.add_space(6.);
+                    if matches!(
+                        self.draft.as_ref().and_then(|d| d.feature.as_ref()),
+                        Some(Feature::EdgeFinish { .. })
+                    ) && ui.button("Vorschau anzeigen").clicked()
+                    {
+                        self.calculate_draft(true);
+                    }
                     if self.draft.is_some()
                         && ui
                             .add_sized(
@@ -1779,7 +1863,7 @@ impl Studio {
                             )
                             .clicked()
                     {
-                        self.apply_draft();
+                        self.calculate_draft(false);
                     }
                     if ui
                         .add_sized(
@@ -1920,6 +2004,23 @@ impl Studio {
     }
     pub fn render(&mut self) {
         if self.rect.is_positive() {
+            if let Some(preview) = &self.preview {
+                let solid = if preview.original {
+                    self.cache.get(preview.index).unwrap_or(&preview.solid)
+                } else {
+                    &preview.solid
+                };
+                let cam = renderer::camera(&preview.view, self.rect, self.px);
+                renderer::draw(
+                    &cam,
+                    &self.p,
+                    std::slice::from_ref(solid),
+                    &[],
+                    false,
+                    self.dark,
+                );
+                return;
+            }
             if let Some(picker) = &self.geometry_picker {
                 let cam = renderer::camera(&picker.view, self.rect, self.px);
                 renderer::draw(
