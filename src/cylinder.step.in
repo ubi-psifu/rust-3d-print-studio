@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('Analytic cylinder in millimetres'),'2;1');
-FILE_NAME('','',(''),(''),'Rust 3D Print Studio','Rust 3D Print Studio','');
+FILE_NAME('Zylinder.step','{timestamp}',(''),(''),'Rust 3D Print Studio','Rust 3D Print Studio','');
 FILE_SCHEMA(('AUTOMOTIVE_DESIGN'));
 ENDSEC;
 DATA;
@@ -74,7 +74,7 @@ DATA;
 #65 = CARTESIAN_POINT('',{bottom});
 #66 = DIRECTION('',{axis});
 #67 = DIRECTION('',{radial});
-#68 = ( GEOMETRIC_REPRESENTATION_CONTEXT(3) 
+#68 = ( GEOMETRIC_REPRESENTATION_CONTEXT(3)
 GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT((#72)) GLOBAL_UNIT_ASSIGNED_CONTEXT(
 (#69,#70,#71)) REPRESENTATION_CONTEXT('Context #1',
   '3D Context with UNIT and UNCERTAINTY') );

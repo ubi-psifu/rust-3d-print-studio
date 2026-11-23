@@ -4,6 +4,49 @@ use crate::{cad::Feature, geometry::Shape, project::Project};
 use glam::{DQuat, DVec3, EulerRot};
 use std::io::{self, Write};
 
+// UTC-Kalenderdatum für den ISO-10303-21-Dateikopf.
+fn timestamp(seconds: u64) -> io::Result<String> {
+    let mut days = seconds / 86400;
+    for year in 1970..=9999 {
+        let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+        let year_days = if leap { 366 } else { 365 };
+        if days >= year_days {
+            days -= year_days;
+            continue;
+        }
+        let months = [
+            31,
+            if leap { 29 } else { 28 },
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ];
+        for (month, count) in months.into_iter().enumerate() {
+            if days < count {
+                return Ok(format!(
+                    "{year:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+                    month + 1,
+                    days + 1,
+                    seconds / 3600 % 24,
+                    seconds / 60 % 60,
+                    seconds % 60
+                ));
+            }
+            days -= count;
+        }
+    }
+    Err(io::Error::other(
+        "Systemdatum außerhalb des STEP-Zeitbereichs",
+    ))
+}
+
 fn xyz(v: DVec3) -> String {
     format!("({:.16E},{:.16E},{:.16E})", v.x, v.y, v.z)
 }
@@ -42,6 +85,12 @@ pub(crate) fn write_cylinder(mut out: impl Write, project: &Project) -> io::Resu
     write!(
         out,
         include_str!("cylinder.step.in"),
+        timestamp = timestamp(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_err(io::Error::other)?
+                .as_secs()
+        )?,
         axis = xyz(axis),
         radial = xyz(radial),
         radius = format_args!("{radius:.16E}"),
