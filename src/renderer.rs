@@ -29,6 +29,9 @@ pub fn sync(cache: &mut Vec<Solid>, p: &Project) {
     }
 }
 impl Solid {
+    pub fn into_model(self) -> geometry::Object {
+        self.model
+    }
     pub fn new(o: &geometry::Object) -> Self {
         let mesh = o.mesh();
         let bounds = mesh.bounds();

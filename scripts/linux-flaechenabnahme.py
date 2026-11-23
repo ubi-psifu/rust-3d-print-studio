@@ -26,11 +26,12 @@ def click(window, x, y):
     time.sleep(0.4)
 
 
-def button(window, word, width, height, down=False):
+def button(window, word, width, height, down=False, toolbar=False):
     # Die tatsächliche Lage des beschrifteten Bedienelements aus dem Fenster lesen.
     for attempt in range(12):
-        left = int(width * 0.72)
-        image = run("import", "-window", window, "-crop", f"{width-left}x{height}+{left}+0",
+        left = 0 if toolbar else int(width * 0.72)
+        region_height = 70 if toolbar else height
+        image = run("import", "-window", window, "-crop", f"{width-left}x{region_height}+{left}+0",
                     "+repage", "-resize", "250%", "-colorspace", "Gray", "-negate", "png:-")
         tsv = subprocess.run(
             ["tesseract", "stdin", "stdout", "-l", "deu", "--psm", "11", "tsv"],
@@ -38,7 +39,8 @@ def button(window, word, width, height, down=False):
         ).stdout.decode()
         rows = list(csv.DictReader(io.StringIO(tsv), delimiter="\t"))
         for row in rows:
-            if (row["text"].casefold().strip(".,:") in (("3d", "wählen") if word == "3d" else ("übernehmen","ubernehmen","parameter"))):
+            labels = {"3d": ("3d", "wählen"), "übernehmen": ("übernehmen", "ubernehmen", "parameter")}
+            if row["text"].casefold().strip(".,:") in labels.get(word, (word,)):
                 click(window, left + round((int(row["left"]) + int(row["width"]) / 2) / 2.5),
                       round((int(row["top"]) + int(row["height"]) / 2) / 2.5))
                 return
@@ -89,7 +91,22 @@ def check_model(model):
             time.sleep(1)
             offset = round(0.18 * (h - 25)) - 4 if model == "Kantenquader" else 0
             click(window, w // 2 + offset, h // 2 + 16)
-            button(window, "übernehmen", w, h, down=True)
+            if model == "Kantenquader":
+                button(window, "vorschau", w, h)
+                button(window, "bisherigen", w, h, toolbar=True)
+                def pixels():
+                    return run("import", "-window", window, "-crop", f"{w//2}x{h//2}+{w//4}+{h//4}",
+                               "+repage", "-depth", "8", "rgb:-")
+                before = pixels()
+                button(window, "bisherigen", w, h, toolbar=True)
+                assert pixels() != before, "Vergleich muss das gerenderte Modell wechseln"
+                xdo("key", "Escape")
+                time.sleep(0.5)
+                assert save(window, path) == original, "Vorschau hat den Projektstand verändert"
+                button(window, "vorschau", w, h)
+                button(window, "ergebnis", w, h, toolbar=True)
+            else:
+                button(window, "übernehmen", w, h, down=True)
             time.sleep(1)
             bound = save(window, path)
             assert json.loads(path.read_text())["objects"][0]["position"] == [128.,128.,0.]
