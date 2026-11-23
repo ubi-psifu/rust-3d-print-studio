@@ -8,11 +8,12 @@ use rust_3d_print_studio::{
     project::{Project, View},
 };
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum SectionAxis {
     X,
     Y,
     Z,
+    Free { azimuth: f64, elevation: f64 },
 }
 impl SectionAxis {
     pub fn label(self) -> &'static str {
@@ -20,6 +21,7 @@ impl SectionAxis {
             Self::X => "X",
             Self::Y => "Y",
             Self::Z => "Z",
+            Self::Free { .. } => "Normalabstand",
         }
     }
     fn normal(self) -> ::glam::DVec3 {
@@ -27,6 +29,11 @@ impl SectionAxis {
             Self::X => ::glam::DVec3::X,
             Self::Y => ::glam::DVec3::Y,
             Self::Z => ::glam::DVec3::Z,
+            Self::Free { azimuth, elevation } => {
+                let (sy, cy) = azimuth.to_radians().sin_cos();
+                let (sp, cp) = elevation.to_radians().sin_cos();
+                ::glam::DVec3::new(cy * cp, sy * cp, sp)
+            }
         }
     }
 }
@@ -61,7 +68,21 @@ impl Solid {
     pub fn section(&self, axis: SectionAxis, percent: u8) -> Result<(Self, f64), String> {
         let (lo, hi) = self.bounds;
         let normal = axis.normal();
-        let offset = lo.lerp(hi, f64::from(percent) / 100.).dot(normal);
+        let (min, max) = match axis {
+            SectionAxis::Free { .. } => self
+                .mesh
+                .vertices
+                .iter()
+                .map(|p| p.dot(normal))
+                .fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), t| {
+                    (a.min(t), b.max(t))
+                }),
+            _ => (lo.dot(normal), hi.dot(normal)),
+        };
+        if !(min.is_finite() && max.is_finite() && max > min) {
+            return Err("Die Schnittrichtung oder Modellausdehnung ist ungültig.".into());
+        }
+        let offset = min + (max - min) * f64::from(percent) / 100.;
         let center = (lo + hi) * 0.5;
         let plane = center + normal * (offset - center.dot(normal));
         let mesh = rust_3d_print_studio::cad::clip(&self.mesh, plane, -normal)?;
@@ -359,6 +380,38 @@ mod tests {
                     .sum();
                 assert!((actual - area).abs() < 1e-3, "{actual} / {area}");
             }
+        }
+    }
+    #[test]
+    fn oblique_shell_section_uses_projected_mesh_extent() {
+        let project = rust_3d_print_studio::files::load(std::path::Path::new(
+            "examples/modelle/Seitlich-offene-Schale.r3dp",
+        ))
+        .unwrap();
+        let mut object = project.objects[0].clone();
+        let x0 = object.local_mesh().bounds().0.x;
+        object.rotation = ::glam::DVec3::new(0., 30., 135.);
+        object.position = ::glam::DVec3::new(111., 89., 47.);
+        let solid = Solid::new(&object);
+        let axis = SectionAxis::Free {
+            azimuth: 135.,
+            elevation: -30.,
+        };
+        let normal = axis.normal();
+        for percent in [25, 50, 75] {
+            let (cut, d) = solid.section(axis, percent).unwrap();
+            let expected = object.position.dot(normal) + x0 + 40. * f64::from(percent) / 100.;
+            assert!((d - expected).abs() < 1e-6);
+            assert!(cut.mesh.vertices.iter().all(|p| p.dot(normal) <= d + 1e-6));
+            let area: f64 = cut
+                .mesh
+                .faces
+                .iter()
+                .map(|f| f.map(|i| cut.mesh.vertices[i]))
+                .filter(|tri| tri.iter().all(|p| (p.dot(normal) - d).abs() < 1e-6))
+                .map(|[a, b, c]| (b - a).cross(c - a).length() / 2.)
+                .sum();
+            assert!((area - 184.).abs() < 1e-3, "{area}");
         }
     }
     #[test]

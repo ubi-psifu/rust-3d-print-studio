@@ -1,3 +1,7 @@
+# 0.19.0 · Freie Schnittebene
+
+Die Schalenvorschau erlaubt beliebige Richtungen über zwei Winkel in Grad. F1 erklärt die Winkel und den angezeigten Normalabstand.
+
 # 0.18.0 · Senkrechte Schalenschnitte
 
 Seitliche und frontale Schnittvorschau mit absoluter Plattenkoordinate, ausgerichteter Vorschaukamera und deutscher F1-Hilfe.

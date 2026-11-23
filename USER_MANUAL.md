@@ -4,6 +4,10 @@ Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der re
 
 ## Schalenvorschau
 
+Öffne **Keilschale.r3dp**, markiere die Schale und wähle im Inspektor **Frei geneigt**. Der Azimut dreht die Flächennormale in der Draufsicht von +X nach +Y. Der Höhenwinkel kippt die Flächennormale aus der Druckplattenebene in Richtung +Z oder −Z. Zum Ausprobieren verwende **45° Azimut**, **30° Höhenwinkel** und **50 % Schnittlage**.
+
+**Vorschau anzeigen** blickt auf die goldene Materialfläche. Die Schnittlage bezieht sich auf die tatsächliche Modellausdehnung entlang der Normalen. **Normalabstand** gibt den vorzeichenbehafteten Abstand der Ebene vom Ursprung der Druckplatte in Millimetern an. Mit **Esc** kehrst du zu den Eingaben zurück. **Ergebnis übernehmen** übernimmt die vollständige Schale.
+
 Öffne **Keilschale.r3dp** und markiere die Schale. Wähle im Inspektor **Seitlich** für einen Schnitt quer zur X-Achse der Druckplatte, **Frontal** für die Y-Achse oder **Horizontal** für die Z-Achse. Die **Schnittlage %** reicht von 1 bis 99 und bezieht sich auf die Ausdehnung der platzierten Schale entlang der gewählten Achse. Bei 50 % liegt die Ebene in der Mitte.
 
 **Vorschau anzeigen** zeigt den Teil auf der Seite der kleineren Koordinaten. Bei einem senkrechten Schnitt blickst du zunächst auf die freigelegte Fläche. Gold kennzeichnet das geschnittene Material. Die Schaltfläche **Schnitt bei … mm** zeigt Achse und absolute Plattenkoordinate an und schaltet zum vollständigen Entwurf um. **Bisherigen Körper anzeigen** zeigt zum Vergleich den bisherigen Projektstand. Drehe die Ansicht mit der rechten Maustaste. **Esc** führt zu deinen Eingaben zurück. **Ergebnis übernehmen** speichert die vollständige Schale als einen rückgängig machbaren Schritt. **F1** öffnet dieses Kapitel offline.
