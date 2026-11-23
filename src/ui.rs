@@ -1384,6 +1384,10 @@ impl Studio {
                     let section = if matches!(obj.feature, Some(Feature::Shell { .. })) {
                         match axis {
                             renderer::SectionAxis::Z => {}
+                            renderer::SectionAxis::Free { azimuth, elevation } => {
+                                view.yaw = azimuth.to_radians();
+                                view.pitch = elevation.to_radians();
+                            }
                             renderer::SectionAxis::X => {
                                 view.yaw = 0.;
                                 view.pitch = 0.25;
@@ -1894,7 +1898,7 @@ impl Studio {
                     ui.add_space(6.);
                     let feature = self.draft.as_ref().and_then(|d| d.feature.as_ref());
                     if matches!(feature, Some(Feature::Shell { .. })) {
-                        ui.horizontal(|ui| {
+                        ui.horizontal_wrapped(|ui| {
                             use renderer::SectionAxis::*;
                             ui.label("Schnitt");
                             for (axis, name) in [(X, "Seitlich"), (Y, "Frontal"), (Z, "Horizontal")]
@@ -1902,6 +1906,34 @@ impl Studio {
                                 ui.selectable_value(&mut self.section_axis, axis, name);
                             }
                         });
+                        let is_free =
+                            matches!(self.section_axis, renderer::SectionAxis::Free { .. });
+                        if ui.selectable_label(is_free, "Frei geneigt").clicked() && !is_free {
+                            self.section_axis = renderer::SectionAxis::Free {
+                                azimuth: 45.,
+                                elevation: 30.,
+                            };
+                        }
+                        if let renderer::SectionAxis::Free { azimuth, elevation } =
+                            &mut self.section_axis
+                        {
+                            ui.horizontal(|ui| {
+                                ui.label("Azimut");
+                                ui.add(
+                                    egui::DragValue::new(azimuth)
+                                        .speed(0.5)
+                                        .range(-180.0..=180.)
+                                        .suffix("°"),
+                                );
+                                ui.label("Höhenwinkel");
+                                ui.add(
+                                    egui::DragValue::new(elevation)
+                                        .speed(0.5)
+                                        .range(-90.0..=90.)
+                                        .suffix("°"),
+                                );
+                            });
+                        }
                         ui.add(
                             egui::Slider::new(&mut self.section_percent, 1..=99)
                                 .text("Schnittlage %"),

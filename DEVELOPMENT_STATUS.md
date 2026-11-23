@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## Freie Schnittebene 0.19.0
+
+Azimut und Höhenwinkel stellen die Flächennormale im Koordinatensystem der Druckplatte ein. Der Arbeitsthread projiziert das platzierte Netz auf diese Richtung. Der Geometrietest kontrolliert die Schnittposition, die verbleibende Seite und die Materialfläche einer um zwei Achsen gedrehten Schale bei drei Schnittlagen. Der Fenstertest bedient die freie Vorschau. Prüfergebnisse stehen in den Release Notes. Die Vorschau bleibt auf die oberste Aushöhlung beschränkt. Als nächstes steht die Erprobung eines exakten B-Rep-Körpers mit STEP-Rundlauf an.
+
 ## Schnittachsen 0.18.0
 
 Die Schalenvorschau bietet drei Schnittrichtungen in Plattenkoordinaten. Die isolierte Kamera richtet sich bei senkrechten Schnitten auf die Materialfläche. Der Geometrietest kontrolliert die erhaltene Körperhälfte und die Materialfläche bei drei Schnittlagen in X und Y nach einer 90°-Drehung. Der Linux-Fenstertest bedient beide neuen Richtungen. Prüfergebnisse stehen in den Release Notes. Frei geneigte Schnitte und die Abnahme mit Windows-11-Hardwaregrafik sind offen.

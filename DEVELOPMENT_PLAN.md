@@ -3,7 +3,7 @@
 ## Nächste Abnahmen
 
 1. Nach der erfolgreichen Windows-Server-Abnahme die Windows-11-Bedienung mit Hardware-Grafiktreiber prüfen. Für kurze Tastenkombinationen gibt es seit 0.12.2 Regressionstests und eine Fensterabnahme mit der portablen EXE.
-2. Für die Schalenvorschau eine frei geneigte Ebene mit numerisch einstellbarer Richtung ergänzen. Für gekrümmte Flächen und exakte Körper einen B-Rep-Kern erproben. STEP-Import und -Export benötigen einen geprüften Roundtrip.
+2. Als nächsten CAD-Schritt einen B-Rep-Kern für einen exakten zylindrischen Referenzkörper erproben. Den STEP-Rundlauf anhand von Radius, Höhe und geschlossener Topologie prüfen, bevor der Austausch in der Oberfläche freigegeben wird.
 3. Bei der Druckvorbereitung größere Importmodelle, Mehrfilament-Slicing und die physische Passung der Beispielteile prüfen.
 
 ## Ursprüngliche Entwicklungsphasen

@@ -79,3 +79,5 @@ R3DP v2 öffnet bestehende v1-Projekte. Speichern erzeugt v2. Die Rollen „para
 Der lokale Flächenbezug speichert Einheitsnormale und Stützpunkt im Koordinatensystem der auf einen Einheitswürfel normierten Hüllbox. Der Neuaufbau verlangt Deckung des Stützpunkts und genau eine kantenverbundene, gleich orientierte Dreiecksmenge in der Ebene. Seitenbezüge älterer R3DP-Projekte verwenden weiterhin die bisherigen Achsenextrema.
 
 Die Schalenvorschau schneidet das platzierte Netz im Berechnungsthread mit derselben booleschen Halbraumoperation wie das Schnittwerkzeug. Der Renderer färbt Dreiecke der Schnittebene im abgeleiteten Ansichtsnetz. Der Verlauf übernimmt den separat gehaltenen vollständigen Entwurf.
+
+Bei einer frei gerichteten Schnittebene bestimmt die Projektion der platzierten Netzeckpunkte auf die Einheitsnormale die beiden Grenzlagen. Damit entspricht die prozentuale Lage auch nach Drehungen der Ausdehnung des tatsächlichen Körpers.
