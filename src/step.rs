@@ -1,5 +1,4 @@
-//! Analytischer STEP-AP214-Export eines einzelnen Kreiszylinders.
-//! Die feste Topologie umfasst zwei Kreisränder, eine Mantelnaht und drei Flächen.
+//! Analytischer STEP-AP214-Export für Vollzylinder und konzentrische Rohre.
 use crate::{cad::Feature, geometry::Shape, project::Project};
 use glam::{DQuat, DVec3, EulerRot};
 use std::io::{self, Write};
@@ -54,22 +53,23 @@ fn xyz(v: DVec3) -> String {
 pub(crate) fn write_cylinder(mut out: impl Write, project: &Project) -> io::Result<()> {
     let [object] = project.objects.as_slice() else {
         return Err(io::Error::other(
-            "Für den STEP-Export genau einen Zylinder im Projekt verwenden.",
+            "Für den STEP-Export genau einen Zylinder oder ein Rohr im Projekt verwenden.",
         ));
     };
-    let size = match &object.feature {
-        Some(Feature::Primitive {
-            shape: Shape::Cylinder,
-            size,
-            ..
-        }) => *size,
-        None if object.shape == Shape::Cylinder => object.size,
+    let (shape, size, bore) = match &object.feature {
+        Some(Feature::Primitive { shape, size, bore }) => (*shape, *size, *bore),
+        None => (object.shape, object.size, object.bore),
         _ => {
             return Err(io::Error::other(
-                "STEP unterstützt derzeit einzelne unbearbeitete Kreiszylinder.",
+                "Bearbeitete Körper werden vom STEP-Export noch nicht unterstützt.",
             ))
         }
     };
+    if !matches!(shape, Shape::Cylinder | Shape::Tube) {
+        return Err(io::Error::other(
+            "Für STEP einen Kreiszylinder oder ein gerades Rohr verwenden.",
+        ));
+    }
     if size.x != size.y {
         return Err(io::Error::other(
             "Für einen Kreiszylinder müssen X- und Y-Durchmesser übereinstimmen.",
@@ -82,6 +82,23 @@ pub(crate) fn write_cylinder(mut out: impl Write, project: &Project) -> io::Resu
     let radius = size.x * 0.5;
     let bottom = object.position;
     let top = bottom + size.z * axis;
+    let hollow = shape == Shape::Tube;
+    let interior = if hollow {
+        if !(bore.is_finite() && bore > 0. && bore < size.x) {
+            return Err(io::Error::other(
+                "Die Bohrung muss kleiner als der Außendurchmesser und positiv sein.",
+            ));
+        }
+        let inner = bore * 0.5;
+        format!(
+            include_str!("tube-interior.step.in"),
+            radius = format_args!("{inner:.16E}"),
+            top_seam = xyz(top + inner * radial),
+            bottom_seam = xyz(bottom + inner * radial)
+        )
+    } else {
+        String::new()
+    };
     write!(
         out,
         include_str!("cylinder.step.in"),
@@ -91,6 +108,11 @@ pub(crate) fn write_cylinder(mut out: impl Write, project: &Project) -> io::Resu
                 .map_err(io::Error::other)?
                 .as_secs()
         )?,
+        product = if hollow { "Rohr" } else { "Zylinder" },
+        inner_face = if hollow { ",#101" } else { "" },
+        top_hole = if hollow { ",#120" } else { "" },
+        bottom_hole = if hollow { ",#123" } else { "" },
+        interior = interior,
         axis = xyz(axis),
         radial = xyz(radial),
         radius = format_args!("{radius:.16E}"),

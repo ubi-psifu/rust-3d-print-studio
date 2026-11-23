@@ -1048,7 +1048,7 @@ impl Studio {
             Some(
                 Dialog::File(FileTask::Write(Output::StepCylinder))
                 | Dialog::Overwrite(Output::StepCylinder),
-            ) => "Zylinder als STEP exportieren",
+            ) => "Zylinder oder Rohr als STEP exportieren",
             Some(Dialog::File(_) | Dialog::Overwrite(_) | Dialog::Discard(_)) => help::FILE,
             None => self.hover_help.unwrap_or(help::TOOLS[self.tool]),
         }
@@ -1076,8 +1076,8 @@ impl Studio {
  Dialog::Combine=>{ui.heading("Boolesche Operation");ui.label("Der ausgewählte Körper ist der Grundkörper.");ui.horizontal(|ui|{for(op,name)in [(Operation::Union,"Vereinigung"),(Operation::Difference,"Differenz"),(Operation::Intersection,"Schnittmenge")]{ui.selectable_value(&mut self.operation,op,name);}});ui.label("Werkzeugkörper");for(i,o)in self.p.objects.iter().enumerate(){if Some(i)!=self.sel{ui.selectable_value(&mut self.operand,i,&o.name);}}if ui.button("Berechnen und übernehmen").clicked(){self.combine();}ui.label(&self.message);},
  Dialog::Discard(a)=>{ui.heading("Ungespeicherte Änderungen");ui.label("Sollen die Änderungen verworfen werden?");if ui.button("Verwerfen und fortfahren").clicked(){self.proceed(a);}},
  Dialog::Overwrite(f)=>{ui.heading("Vorhandene Datei ersetzen?");ui.label(&self.entry);if ui.button("Datei ersetzen").clicked(){self.write(f,true);}},
- Dialog::File(t)=>{ui.heading(match t{FileTask::Import=>"Netz importieren",FileTask::Svg=>"SVG-Relief laden",FileTask::Open=>"Projekt öffnen",FileTask::Profile=>"Druckerprofil laden",FileTask::Write(Output::Project)=>"Projekt speichern",FileTask::Write(Output::StepCylinder)=>"Zylinder als STEP exportieren",_=>"Netz exportieren"});ui.label("Dateipfad mit Endung");ui.text_edit_singleline(&mut self.entry);
- if matches!(t,FileTask::Write(Output::StepCylinder)){ui.label("Ein einzelner unbearbeiteter Kreiszylinder mit gleichem X- und Y-Durchmesser. Position und Drehung werden übernommen.");}
+ Dialog::File(t)=>{ui.heading(match t{FileTask::Import=>"Netz importieren",FileTask::Svg=>"SVG-Relief laden",FileTask::Open=>"Projekt öffnen",FileTask::Profile=>"Druckerprofil laden",FileTask::Write(Output::Project)=>"Projekt speichern",FileTask::Write(Output::StepCylinder)=>"Zylinder oder Rohr als STEP exportieren",_=>"Netz exportieren"});ui.label("Dateipfad mit Endung");ui.text_edit_singleline(&mut self.entry);
+ if matches!(t,FileTask::Write(Output::StepCylinder)){ui.label("Ein unbearbeiteter Kreiszylinder oder ein gerades Rohr. X und Y müssen gleich sein. Beim Rohr bestimmt die Bohrung den Innendurchmesser. Position und Drehung werden übernommen.");}
  if matches!(t,FileTask::Import){ui.label("Geschlossene STL-, OBJ-, ASCII-PLY- oder Modell-3MF-Geometrie");ui.horizontal(|ui|{ui.label("STL/OBJ/PLY-Einheit");ui.selectable_value(&mut self.unit,1.,"mm");ui.selectable_value(&mut self.unit,10.,"cm");ui.selectable_value(&mut self.unit,25.4,"Zoll");});ui.checkbox(&mut self.auto_place,"Zusammen auf der Platte absetzen");}
  if matches!(t,FileTask::Write(Output::Stl|Output::StlAscii|Output::Ply|Output::Obj|Output::ThreeMf)){ui.label("Exportiert Dreiecksnetze in mm. Konstruktionsparameter bleiben im R3DP-Projekt.");}
  if ui.button("Bestätigen").clicked(){self.file_submit(t);}
@@ -1157,7 +1157,10 @@ impl Studio {
                     ("PLY ASCII exportieren …", Output::Ply),
                     ("3MF exportieren …", Output::ThreeMf),
                     ("OBJ exportieren …", Output::Obj),
-                    ("Zylinder als STEP exportieren …", Output::StepCylinder),
+                    (
+                        "Zylinder oder Rohr als STEP exportieren …",
+                        Output::StepCylinder,
+                    ),
                 ] {
                     if item(ui, label) {
                         self.choose(FileTask::Write(f))

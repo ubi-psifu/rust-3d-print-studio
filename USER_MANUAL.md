@@ -2,11 +2,13 @@
 
 Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der rechten Maustaste anklicken und unter **Öffnen mit** Rust 3D Print Studio auswählen.
 
-## Zylinder als STEP exportieren
+## Zylinder oder Rohr als STEP exportieren
 
-Öffne **Referenzzylinder.r3dp** und wähle **Datei → Zylinder als STEP exportieren …**. Gib einen lokalen Pfad mit der Endung **.step** oder **.stp** an. Der Export schreibt den Kreismantel, beide ebenen Stirnflächen und ihre gemeinsamen Kanten als geschlossenen CAD-Körper in Millimetern. Position und Drehung auf der Druckplatte werden übernommen. Zum Ändern von Durchmesser oder Höhe öffne das R3DP-Projekt und übernimm die neuen Parameter vor dem Export.
+Öffne **examples/modelle/Referenzrohr.r3dp**. Das Rohr hat 14 mm Außendurchmesser, 8 mm Bohrungsdurchmesser und 19 mm Höhe. Ändere die Maße im Inspektor. X und Y müssen gleich sein, der Bohrungsdurchmesser muss kleiner als der Außendurchmesser sein.
 
-Das Projekt muss genau einen unbearbeiteten Kreiszylinder mit gleichem X- und Y-Durchmesser enthalten. Zusätzliche Objekte, elliptische Querschnitte und bearbeitete Körper werden mit einer Meldung zurückgewiesen. Der STEP-Import in das Studio ist noch offen.
+Wähle **Datei → Zylinder oder Rohr als STEP exportieren …** und gib einen lokalen Pfad mit der Endung **.step** oder **.stp** an. Die Datei enthält Außenmantel, Innenmantel und zwei ringförmige Stirnflächen. Position und Drehung auf der Platte werden übernommen. Für einen Vollzylinder verwende **Referenzzylinder.r3dp**.
+
+Der Export unterstützt genau einen unbearbeiteten Kreiszylinder oder ein gerades konzentrisches Rohr pro Projekt. Zusätzliche Objekte, elliptische Querschnitte und bearbeitete Körper werden mit einer Meldung zurückgewiesen. Der allgemeine STEP-Import ist offen.
 
 ## Schalenvorschau
 
@@ -153,7 +155,7 @@ Im Menü **Datei** den Befehl wählen und einen vollständigen Dateipfad samt En
 | ASCII-STL | Dreiecksnetz | Netz in mm |
 | ASCII-PLY 1.0 | XYZ und indizierte Polygonflächen eines geschlossenen Netzes | Eine indizierte Dreiecksgeometrie in mm |
 | SVG | Geschlossene Konturen als Relief | Schichtzeichnungen |
-| STEP/STP | Offen | Einzelner Kreiszylinder |
+| STEP/STP | Offen | Einzelner Kreiszylinder oder gerades Rohr |
 | Binäres PLY, GLTF/GLB, G-Code | Offen | Offen |
 
 „Offen“ bezeichnet eine ausstehende Funktion. Netzexport überträgt Geometrie. Zum späteren Ändern der Konstruktionsparameter zusätzlich das R3DP-Projekt speichern. Ein Standard-3MF aus dem Studio enthält keine Bambu-Druckaufträge. In Bambu Studio die Datei manuell öffnen und die aktuellen Maschinen-, Prozess- und Filamentprofile prüfen.

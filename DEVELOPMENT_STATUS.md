@@ -1,5 +1,9 @@
 # Entwicklungsstand
 
+## Gerade Rohre als STEP · 0.21.0
+
+Der STEP-Export übernimmt den Bohrungsdurchmesser aus dem Grundkörper oder dessen primitiver Konstruktionshistorie. Die unabhängige Abnahme kontrolliert beide Radien, vier Flächen, geschlossene Topologie, Volumen und Materiallage vor und nach einem STEP-Rundlauf. Plattformprüfungen siehe Release Notes. Offen sind versetzte Bohrungen, STEP-Import und weitere Körpertypen.
+
 ## STEP für Kreiszylinder 0.20.0
 
 Der Offline-Export schreibt einen analytischen AP214-Volumenkörper aus einem einzelnen Zylinder. Der Referenzkörper hat 7 mm Radius, 19 mm Höhe und 30° Neigung. Open CASCADE hat den Rust-Export eingelesen, als STEP geschrieben und erneut eingelesen. Beide Kontrollen bestätigten einen gültigen geschlossenen Körper mit drei Flächen, Radius, Höhe, Position, Ausrichtung und Volumen. Der Rust-Test kontrolliert den Erhalt einer bestehenden Zieldatei bei ungeeigneten Modellen. Die Plattformprüfungen stehen in den Release Notes.
