@@ -1,4 +1,4 @@
-//! Export eines Kreiszylinders, Rohrs oder Bohrquaders aus einer R3DP-Datei.
+//! Export aller unterstützten Körper aus einer R3DP-Datei.
 use rust_3d_print_studio::files::{load, save, Output};
 use std::{io, path::PathBuf};
 
