@@ -13,7 +13,7 @@ Eine deutschsprachige Desktop-Anwendung zum Konstruieren von 3D-Druckteilen und 
 | Windows x64 | Starte `dist/rust-3d-print-studio.exe` direkt oder installiere das Studio mit `dist/Rust-3D-Print-Studio-Setup-x64.exe`. |
 | Linux x86-64 | Führe im entpackten Ordner `chmod +x dist/rust-3d-print-studio-linux-x64` und anschließend `./dist/rust-3d-print-studio-linux-x64` aus. Die Oberfläche benötigt X11 und OpenGL. |
 
-Version 0.21.0 exportiert einzelne Kreiszylinder und gerade Rohre lokal als exakte STEP-Körper. Öffne **Referenzrohr.r3dp** und wähle **Datei → Zylinder oder Rohr als STEP exportieren …**. Bei Version 0.12.1 wurden Installation und Deinstallation auf Windows Server 2022 geprüft. Das portable Studio öffnete und speicherte ein Beispielprojekt mit Software-OpenGL. Die Prüfung auf Windows 11 mit Hardware-Grafiktreiber steht aus. Für macOS gibt es in diesem Release kein fertiges Paket. [Prüfstand](DEVELOPMENT_STATUS.md)
+Version 0.22.0 exportiert einzelne Kreiszylinder, gerade Rohre und Bohrquader lokal als exakte STEP-Körper. Öffne **Referenzbohrquader.r3dp** und wähle **Datei → CAD-Körper als STEP exportieren …**. Bei Version 0.12.1 wurden Installation und Deinstallation auf Windows Server 2022 geprüft. Das portable Studio öffnete und speicherte ein Beispielprojekt mit Software-OpenGL. Die Prüfung auf Windows 11 mit Hardware-Grafiktreiber steht aus. Für macOS gibt es in diesem Release kein fertiges Paket. [Prüfstand](DEVELOPMENT_STATUS.md)
 
 ## Zwei Dinge zum Ausprobieren
 
@@ -24,10 +24,10 @@ Version 0.21.0 exportiert einzelne Kreiszylinder und gerade Rohre lokal als exak
 
 ## Modellierung und Datenaustausch
 
-| Aufgabe | Umfang in 0.21.0 |
+| Aufgabe | Umfang in 0.22.0 |
 | --- | --- |
 | Konstruieren | Skizzen mit Abstands-, Winkel- und Radiusmaßen, Extrusion, Sweep, Loft, Rotation und boolesche Netzoperationen. Projekte im Format R3DP erhalten die Konstruktionsparameter. |
-| Modelle austauschen | STL, OBJ, einfache 3MF-Modellcontainer und ASCII-PLY für Dreiecksnetze. SVG-Konturen lassen sich als Relief verwenden. STEP-Export für einzelne Kreiszylinder und gerade Rohre. Allgemeiner STEP-Import und weitere exakte Körper sind offen. |
+| Modelle austauschen | STL, OBJ, einfache 3MF-Modellcontainer und ASCII-PLY für Dreiecksnetze. SVG-Konturen lassen sich als Relief verwenden. STEP-Export für einzelne Kreiszylinder, gerade Rohre und Bohrquader. Allgemeiner STEP-Import und weitere exakte Körper sind offen. |
 | Druck vorbereiten | P1S-Profil, Bauraumprüfung und geometrische Schichtvorschau im Studio. Die eigene Schichtplanung kann Konturen und Fülllinien als SVG-Stapel exportieren. |
 | Lokal slicen | Für druckerspezifische Werkzeugwege verwendet das Studio eine separat installierte Bambu-Studio-CLI und eine passende P1S-Projektvorlage. Ein einfacher Modell-3MF-Export überträgt Geometrie. |
 

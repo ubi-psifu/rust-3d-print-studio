@@ -1,5 +1,7 @@
 # Analytischer STEP-Export
 
+Der Bohrquader hat eine eigene feste AP214-Topologie. Acht Außenecken, die Naht der Innenwand und die Flächenachsen werden aus den ungerundeten lokalen Parametern in das Plattenkoordinatensystem transformiert. Die sechs Außenflächen teilen sich ihre Kanten, beide Stirnflächen teilen die Kreisränder mit der Bohrung.
+
 Vollzylinder und Rohr teilen sich Mantel, Stirnebenen und das lokale Achsensystem. Beim Rohr ergänzt der Schreiber einen nach innen gerichteten Zylindermantel und je einen Innenrand der Stirnflächen. Er verwendet die Parameter vor der Tessellierung. Open CASCADE prüft exportierte Dateien unabhängig und wird nur für die Abnahme benötigt.
 
 # Kreisradius ab 0.12

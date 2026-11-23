@@ -2,13 +2,15 @@
 
 Unter Windows kannst du nach der Installation ein Projekt im Explorer mit der rechten Maustaste anklicken und unter **Öffnen mit** Rust 3D Print Studio auswählen.
 
-## Zylinder oder Rohr als STEP exportieren
+## CAD-Körper als STEP exportieren
+
+Öffne **examples/modelle/Referenzbohrquader.r3dp** und wähle den Bohrquader im Objektbaum. Ändere im Inspektor Breite, Tiefe, Höhe oder Bohrungsdurchmesser. Der Durchmesser muss kleiner als Breite und Tiefe sein. **Datei → CAD-Körper als STEP exportieren …** schreibt sechs ebene Außenflächen und eine zylindrische Innenfläche. Position und Drehung werden übernommen. Die Durchgangsbohrung sitzt mittig und folgt der lokalen Z-Achse.
 
 Öffne **examples/modelle/Referenzrohr.r3dp**. Das Rohr hat 14 mm Außendurchmesser, 8 mm Bohrungsdurchmesser und 19 mm Höhe. Ändere die Maße im Inspektor. X und Y müssen gleich sein, der Bohrungsdurchmesser muss kleiner als der Außendurchmesser sein.
 
-Wähle **Datei → Zylinder oder Rohr als STEP exportieren …** und gib einen lokalen Pfad mit der Endung **.step** oder **.stp** an. Die Datei enthält Außenmantel, Innenmantel und zwei ringförmige Stirnflächen. Position und Drehung auf der Platte werden übernommen. Für einen Vollzylinder verwende **Referenzzylinder.r3dp**.
+Wähle **Datei → CAD-Körper als STEP exportieren …** und gib einen lokalen Pfad mit der Endung **.step** oder **.stp** an. Die Datei enthält Außenmantel, Innenmantel und zwei ringförmige Stirnflächen. Position und Drehung auf der Platte werden übernommen. Für einen Vollzylinder verwende **Referenzzylinder.r3dp**.
 
-Der Export unterstützt genau einen unbearbeiteten Kreiszylinder oder ein gerades konzentrisches Rohr pro Projekt. Zusätzliche Objekte, elliptische Querschnitte und bearbeitete Körper werden mit einer Meldung zurückgewiesen. Der allgemeine STEP-Import ist offen.
+Der Export unterstützt genau einen unbearbeiteten Kreiszylinder, ein gerades konzentrisches Rohr oder einen Bohrquader pro Projekt. Zusätzliche Objekte, elliptische Querschnitte und bearbeitete Körper werden mit einer Meldung zurückgewiesen. Der allgemeine STEP-Import ist offen.
 
 ## Schalenvorschau
 
@@ -155,7 +157,7 @@ Im Menü **Datei** den Befehl wählen und einen vollständigen Dateipfad samt En
 | ASCII-STL | Dreiecksnetz | Netz in mm |
 | ASCII-PLY 1.0 | XYZ und indizierte Polygonflächen eines geschlossenen Netzes | Eine indizierte Dreiecksgeometrie in mm |
 | SVG | Geschlossene Konturen als Relief | Schichtzeichnungen |
-| STEP/STP | Offen | Einzelner Kreiszylinder oder gerades Rohr |
+| STEP/STP | Offen | Kreiszylinder, gerades Rohr oder Bohrquader |
 | Binäres PLY, GLTF/GLB, G-Code | Offen | Offen |
 
 „Offen“ bezeichnet eine ausstehende Funktion. Netzexport überträgt Geometrie. Zum späteren Ändern der Konstruktionsparameter zusätzlich das R3DP-Projekt speichern. Ein Standard-3MF aus dem Studio enthält keine Bambu-Druckaufträge. In Bambu Studio die Datei manuell öffnen und die aktuellen Maschinen-, Prozess- und Filamentprofile prüfen.

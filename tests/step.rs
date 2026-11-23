@@ -41,3 +41,19 @@ fn step_tube_uses_feature_diameter_for_the_inner_wall() {
     assert_eq!(step.matches("CYLINDRICAL_SURFACE").count(), 2);
     assert!(step.contains("CYLINDRICAL_SURFACE('',#46,3.0000000000000000E0)"));
 }
+
+#[test]
+fn bored_box_keeps_independent_width_and_depth() {
+    let mut project = load(Path::new("examples/modelle/Referenzbohrquader.r3dp")).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("Quader.step");
+    project.objects[0].size.x = 36.;
+    project.objects[0].bore = 5.;
+    save(&path, &project, Output::StepCylinder, false).unwrap();
+    let original = std::fs::read_to_string(&path).unwrap();
+    assert_eq!(original.matches("ADVANCED_FACE(").count(), 7);
+    assert!(original.contains("CYLINDRICAL_SURFACE('',#200,2.5000000000000000E0)"));
+    project.objects[0].bore = project.objects[0].size.y;
+    assert!(save(&path, &project, Output::StepCylinder, true).is_err());
+    assert_eq!(original, std::fs::read_to_string(path).unwrap());
+}
